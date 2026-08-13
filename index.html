@@ -6,16 +6,34 @@
   <title>GET - Goutier Explorer Team</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#D4AF37',     // Accent gold
+              goldLight: '#F3E5AB',// Hover gold
+              brownDark: '#2C1A0E',// Deep brown
+              brownCard: '#3A2415',// Card background brown
+              black: '#121212'     // Dark background
+            }
+          }
+        }
+      }
+    }
+  </script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+<body class="bg-brand-black text-amber-100 min-h-screen font-sans">
 
-  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+  <header class="border-b border-brand-brownCard bg-brand-brownDark/90 backdrop-blur sticky top-0 z-50">
     <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <span class="bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded text-lg tracking-wider">GET</span>
-        <h1 class="text-xl font-bold tracking-tight text-white">Goutier Explorer Team</h1>
+        <span class="bg-brand-gold text-brand-black font-black px-2.5 py-1 rounded text-lg tracking-wider">GET</span>
+        <h1 class="text-xl font-bold tracking-tight text-brand-gold">Goutier Explorer Team</h1>
       </div>
-      <button id="logout-btn" class="hidden text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-1.5 px-4 rounded-lg transition">
+      <button id="logout-btn" class="hidden text-sm bg-brand-brownCard hover:bg-brand-brownDark text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-4 rounded-lg transition">
         Sign Out
       </button>
     </div>
@@ -23,27 +41,37 @@
 
   <main class="max-w-4xl mx-auto px-4 py-8">
 
-    <div id="auth-container" class="max-w-md mx-auto my-12 bg-slate-800/50 border border-slate-700/50 p-8 rounded-2xl shadow-xl">
-      <h2 id="auth-title" class="text-2xl font-bold text-center mb-2 text-white">Family Access</h2>
-      <p class="text-slate-400 text-sm text-center mb-6">Sign in to access the GET portal.</p>
+    <div id="auth-container" class="max-w-md mx-auto my-8 bg-brand-brownCard border border-brand-gold/30 p-8 rounded-2xl shadow-2xl">
+      
+      <div class="flex justify-center mb-6">
+        <img 
+          src="https://raw.githubusercontent.com/fostergoutier/Goutier-Explorer-Team/main/GET%20MAIN%20LOGO%20FINISH.png" 
+          alt="Goutier Explorer Team Logo" 
+          class="h-32 object-contain drop-shadow-md"
+          onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=GET+Logo';"
+        />
+      </div>
+
+      <h2 id="auth-title" class="text-2xl font-bold text-center mb-2 text-brand-gold">Family Access</h2>
+      <p class="text-amber-200/70 text-sm text-center mb-6">Sign in to access the GET portal.</p>
       
       <form id="auth-form" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1">Email</label>
-          <input type="email" id="email" required placeholder="family@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-amber-500" />
+          <label class="block text-sm font-medium text-amber-100 mb-1">Email</label>
+          <input type="email" id="email" required placeholder="family@example.com" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-4 py-2.5 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
-          <input type="password" id="password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-amber-500" />
+          <label class="block text-sm font-medium text-amber-100 mb-1">Password</label>
+          <input type="password" id="password" required placeholder="••••••••" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-4 py-2.5 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold" />
         </div>
         
-        <button type="submit" id="auth-submit-btn" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-lg transition mt-2">
+        <button type="submit" id="auth-submit-btn" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition mt-2 shadow-lg">
           Sign In
         </button>
       </form>
 
       <div class="mt-4 text-center">
-        <button id="toggle-auth-mode" class="text-xs text-amber-400 hover:underline">
+        <button id="toggle-auth-mode" class="text-xs text-brand-gold hover:underline">
           Need an account? Sign Up
         </button>
       </div>
@@ -53,173 +81,5 @@
 
     <div id="app-container" class="hidden space-y-8">
       
-      <section class="bg-slate-800/50 border border-slate-700/50 p-6 rounded-2xl shadow-lg">
-        <h3 class="text-lg font-bold text-white mb-3">Share an Explorer Log</h3>
-        <textarea id="post-content" rows="3" placeholder="What's the latest update, GET team?" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500"></textarea>
-        <div class="flex justify-between items-center mt-3">
-          <span id="user-display" class="text-xs text-slate-400">Logged in as: </span>
-          <button id="post-btn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition">
-            Post Update
-          </button>
-        </div>
-      </section>
-
-      <section>
-        <h3 class="text-lg font-bold text-white mb-4">Expedition Feed</h3>
-        <div id="posts-feed" class="space-y-4">
-          <p class="text-slate-500 text-center py-8">Loading logs...</p>
-        </div>
-      </section>
-
-    </div>
-
-  </main>
-
-  <script>
-    // -------------------------------------------------------------
-    // REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS
-    // -------------------------------------------------------------
-    const SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // State Variables
-    let isSignUpMode = false;
-
-    // DOM Elements
-const SUPABASE_URL = "sb_publishable_Sh5qd5BzgGCPBEGi3sVAVw_dr7qmNke"; // Replace with your actual Project URL
-const SUPABASE_ANON_KEY = "sb_secret_kLbMG-ZhZXTIhE0qXjZVZw_-tQtV5pv";
-    const authForm = document.getElementById('auth-form');
-    const authTitle = document.getElementById('auth-title');
-    const authSubmitBtn = document.getElementById('auth-submit-btn');
-    const toggleAuthBtn = document.getElementById('toggle-auth-mode');
-    const authError = document.getElementById('auth-error');
-    const logoutBtn = document.getElementById('logout-btn');
-    const userDisplay = document.getElementById('user-display');
-    const postContent = document.getElementById('post-content');
-    const postBtn = document.getElementById('post-btn');
-    const postsFeed = document.getElementById('posts-feed');
-
-    // 1. Check Login State on Page Load
-    async function checkUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        showApp(user);
-      } else {
-        showAuth();
-      }
-    }
-
-    function showApp(user) {
-      authContainer.classList.add('hidden');
-      appContainer.classList.remove('hidden');
-      logoutBtn.classList.remove('hidden');
-      userDisplay.textContent = `Logged in as: ${user.email}`;
-      fetchPosts();
-    }
-
-    function showAuth() {
-      authContainer.classList.remove('hidden');
-      appContainer.classList.add('hidden');
-      logoutBtn.classList.add('hidden');
-    }
-
-    // 2. Toggle Auth Mode (Login vs Sign Up)
-    toggleAuthBtn.addEventListener('click', () => {
-      isSignUpMode = !isSignUpMode;
-      authTitle.textContent = isSignUpMode ? "Create Account" : "Family Access";
-      authSubmitBtn.textContent = isSignUpMode ? "Sign Up" : "Sign In";
-      toggleAuthBtn.textContent = isSignUpMode ? "Already have an account? Sign In" : "Need an account? Sign Up";
-      authError.classList.add('hidden');
-    });
-
-    // 3. Handle Form Submit (Login / Sign Up)
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      authError.classList.add('hidden');
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      let result;
-      if (isSignUpMode) {
-        result = await supabase.auth.signUp({ email, password });
-      } else {
-        result = await supabase.auth.signInWithPassword({ email, password });
-      }
-
-      if (result.error) {
-        authError.textContent = result.error.message;
-        authError.classList.remove('hidden');
-      } else {
-        if (isSignUpMode && !result.data.session) {
-          alert("Account created! Check your email to confirm registration.");
-        } else {
-          showApp(result.data.user);
-        }
-      }
-    });
-
-    // 4. Handle Logout
-    logoutBtn.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      showAuth();
-    });
-
-    // 5. Fetch Posts from Database
-    async function fetchPosts() {
-      const { data: posts, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        postsFeed.innerHTML = `<p class="text-red-400">Failed to load posts.</p>`;
-        return;
-      }
-
-      if (posts.length === 0) {
-        postsFeed.innerHTML = `<p class="text-slate-500 text-center py-4">No logs added yet. Be the first!</p>`;
-        return;
-      }
-
-      postsFeed.innerHTML = posts.map(post => `
-        <div class="bg-slate-800/40 border border-slate-700/50 p-4 rounded-xl">
-          <p class="text-slate-200">${escapeHtml(post.content)}</p>
-          <div class="flex justify-between items-center mt-3 text-xs text-slate-400">
-            <span>${escapeHtml(post.user_email)}</span>
-            <span>${new Date(post.created_at).toLocaleDateString()}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // 6. Create New Post
-    postBtn.addEventListener('click', async () => {
-      const content = postContent.value.trim();
-      if (!content) return;
-
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { error } = await supabase.from('posts').insert([
-        { content, user_email: user.email }
-      ]);
-
-      if (error) {
-        alert("Error sharing post: " + error.message);
-      } else {
-        postContent.value = '';
-        fetchPosts();
-      }
-    });
-
-    // Utility function to avoid HTML injection
-    function escapeHtml(text) {
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // Initialize
-    checkUser();
-  </script>
-</body>
-</html>
+      <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
+        <h3 class="text

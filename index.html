@@ -80,14 +80,17 @@
           </div>
         </div>
 
-        <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full md:w-auto">
-          <button id="tab-dashboard-btn" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition">
+        <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full md:w-auto overflow-x-auto">
+          <button id="tab-dashboard-btn" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition whitespace-nowrap">
             Dashboard
           </button>
-          <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
+          <button id="tab-prepping-btn" onclick="switchTab('prepping')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+            🎒 Prepping
+          </button>
+          <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             Team Chat
           </button>
-          <button id="tab-resources-btn" onclick="switchTab('resources')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
+          <button id="tab-resources-btn" onclick="switchTab('resources')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             Resources
           </button>
         </div>
@@ -95,82 +98,112 @@
 
       <div id="view-dashboard" class="space-y-6">
         
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🛡️</span>
+            <div>
+              <h3 class="text-xs uppercase tracking-wider text-amber-200/60 font-semibold">Team Operational Readiness Posture</h3>
+              <p id="readiness-label" class="text-sm font-bold text-emerald-400">LEVEL 1: Normal Operations</p>
+            </div>
+          </div>
+
+          <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full sm:w-auto">
+            <button onclick="setReadinessLevel(1)" id="readiness-lvl-1" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold bg-emerald-500/30 text-emerald-300 border border-emerald-500/50">L1 Normal</button>
+            <button onclick="setReadinessLevel(2)" id="readiness-lvl-2" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold text-amber-200/60 hover:text-amber-300">L2 Alert</button>
+            <button onclick="setReadinessLevel(3)" id="readiness-lvl-3" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold text-amber-200/60 hover:text-red-400">L3 Emergency</button>
+          </div>
+        </section>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-            <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3 mb-4">
+            <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3 mb-3">
               <div>
                 <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-                  <span>🌤️</span> Weather
+                  <span>🌤️</span> Weather & Sun
                 </h3>
                 <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
               </div>
-              <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
+              <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1 px-2.5 rounded-lg transition flex items-center gap-1">
                 <span>📍</span> Location
               </button>
             </div>
 
-            <div id="weather-content" class="grid grid-cols-2 gap-3 text-center">
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-                <p class="text-xs text-amber-200/60 mb-0.5">Temp</p>
-                <p id="weather-temp" class="text-lg font-bold text-brand-gold">--°C</p>
+            <div id="weather-content" class="grid grid-cols-2 gap-2 text-center text-xs">
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p class="text-amber-200/60 text-[10px] uppercase">Temp</p>
+                <p id="weather-temp" class="text-base font-bold text-brand-gold">--°C</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-                <p class="text-xs text-amber-200/60 mb-0.5">Condition</p>
-                <p id="weather-condition" class="text-xs font-semibold text-amber-100">Loading...</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p class="text-amber-200/60 text-[10px] uppercase">Condition</p>
+                <p id="weather-condition" class="font-semibold text-amber-100">Loading...</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-                <p class="text-xs text-amber-200/60 mb-0.5">Wind</p>
-                <p id="weather-wind" class="text-xs font-semibold text-amber-100">-- km/h</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p class="text-amber-200/60 text-[10px] uppercase">Wind</p>
+                <p id="weather-wind" class="font-semibold text-amber-100">-- km/h</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-                <p class="text-xs text-amber-200/60 mb-0.5">Humidity</p>
-                <p id="weather-humidity" class="text-xs font-semibold text-amber-100">--%</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p class="text-amber-200/60 text-[10px] uppercase">Sunset</p>
+                <p id="weather-sunset" class="font-semibold text-amber-100">--:--</p>
               </div>
+            </div>
+
+            <div class="mt-3 bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl text-center">
+              <p class="text-[10px] text-amber-200/60 uppercase">Remaining Daylight</p>
+              <p id="daylight-countdown" class="text-xs font-bold text-brand-gold">Calculating...</p>
             </div>
           </section>
 
           <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
             <div class="border-b border-brand-gold/20 pb-3 mb-3 flex justify-between items-center">
               <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-                <span>🚨</span> Disaster Alert
+                <span>🚨</span> Alerts & Space Weather
               </h3>
-              <span id="alert-status-badge" class="text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/40 px-2.5 py-1 rounded-full">Checking...</span>
+              <span id="alert-status-badge" class="text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full">All Clear</span>
             </div>
 
-            <div id="alert-box" class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl my-2 text-center flex-grow flex flex-col justify-center items-center">
-              <p id="alert-icon" class="text-3xl mb-1">🛡️</p>
-              <p id="alert-title" class="text-sm font-bold text-emerald-400">All Clear</p>
-              <p id="alert-desc" class="text-xs text-amber-200/70 mt-1">No active severe weather or disaster alerts reported for this area.</p>
+            <div id="alert-box" class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl text-center flex-grow flex flex-col justify-center items-center mb-2">
+              <p id="alert-icon" class="text-2xl mb-1">🛡️</p>
+              <p id="alert-title" class="text-xs font-bold text-emerald-400">Terrestrial: All Clear</p>
+              <p id="alert-desc" class="text-[11px] text-amber-200/70 mt-0.5">No active regional hazard or severe weather alerts.</p>
             </div>
 
-            <p class="text-[10px] text-amber-200/40 text-center">Live Monitoring System</p>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center text-xs">
+              <div class="flex items-center gap-2">
+                <span>☀️</span>
+                <div>
+                  <p class="font-semibold text-amber-100">Geomagnetic / GPS</p>
+                  <p class="text-[10px] text-amber-200/60">Solar activity monitor</p>
+                </div>
+              </div>
+              <span id="solar-kp-badge" class="font-bold text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-lg">Kp 2 Normal</span>
+            </div>
           </section>
 
           <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
             <div class="border-b border-brand-gold/20 pb-3 mb-4 flex justify-between items-center">
               <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-                <span>🎂</span> Birthday Countdown
+                <span>🎂</span> Birthday Timer
               </h3>
               <span id="next-bday-name" class="text-xs font-semibold bg-brand-gold/20 text-brand-gold border border-brand-gold/40 px-2.5 py-1 rounded-full">--</span>
             </div>
 
-            <div class="grid grid-cols-4 gap-2 text-center my-2">
+            <div class="grid grid-cols-4 gap-2 text-center my-1">
               <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-days" class="text-xl font-bold text-brand-gold">00</p>
-                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Days</p>
+                <p id="bday-days" class="text-lg font-bold text-brand-gold">00</p>
+                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Days</p>
               </div>
               <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-hours" class="text-xl font-bold text-brand-gold">00</p>
-                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Hours</p>
+                <p id="bday-hours" class="text-lg font-bold text-brand-gold">00</p>
+                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Hours</p>
               </div>
               <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-mins" class="text-xl font-bold text-brand-gold">00</p>
-                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Mins</p>
+                <p id="bday-mins" class="text-lg font-bold text-brand-gold">00</p>
+                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Mins</p>
               </div>
               <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-secs" class="text-xl font-bold text-brand-gold">00</p>
-                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Secs</p>
+                <p id="bday-secs" class="text-lg font-bold text-brand-gold">00</p>
+                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Secs</p>
               </div>
             </div>
 
@@ -179,13 +212,68 @@
 
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-3">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+              <span>📡</span> Emergency Radio Comms
+            </h3>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-brand-gold font-bold">PMR446 Ch 3</p>
+                <p class="text-[11px] text-amber-100/80">446.03125 MHz (Team Main)</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-brand-gold font-bold">PMR446 Ch 8</p>
+                <p class="text-[11px] text-amber-100/80">446.09375 MHz (Prepper Standard)</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-brand-gold font-bold">Marine VHF Ch 16</p>
+                <p class="text-[11px] text-amber-100/80">156.800 MHz (Distress/Safety)</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-brand-gold font-bold">CB Channel 9</p>
+                <p class="text-[11px] text-amber-100/80">27.065 MHz (Emergency)</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-3">
+            <div class="flex justify-between items-center border-b border-brand-gold/20 pb-3">
+              <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+                <span>🙋</span> Team Safety Roll-Call
+              </h3>
+              <span class="text-[11px] text-amber-200/60">Live Status</span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center">
+                <span class="font-semibold text-amber-100">Kevin</span>
+                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-[11px] font-bold">🟢 Safe at Base</span>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center">
+                <span class="font-semibold text-amber-100">Nikita</span>
+                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-[11px] font-bold">🟢 Safe at Base</span>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center">
+                <span class="font-semibold text-amber-100">Hailey-Jade</span>
+                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-[11px] font-bold">🟢 Safe at Base</span>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+      </div>
+
+      <div id="view-prepping" class="hidden space-y-6">
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-brand-gold/20 pb-4">
             <div>
               <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
                 <span>🎒</span> Emergency Prepping Gear Checklist
               </h3>
-              <p class="text-xs text-amber-200/60">Essential readiness gear lists for quick deployment.</p>
+              <p class="text-xs text-amber-200/60">Comprehensive gear lists for deployment & survival.</p>
             </div>
 
             <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full sm:w-auto">
@@ -193,7 +281,7 @@
                 Bug Out Bag (72h)
               </button>
               <button id="prep-btn-car" onclick="switchPrepCategory('car')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
-                Car Emergency Kit
+                Car Kit
               </button>
               <button id="prep-btn-home" onclick="switchPrepCategory('home')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
                 Home Shelter
@@ -204,7 +292,6 @@
           <div id="prep-items-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             </div>
         </section>
-
       </div>
 
       <div id="view-chat" class="hidden space-y-6">
@@ -327,328 +414,63 @@
     // Tab Switcher
     function switchTab(tabName) {
       const dashboardView = document.getElementById('view-dashboard');
+      const preppingView = document.getElementById('view-prepping');
       const chatView = document.getElementById('view-chat');
       const resourcesView = document.getElementById('view-resources');
+      
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
+      const preppingBtn = document.getElementById('tab-prepping-btn');
       const chatBtn = document.getElementById('tab-chat-btn');
       const resourcesBtn = document.getElementById('tab-resources-btn');
 
       dashboardView.classList.add('hidden');
+      preppingView.classList.add('hidden');
       chatView.classList.add('hidden');
       resourcesView.classList.add('hidden');
 
-      dashboardBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
-      chatBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
-      resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      const inactiveStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap";
+      const activeStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition whitespace-nowrap";
+
+      dashboardBtn.className = inactiveStyle;
+      preppingBtn.className = inactiveStyle;
+      chatBtn.className = inactiveStyle;
+      resourcesBtn.className = inactiveStyle;
 
       if (tabName === 'dashboard') {
         dashboardView.classList.remove('hidden');
-        dashboardBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+        dashboardBtn.className = activeStyle;
+      } else if (tabName === 'prepping') {
+        preppingView.classList.remove('hidden');
+        preppingBtn.className = activeStyle;
       } else if (tabName === 'chat') {
         chatView.classList.remove('hidden');
-        chatBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+        chatBtn.className = activeStyle;
         scrollToBottomChat();
       } else {
         resourcesView.classList.remove('hidden');
-        resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+        resourcesBtn.className = activeStyle;
       }
     }
 
-    // Prepping List Switcher
-    function switchPrepCategory(category) {
-      const bugoutBtn = document.getElementById('prep-btn-bugout');
-      const carBtn = document.getElementById('prep-btn-car');
-      const homeBtn = document.getElementById('prep-btn-home');
+    // Readiness Level Toggle
+    function setReadinessLevel(level) {
+      const label = document.getElementById('readiness-label');
+      const l1 = document.getElementById('readiness-lvl-1');
+      const l2 = document.getElementById('readiness-lvl-2');
+      const l3 = document.getElementById('readiness-lvl-3');
 
-      bugoutBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
-      carBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
-      homeBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      l1.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold text-amber-200/60 hover:text-emerald-300";
+      l2.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold text-amber-200/60 hover:text-amber-300";
+      l3.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold text-amber-200/60 hover:text-red-400";
 
-      if (category === 'bugout') bugoutBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
-      if (category === 'car') carBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
-      if (category === 'home') homeBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
-
-      renderPrepList(category);
-    }
-
-    function renderPrepList(category) {
-      const container = document.getElementById('prep-items-container');
-      const items = PREPPING_LISTS[category] || [];
-
-      container.innerHTML = items.map((item, index) => `
-        <label class="flex items-center gap-3 bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl cursor-pointer hover:border-brand-gold/50 transition">
-          <input type="checkbox" id="prep-item-${category}-${index}" class="w-4 h-4 accent-amber-500 rounded cursor-pointer" />
-          <span class="text-xs text-amber-100/90 leading-relaxed">${escapeHtml(item)}</span>
-        </label>
-      `).join('');
-    }
-
-    // 1. Authentication State
-    async function checkUser() {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        showApp(user);
+      if (level === 1) {
+        label.textContent = "LEVEL 1: Normal Operations";
+        label.className = "text-sm font-bold text-emerald-400";
+        l1.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold bg-emerald-500/30 text-emerald-300 border border-emerald-500/50";
+      } else if (level === 2) {
+        label.textContent = "LEVEL 2: High Alert / Monitoring";
+        label.className = "text-sm font-bold text-amber-400";
+        l2.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold bg-amber-500/30 text-amber-300 border border-amber-500/50";
       } else {
-        showAuth();
-      }
-    }
-
-    function showApp(user) {
-      currentUserEmail = user.email;
-      authContainer.classList.add('hidden');
-      appContainer.classList.remove('hidden');
-      logoutBtn.classList.remove('hidden');
-      userDisplay.textContent = `Logged in as: ${user.email}`;
-      userAvatar.textContent = user.email.charAt(0).toUpperCase();
-
-      fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
-      initBirthdayTimer();
-      renderPrepList('bugout');
-      initChat();
-    }
-
-    function showAuth() {
-      authContainer.classList.remove('hidden');
-      appContainer.classList.add('hidden');
-      logoutBtn.classList.add('hidden');
-    }
-
-    // 2. Weather & Alert Engine
-    async function fetchWeather(lat, lon, labelName) {
-      document.getElementById('weather-location').textContent = `Base: ${labelName}`;
-      try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`);
-        const data = await res.json();
-        const current = data.current;
-
-        document.getElementById('weather-temp').textContent = `${Math.round(current.temperature_2m)}°C`;
-        document.getElementById('weather-humidity').textContent = `${current.relative_humidity_2m}%`;
-        document.getElementById('weather-wind').textContent = `${Math.round(current.wind_speed_10m)} km/h`;
-        document.getElementById('weather-condition').textContent = getWeatherDescription(current.weather_code);
-
-        updateAlertStatus(current.weather_code, current.wind_speed_10m);
-      } catch (err) {
-        document.getElementById('weather-condition').textContent = "Unavailable";
-      }
-    }
-
-    function updateAlertStatus(weatherCode, windSpeed) {
-      const alertBadge = document.getElementById('alert-status-badge');
-      const alertIcon = document.getElementById('alert-icon');
-      const alertTitle = document.getElementById('alert-title');
-      const alertDesc = document.getElementById('alert-desc');
-
-      if (weatherCode >= 95) {
-        alertBadge.className = "text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/40 px-2.5 py-1 rounded-full";
-        alertBadge.textContent = "WARNING";
-        alertIcon.textContent = "🌩️";
-        alertTitle.textContent = "Thunderstorm Warning";
-        alertTitle.className = "text-sm font-bold text-red-400";
-        alertDesc.textContent = "Active thunderstorms detected in the area. Seek shelter and monitor comms.";
-      } else if (windSpeed >= 50) {
-        alertBadge.className = "text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full";
-        alertBadge.textContent = "ADVISORY";
-        alertIcon.textContent = "💨";
-        alertTitle.textContent = "High Wind Advisory";
-        alertTitle.className = "text-sm font-bold text-amber-400";
-        alertDesc.textContent = `High wind speeds of ${Math.round(windSpeed)} km/h detected. Use caution outdoors.`;
-      } else if (weatherCode >= 63) {
-        alertBadge.className = "text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full";
-        alertBadge.textContent = "ADVISORY";
-        alertIcon.textContent = "🌧️";
-        alertTitle.textContent = "Heavy Rain Advisory";
-        alertTitle.className = "text-sm font-bold text-amber-400";
-        alertDesc.textContent = "Heavy rainfall in progress. Expect reduced visibility.";
-      } else {
-        alertBadge.className = "text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-1 rounded-full";
-        alertBadge.textContent = "ALL CLEAR";
-        alertIcon.textContent = "🛡️";
-        alertTitle.textContent = "All Clear";
-        alertTitle.className = "text-sm font-bold text-emerald-400";
-        alertDesc.textContent = "No active severe weather or disaster alerts reported for this area.";
-      }
-    }
-
-    function toggleLocation() {
-      const btn = document.getElementById('location-toggle-btn');
-      if (!isLiveLocation) {
-        if (navigator.geolocation) {
-          btn.textContent = "⌛...";
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              isLiveLocation = true;
-              btn.innerHTML = "<span>🏰</span> Base";
-              fetchWeather(pos.coords.latitude, pos.coords.longitude, "Live Location");
-            },
-            () => {
-              alert("Could not access live location. Staying at Chiclana base.");
-              btn.innerHTML = "<span>📍</span> Location";
-            }
-          );
-        }
-      } else {
-        isLiveLocation = false;
-        btn.innerHTML = "<span>📍</span> Location";
-        fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
-      }
-    }
-
-    function getWeatherDescription(code) {
-      const codes = {
-        0: '☀️ Clear', 1: '🌤️ Mostly Clear', 2: '⛅ Partly Cloudy', 3: '☁️ Overcast',
-        45: '🌫️ Foggy', 61: '🌧️ Light Rain', 63: '🌧️ Rain', 80: '🌧️ Showers', 95: '🌩️ Storm'
-      };
-      return codes[code] || '🌤️ Fair';
-    }
-
-    // 3. Birthday Countdown Engine
-    function initBirthdayTimer() {
-      function updateTimer() {
-        const now = new Date();
-        const year = now.getFullYear();
-
-        let nextBday = null;
-        let minDiff = Infinity;
-
-        TEAM_BIRTHDAYS.forEach(b => {
-          let bdayDate = new Date(year, b.month - 1, b.day);
-          if (bdayDate - now < 0) {
-            bdayDate = new Date(year + 1, b.month - 1, b.day);
-          }
-          const diff = bdayDate - now;
-          if (diff < minDiff) {
-            minDiff = diff;
-            nextBday = { ...b, targetDate: bdayDate };
-          }
-        });
-
-        if (!nextBday) return;
-
-        document.getElementById('next-bday-name').textContent = nextBday.name;
-
-        const totalSecs = Math.floor((nextBday.targetDate - now) / 1000);
-        const days = Math.floor(totalSecs / (3600 * 24));
-        const hours = Math.floor((totalSecs % (3600 * 24)) / 3600);
-        const mins = Math.floor((totalSecs % 3600) / 60);
-        const secs = totalSecs % 60;
-
-        document.getElementById('bday-days').textContent = String(days).padStart(2, '0');
-        document.getElementById('bday-hours').textContent = String(hours).padStart(2, '0');
-        document.getElementById('bday-mins').textContent = String(mins).padStart(2, '0');
-        document.getElementById('bday-secs').textContent = String(secs).padStart(2, '0');
-        document.getElementById('bday-subtext').textContent = `Upcoming on ${nextBday.targetDate.toLocaleDateString()}`;
-      }
-
-      updateTimer();
-      setInterval(updateTimer, 1000);
-    }
-
-    // 4. Real-Time Chat Engine
-    async function initChat() {
-      await fetchMessages();
-
-      supabaseClient
-        .channel('public:messages')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-          appendMessage(payload.new);
-          scrollToBottomChat();
-        })
-        .subscribe();
-    }
-
-    async function fetchMessages() {
-      const { data: msgs, error } = await supabaseClient
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        chatMessages.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Failed to load chat. Ensure messages table exists in Supabase.</p>`;
-        return;
-      }
-
-      if (msgs.length === 0) {
-        chatMessages.innerHTML = `<p class="text-amber-200/50 text-center py-8 text-xs">No messages yet. Say hi!</p>`;
-        return;
-      }
-
-      chatMessages.innerHTML = '';
-      msgs.forEach(msg => appendMessage(msg));
-      scrollToBottomChat();
-    }
-
-    function appendMessage(msg) {
-      const isMe = msg.user_email === currentUserEmail;
-      const msgEl = document.createElement('div');
-      msgEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
-
-      msgEl.innerHTML = `
-        <div class="max-w-[75%] rounded-2xl px-4 py-2 text-xs ${isMe ? 'bg-brand-gold text-brand-black rounded-br-none' : 'bg-brand-black/70 border border-brand-gold/30 text-amber-100 rounded-bl-none'}">
-          <p class="font-bold opacity-80 mb-0.5">${escapeHtml(msg.user_email.split('@')[0])}</p>
-          <p class="leading-relaxed text-sm">${escapeHtml(msg.content)}</p>
-        </div>
-        <span class="text-[10px] text-amber-200/40 px-1 mt-0.5">${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-      `;
-
-      chatMessages.appendChild(msgEl);
-    }
-
-    function scrollToBottomChat() {
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const content = chatInput.value.trim();
-      if (!content) return;
-
-      chatInput.value = '';
-
-      const { error } = await supabaseClient.from('messages').insert([
-        { content, user_email: currentUserEmail }
-      ]);
-
-      if (error) alert('Failed to send message: ' + error.message);
-    });
-
-    // 5. Login / Logout Handlers
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      authError.classList.add('hidden');
-      authSubmitBtn.textContent = "Signing In...";
-      authSubmitBtn.disabled = true;
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-        if (error) {
-          authError.textContent = error.message;
-          authError.classList.remove('hidden');
-        } else if (data.user) {
-          showApp(data.user);
-        }
-      } catch (err) {
-        authError.textContent = err.message || "An error occurred during sign-in.";
-        authError.classList.remove('hidden');
-      } finally {
-        authSubmitBtn.textContent = "Sign In";
-        authSubmitBtn.disabled = false;
-      }
-    });
-
-    logoutBtn.addEventListener('click', async () => {
-      await supabaseClient.auth.signOut();
-      showAuth();
-    });
-
-    function escapeHtml(text) {
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    checkUser();
-  </script>
-</body>
-</html>
+        label.textContent = "LEVEL 3: Active Emergency / Evac";
+        label.className = "text-sm font-

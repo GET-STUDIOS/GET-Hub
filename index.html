@@ -239,27 +239,23 @@
           </section>
 
           <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-3">
-            <div class="flex justify-between items-center border-b border-brand-gold/20 pb-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-brand-gold/20 pb-3">
               <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
                 <span>🙋</span> Team Safety Roll-Call
               </h3>
-              <span class="text-[11px] text-amber-200/60">Live Status</span>
+              
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-amber-200/60 uppercase font-semibold">My Status:</span>
+                <select id="user-status-select" onchange="updateMyStatus(this.value)" class="bg-brand-black border border-brand-gold/40 text-amber-100 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:border-brand-gold cursor-pointer">
+                  <option value="safe">🟢 Safe at Base</option>
+                  <option value="enroute">🟡 En Route</option>
+                  <option value="alert">🔴 Needs Assistance</option>
+                </select>
+              </div>
             </div>
 
-            <div class="space-y-2 text-xs">
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center">
-                <span class="font-semibold text-amber-100">Kevin</span>
-                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-[11px] font-bold">🟢 Safe at Base</span>
+            <div id="roll-call-list" class="space-y-2 text-xs">
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center">
-                <span class="font-semibold text-amber-100">Nikita</span>
-                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-[11px] font-bold">🟢 Safe at Base</span>
-              </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center">
-                <span class="font-semibold text-amber-100">Hailey-Jade</span>
-                <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-[11px] font-bold">🟢 Safe at Base</span>
-              </div>
-            </div>
           </section>
 
         </div>
@@ -359,6 +355,13 @@
       { name: "Nikita", month: 8, day: 16 },
       { name: "Hailey-Jade", month: 7, day: 29 }
     ];
+
+    // Interactive Team Roll-Call State
+    let teamStatuses = {
+      "Kevin": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
+      "Nikita": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
+      "Hailey-Jade": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" }
+    };
 
     // Prepping List Data
     const PREPPING_LISTS = {
@@ -478,6 +481,37 @@
       }
     }
 
+    // Interactive Safety Roll-Call Functions
+    function renderRollCall() {
+      const container = document.getElementById('roll-call-list');
+      if (!container) return;
+
+      container.innerHTML = Object.entries(teamStatuses).map(([name, data]) => `
+        <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center">
+          <span class="font-semibold text-amber-100">${escapeHtml(name)}</span>
+          <span class="${data.color} border px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+            ${data.label}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    function updateMyStatus(statusValue) {
+      let username = currentUserEmail ? currentUserEmail.split('@')[0] : 'Member';
+      // Capitalize first letter
+      username = username.charAt(0).toUpperCase() + username.slice(1);
+
+      let config = { label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" };
+      if (statusValue === 'enroute') {
+        config = { label: "🟡 En Route", color: "bg-amber-500/20 text-amber-400 border-amber-500/40" };
+      } else if (statusValue === 'alert') {
+        config = { label: "🔴 Needs Assistance", color: "bg-red-500/20 text-red-400 border-red-500/40" };
+      }
+
+      teamStatuses[username] = { status: statusValue, ...config };
+      renderRollCall();
+    }
+
     // Prepping List Switcher
     function switchPrepCategory(category) {
       const bugoutBtn = document.getElementById('prep-btn-bugout');
@@ -527,6 +561,7 @@
 
       fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
       initBirthdayTimer();
+      renderRollCall();
       renderPrepList('bugout');
       initChat();
     }

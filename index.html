@@ -660,7 +660,6 @@
           const diff = expDate - now;
 
           if (diff < 0) {
-            expingCount = (expingCount || 0);
             expiringCount++;
             expBadge = `<span class="bg-red-500/20 text-red-400 border border-red-500/40 px-2 py-0.5 rounded text-[10px] font-bold">⚠️ EXPIRED (${item.expiration_date})</span>`;
           } else if (diff < thirtyDaysMs) {
@@ -756,7 +755,7 @@
     }
 
     // -------------------------------------------------------------
-    // USER PROFILE & ROSTER ENGINE
+    // USER PROFILE & ROSTER ENGINE (WITH AVATAR CACHE FIX)
     // -------------------------------------------------------------
     async function loadUserProfile() {
       if (!currentUser) return;
@@ -806,13 +805,21 @@
         if (fileInput.files.length > 0) {
           const file = fileInput.files[0];
           const fileExt = file.name.split('.').pop();
-          const filePath = `${currentUser.id}/avatar.${fileExt}`;
+          // Unique filename using timestamp to avoid cache/overwrite issues
+          const filePath = `${currentUser.id}/avatar_${Date.now()}.${fileExt}`;
 
-          const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(filePath, file, { upsert: true });
+          const { error: uploadError } = await supabaseClient.storage
+            .from('avatars')
+            .upload(filePath, file, { upsert: true });
+
           if (uploadError) throw uploadError;
 
-          const { data: publicUrlData } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
-          avatarUrl = publicUrlData.publicUrl;
+          const { data: publicUrlData } = supabaseClient.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+          // Append timestamp parameter to force browser refresh
+          avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
         }
 
         const displayName = document.getElementById('profile-display-name').value.trim();
@@ -836,6 +843,9 @@
           updateHeaderAvatar(avatarUrl);
           setAvatarPreview(avatarUrl);
         }
+
+        // Reset file input after upload
+        fileInput.value = "";
 
         feedback.classList.remove('hidden');
         setTimeout(() => feedback.classList.add('hidden'), 3000);

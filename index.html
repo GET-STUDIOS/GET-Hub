@@ -44,15 +44,9 @@
   <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full">
 
     <div id="auth-container" class="max-w-md mx-auto my-8 bg-brand-brownCard border border-brand-gold/30 p-8 rounded-2xl shadow-2xl">
-      
       <div class="flex justify-center mb-6">
-        <img 
-          src="./Logo.png.png" 
-          alt="GET Logo" 
-          class="h-32 object-contain drop-shadow-md"
-        />
+        <img src="./Logo.png.png" alt="GET Logo" class="h-32 object-contain drop-shadow-md" />
       </div>
-
       <p class="text-amber-200/70 text-sm text-center mb-6">Sign in to access the GET portal.</p>
       
       <form id="auth-form" class="space-y-4">
@@ -90,44 +84,81 @@
           <button id="tab-feed-btn" onclick="switchTab('feed')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition">
             Log Feed
           </button>
+          <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
+            Team Chat
+          </button>
           <button id="tab-resources-btn" onclick="switchTab('resources')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
             Resources
           </button>
         </div>
       </div>
 
-      <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-brand-gold/20 pb-4 mb-4">
-          <div>
-            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-              <span>🌤️</span> Expedition Weather
-            </h3>
-            <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+          <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3 mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+                <span>🌤️</span> Weather
+              </h3>
+              <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
+            </div>
+            <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
+              <span>📍</span> Use My Location
+            </button>
           </div>
-          <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
-            <span>📍</span> Use My Location
-          </button>
-        </div>
 
-        <div id="weather-content" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
-            <p class="text-xs text-amber-200/60 mb-1">Temperature</p>
-            <p id="weather-temp" class="text-xl font-bold text-brand-gold">--°C</p>
+          <div id="weather-content" class="grid grid-cols-2 gap-3 text-center">
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+              <p class="text-xs text-amber-200/60 mb-0.5">Temp</p>
+              <p id="weather-temp" class="text-lg font-bold text-brand-gold">--°C</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+              <p class="text-xs text-amber-200/60 mb-0.5">Condition</p>
+              <p id="weather-condition" class="text-xs font-semibold text-amber-100">Loading...</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+              <p class="text-xs text-amber-200/60 mb-0.5">Wind</p>
+              <p id="weather-wind" class="text-xs font-semibold text-amber-100">-- km/h</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+              <p class="text-xs text-amber-200/60 mb-0.5">Humidity</p>
+              <p id="weather-humidity" class="text-xs font-semibold text-amber-100">--%</p>
+            </div>
           </div>
-          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
-            <p class="text-xs text-amber-200/60 mb-1">Condition</p>
-            <p id="weather-condition" class="text-sm font-semibold text-amber-100">Loading...</p>
+        </section>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+          <div class="border-b border-brand-gold/20 pb-3 mb-4 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+              <span>🎂</span> Birthday Countdown
+            </h3>
+            <span id="next-bday-name" class="text-xs font-semibold bg-brand-gold/20 text-brand-gold border border-brand-gold/40 px-2.5 py-1 rounded-full">--</span>
           </div>
-          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
-            <p class="text-xs text-amber-200/60 mb-1">Wind Speed</p>
-            <p id="weather-wind" class="text-sm font-semibold text-amber-100">-- km/h</p>
+
+          <div class="grid grid-cols-4 gap-2 text-center my-2">
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+              <p id="bday-days" class="text-xl font-bold text-brand-gold">00</p>
+              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Days</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+              <p id="bday-hours" class="text-xl font-bold text-brand-gold">00</p>
+              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Hours</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+              <p id="bday-mins" class="text-xl font-bold text-brand-gold">00</p>
+              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Mins</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+              <p id="bday-secs" class="text-xl font-bold text-brand-gold">00</p>
+              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Secs</p>
+            </div>
           </div>
-          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
-            <p class="text-xs text-amber-200/60 mb-1">Humidity</p>
-            <p id="weather-humidity" class="text-sm font-semibold text-amber-100">--%</p>
-          </div>
-        </div>
-      </section>
+
+          <p id="bday-subtext" class="text-xs text-amber-200/60 text-center mt-2">Next upcoming celebration</p>
+        </section>
+
+      </div>
 
       <div id="view-feed" class="space-y-6">
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
@@ -149,6 +180,25 @@
           <div id="posts-feed" class="space-y-4">
             <p class="text-amber-200/50 text-center py-8">Loading logs...</p>
           </div>
+        </section>
+      </div>
+
+      <div id="view-chat" class="hidden space-y-6">
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col h-[500px]">
+          <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+            <span>💬</span> Live Team Chat
+          </h3>
+          
+          <div id="chat-messages" class="flex-grow overflow-y-auto space-y-3 pr-2 mb-4">
+            <p class="text-amber-200/50 text-center py-8">Loading chat history...</p>
+          </div>
+
+          <form id="chat-form" class="flex gap-2">
+            <input type="text" id="chat-input" placeholder="Type a message..." required class="flex-grow bg-brand-black border border-brand-gold/40 rounded-lg px-4 py-2.5 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold text-sm" />
+            <button type="submit" id="chat-send-btn" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg transition text-sm">
+              Send
+            </button>
+          </form>
         </section>
       </div>
 
@@ -187,10 +237,17 @@
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Default Coordinates: Chiclana de la Frontera, Spain
+    // Weather Config
     const CHICLANA_LAT = 36.4167;
     const CHICLANA_LON = -6.1500;
     let isLiveLocation = false;
+
+    // Team Birthdays Config (Month: 1-12, Day: 1-31)
+    const TEAM_BIRTHDAYS = [
+      { name: "Member 1", month: 3, day: 15 },
+      { name: "Member 2", month: 7, day: 22 },
+      { name: "Member 3", month: 11, day: 10 }
+    ];
 
     // DOM Elements
     const authContainer = document.getElementById('auth-container');
@@ -204,28 +261,43 @@
     const postContent = document.getElementById('post-content');
     const postBtn = document.getElementById('post-btn');
     const postsFeed = document.getElementById('posts-feed');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+
+    let currentUserEmail = '';
 
     // Tab Switcher
     function switchTab(tabName) {
       const feedView = document.getElementById('view-feed');
+      const chatView = document.getElementById('view-chat');
       const resourcesView = document.getElementById('view-resources');
       const feedBtn = document.getElementById('tab-feed-btn');
+      const chatBtn = document.getElementById('tab-chat-btn');
       const resourcesBtn = document.getElementById('tab-resources-btn');
+
+      feedView.classList.add('hidden');
+      chatView.classList.add('hidden');
+      resourcesView.classList.add('hidden');
+
+      feedBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      chatBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
 
       if (tabName === 'feed') {
         feedView.classList.remove('hidden');
-        resourcesView.classList.add('hidden');
         feedBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
-        resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      } else if (tabName === 'chat') {
+        chatView.classList.remove('hidden');
+        chatBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+        scrollToBottomChat();
       } else {
-        feedView.classList.add('hidden');
         resourcesView.classList.remove('hidden');
         resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
-        feedBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
       }
     }
 
-    // 1. Check Login State on Page Load
+    // 1. Authentication State
     async function checkUser() {
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
@@ -236,13 +308,17 @@
     }
 
     function showApp(user) {
+      currentUserEmail = user.email;
       authContainer.classList.add('hidden');
       appContainer.classList.remove('hidden');
       logoutBtn.classList.remove('hidden');
       userDisplay.textContent = `Logged in as: ${user.email}`;
       userAvatar.textContent = user.email.charAt(0).toUpperCase();
+
       fetchPosts();
       fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
+      initBirthdayTimer();
+      initChat();
     }
 
     function showAuth() {
@@ -251,7 +327,7 @@
       logoutBtn.classList.add('hidden');
     }
 
-    // 2. Weather Fetcher (Open-Meteo API)
+    // 2. Weather Engine
     async function fetchWeather(lat, lon, labelName) {
       document.getElementById('weather-location').textContent = `Base: ${labelName}`;
       try {
@@ -276,7 +352,7 @@
           navigator.geolocation.getCurrentPosition(
             (pos) => {
               isLiveLocation = true;
-              btn.innerHTML = "<span>🏰</span> Reset to Base";
+              btn.innerHTML = "<span>🏰</span> Reset Base";
               fetchWeather(pos.coords.latitude, pos.coords.longitude, "Live Location");
             },
             () => {
@@ -284,8 +360,6 @@
               btn.innerHTML = "<span>📍</span> Use My Location";
             }
           );
-        } else {
-          alert("Geolocation is not supported by your browser.");
         }
       } else {
         isLiveLocation = false;
@@ -296,18 +370,173 @@
 
     function getWeatherDescription(code) {
       const codes = {
-        0: '☀️ Clear Sky',
-        1: '🌤️ Mostly Clear', 2: 'Partly Cloudy', 3: '☁️ Overcast',
-        45: '🌫️ Foggy', 48: '🌫️ Rime Fog',
-        51: '🌦️ Light Drizzle', 53: '🌦️ Drizzle', 55: '🌦️ Heavy Drizzle',
-        61: '🌧️ Light Rain', 63: '🌧️ Rain', 65: '🌧️ Heavy Rain',
-        80: '🌧️ Rain Showers', 81: '🌧️ Heavy Showers',
-        95: '🌩️ Thunderstorm'
+        0: '☀️ Clear', 1: '🌤️ Mostly Clear', 2: '⛅ Partly Cloudy', 3: '☁️ Overcast',
+        45: '🌫️ Foggy', 61: '🌧️ Light Rain', 63: '🌧️ Rain', 80: '🌧️ Showers', 95: '🌩️ Storm'
       };
       return codes[code] || '🌤️ Fair';
     }
 
-    // 3. Handle Form Submit
+    // 3. Birthday Countdown Engine
+    function initBirthdayTimer() {
+      function updateTimer() {
+        const now = new Date();
+        const year = now.getFullYear();
+
+        let nextBday = null;
+        let minDiff = Infinity;
+
+        TEAM_BIRTHDAYS.forEach(b => {
+          let bdayDate = new Date(year, b.month - 1, b.day);
+          if (bdayDate < now) {
+            bdayDate = new Date(year + 1, b.month - 1, b.day);
+          }
+          const diff = bdayDate - now;
+          if (diff < minDiff) {
+            minDiff = diff;
+            nextBday = { ...b, targetDate: bdayDate };
+          }
+        });
+
+        if (!nextBday) return;
+
+        document.getElementById('next-bday-name').textContent = nextBday.name;
+
+        const totalSecs = Math.floor((nextBday.targetDate - now) / 1000);
+        const days = Math.floor(totalSecs / (3600 * 24));
+        const hours = Math.floor((totalSecs % (3600 * 24)) / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+
+        document.getElementById('bday-days').textContent = String(days).padStart(2, '0');
+        document.getElementById('bday-hours').textContent = String(hours).padStart(2, '0');
+        document.getElementById('bday-mins').textContent = String(mins).padStart(2, '0');
+        document.getElementById('bday-secs').textContent = String(secs).padStart(2, '0');
+        document.getElementById('bday-subtext').textContent = `Upcoming on ${nextBday.targetDate.toLocaleDateString()}`;
+      }
+
+      updateTimer();
+      setInterval(updateTimer, 1000);
+    }
+
+    // 4. Real-Time Chat Engine
+    async function initChat() {
+      await fetchMessages();
+
+      // Listen for real-time messages
+      supabaseClient
+        .channel('public:messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+          appendMessage(payload.new);
+          scrollToBottomChat();
+        })
+        .subscribe();
+    }
+
+    async function fetchMessages() {
+      const { data: msgs, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        chatMessages.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Failed to load chat. Run SQL setup script in Supabase.</p>`;
+        return;
+      }
+
+      if (msgs.length === 0) {
+        chatMessages.innerHTML = `<p class="text-amber-200/50 text-center py-8 text-xs">No messages yet. Say hi!</p>`;
+        return;
+      }
+
+      chatMessages.innerHTML = '';
+      msgs.forEach(msg => appendMessage(msg));
+      scrollToBottomChat();
+    }
+
+    function appendMessage(msg) {
+      const isMe = msg.user_email === currentUserEmail;
+      const msgEl = document.createElement('div');
+      msgEl.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+      msgEl.innerHTML = `
+        <div class="max-w-[75%] rounded-2xl px-4 py-2 text-xs ${isMe ? 'bg-brand-gold text-brand-black rounded-br-none' : 'bg-brand-black/70 border border-brand-gold/30 text-amber-100 rounded-bl-none'}">
+          <p class="font-bold opacity-80 mb-0.5">${escapeHtml(msg.user_email.split('@')[0])}</p>
+          <p class="leading-relaxed text-sm">${escapeHtml(msg.content)}</p>
+        </div>
+        <span class="text-[10px] text-amber-200/40 px-1 mt-0.5">${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+      `;
+
+      chatMessages.appendChild(msgEl);
+    }
+
+    function scrollToBottomChat() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = chatInput.value.trim();
+      if (!content) return;
+
+      chatInput.value = '';
+
+      const { error } = await supabaseClient.from('messages').insert([
+        { content, user_email: currentUserEmail }
+      ]);
+
+      if (error) alert('Failed to send message: ' + error.message);
+    });
+
+    // 5. Expedition Log Feed Engine
+    async function fetchPosts() {
+      const { data: posts, error } = await supabaseClient
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        postsFeed.innerHTML = `<p class="text-red-400 text-center py-4">Failed to load logs.</p>`;
+        return;
+      }
+
+      if (posts.length === 0) {
+        postsFeed.innerHTML = `<p class="text-amber-200/50 text-center py-8">No logs added yet. Be the first!</p>`;
+        return;
+      }
+
+      postsFeed.innerHTML = posts.map(post => `
+        <div class="bg-brand-brownCard/60 border border-brand-gold/20 p-4 rounded-xl flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center font-bold text-brand-gold text-xs shrink-0 mt-1">
+            ${escapeHtml((post.user_email || 'U').charAt(0).toUpperCase())}
+          </div>
+          <div class="flex-grow">
+            <div class="flex justify-between items-center text-xs text-amber-200/60 mb-1">
+              <span class="font-semibold text-brand-goldLight">${escapeHtml(post.user_email || 'Explorer')}</span>
+              <span>${new Date(post.created_at).toLocaleDateString()}</span>
+            </div>
+            <p class="text-amber-100 text-sm leading-relaxed">${escapeHtml(post.content)}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    postBtn.addEventListener('click', async () => {
+      const content = postContent.value.trim();
+      if (!content) return;
+
+      const { error } = await supabaseClient.from('posts').insert([
+        { content, user_email: currentUserEmail }
+      ]);
+
+      if (error) {
+        alert("Error sharing post: " + error.message);
+      } else {
+        postContent.value = '';
+        fetchPosts();
+      }
+    });
+
+    // 6. Login / Logout Handlers
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       authError.classList.add('hidden');
@@ -335,70 +564,15 @@
       }
     });
 
-    // 4. Handle Logout
     logoutBtn.addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       showAuth();
     });
 
-    // 5. Fetch Posts from Database
-    async function fetchPosts() {
-      const { data: posts, error } = await supabaseClient
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        postsFeed.innerHTML = `<p class="text-red-400 text-center py-4">Failed to load logs. Ensure your Supabase posts table permissions are set.</p>`;
-        return;
-      }
-
-      if (posts.length === 0) {
-        postsFeed.innerHTML = `<p class="text-amber-200/50 text-center py-8">No logs added yet. Be the first!</p>`;
-        return;
-      }
-
-      postsFeed.innerHTML = posts.map(post => `
-        <div class="bg-brand-brownCard/60 border border-brand-gold/20 p-4 rounded-xl flex gap-3">
-          <div class="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center font-bold text-brand-gold text-xs shrink-0 mt-1">
-            ${escapeHtml((post.user_email || 'U').charAt(0).toUpperCase())}
-          </div>
-          <div class="flex-grow">
-            <div class="flex justify-between items-center text-xs text-amber-200/60 mb-1">
-              <span class="font-semibold text-brand-goldLight">${escapeHtml(post.user_email || 'Explorer')}</span>
-              <span>${new Date(post.created_at).toLocaleDateString()}</span>
-            </div>
-            <p class="text-amber-100 text-sm leading-relaxed">${escapeHtml(post.content)}</p>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // 6. Create New Post
-    postBtn.addEventListener('click', async () => {
-      const content = postContent.value.trim();
-      if (!content) return;
-
-      const { data: { user } } = await supabaseClient.auth.getUser();
-
-      const { error } = await supabaseClient.from('posts').insert([
-        { content, user_email: user.email }
-      ]);
-
-      if (error) {
-        alert("Error sharing post: " + error.message);
-      } else {
-        postContent.value = '';
-        fetchPosts();
-      }
-    });
-
-    // Utility function to avoid HTML injection
     function escapeHtml(text) {
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Initialize
     checkUser();
   </script>
 </body>

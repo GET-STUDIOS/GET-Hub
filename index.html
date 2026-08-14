@@ -349,22 +349,20 @@
     const CHICLANA_LON = -6.1500;
     let isLiveLocation = false;
 
-    // Team Birthdays Config (Kevin: 22/11/1984, Nikita: 16/08/1996, Hailey-Jade: 29/07/2016)
+    // Team Birthdays Config
     const TEAM_BIRTHDAYS = [
       { name: "Kevin", month: 11, day: 22 },
       { name: "Nikita", month: 8, day: 16 },
       { name: "Hailey-Jade", month: 7, day: 29 }
     ];
 
-    // Email to Team Name Mapping
+    // Email Map
     const TEAM_MEMBERS_MAP = {
-      "goutierexplorerteam@gmail.com": "Kevin"
-      // Add other members' emails here if needed:
-      // "nikita@example.com": "Nikita",
-      // "hailey@example.com": "Hailey-Jade"
+      "goutierexplorerteam@gmail.com": "Kevin",
+      "nikita@gmail.com": "Nikita" // Update with Nikita's exact email address if different
     };
 
-    // Interactive Team Roll-Call State
+    // Default Fallback Statuses
     let teamStatuses = {
       "Kevin": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
       "Nikita": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
@@ -463,8 +461,10 @@
       }
     }
 
-    // Readiness Level Toggle
-    function setReadinessLevel(level) {
+    // -------------------------------------------------------------
+    // REAL-TIME OPERATIONAL READINESS LEVEL (DEFCON)
+    // -------------------------------------------------------------
+    async function setReadinessLevel(level, pushToDb = true) {
       const label = document.getElementById('readiness-label');
       const l1 = document.getElementById('readiness-lvl-1');
       const l2 = document.getElementById('readiness-lvl-2');
@@ -487,9 +487,33 @@
         label.className = "text-sm font-bold text-red-400";
         l3.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-bold bg-red-500/30 text-red-300 border border-red-500/50";
       }
+
+      if (pushToDb) {
+        await supabaseClient.from('system_state').upsert({ key: 'readiness_level', value: level });
+      }
     }
 
-    // Interactive Safety Roll-Call Functions
+    async function initReadinessSync() {
+      // Fetch initial level
+      const { data } = await supabaseClient.from('system_state').select('value').eq('key', 'readiness_level').single();
+      if (data && data.value) {
+        setReadinessLevel(Number(data.value), false);
+      }
+
+      // Listen for updates from other users
+      supabaseClient
+        .channel('public:system_state')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'system_state' }, payload => {
+          if (payload.new && payload.new.key === 'readiness_level') {
+            setReadinessLevel(Number(payload.new.value), false);
+          }
+        })
+        .subscribe();
+    }
+
+    // -------------------------------------------------------------
+    // REAL-TIME SAFETY ROLL-CALL ENGINE
+    // -------------------------------------------------------------
     function renderRollCall() {
       const container = document.getElementById('roll-call-list');
       if (!container) return;
@@ -504,8 +528,7 @@
       `).join('');
     }
 
-    function updateMyStatus(statusValue) {
-      // Look up member name from email map first
+    async function updateMyStatus(statusValue) {
       let memberName = TEAM_MEMBERS_MAP[currentUserEmail];
       
       if (!memberName) {
@@ -520,8 +543,54 @@
         config = { label: "🔴 Needs Assistance", color: "bg-red-500/20 text-red-400 border-red-500/40" };
       }
 
+      // Update locally
       teamStatuses[memberName] = { status: statusValue, ...config };
       renderRollCall();
+
+      // Save to Supabase so Nikita and others see it instantly
+      await supabaseClient.from('team_status').upsert({
+        name: memberName,
+        status: statusValue,
+        label: config.label,
+        color: config.color
+      });
+    }
+
+    async function initRollCallSync() {
+      // 1. Fetch initial status database records
+      const { data, error } = await supabaseClient.from('team_status').select('*');
+      if (!error && data) {
+        data.forEach(row => {
+          teamStatuses[row.name] = {
+            status: row.status,
+            label: row.label,
+            color: row.color
+          };
+        });
+        
+        // Set selector dropdown to match current logged in user status
+        let memberName = TEAM_MEMBERS_MAP[currentUserEmail];
+        if (memberName && teamStatuses[memberName]) {
+          document.getElementById('user-status-select').value = teamStatuses[memberName].status;
+        }
+        
+        renderRollCall();
+      }
+
+      // 2. Real-time Subscription for Roll-Call updates from other team members
+      supabaseClient
+        .channel('public:team_status')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'team_status' }, payload => {
+          if (payload.new) {
+            teamStatuses[payload.new.name] = {
+              status: payload.new.status,
+              label: payload.new.label,
+              color: payload.new.color
+            };
+            renderRollCall();
+          }
+        })
+        .subscribe();
     }
 
     // Prepping List Switcher
@@ -573,9 +642,10 @@
 
       fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
       initBirthdayTimer();
-      renderRollCall();
       renderPrepList('bugout');
       initChat();
+      initRollCallSync();
+      initReadinessSync();
     }
 
     function showAuth() {

@@ -120,100 +120,126 @@
           </div>
         </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           
-          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-            <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3 mb-3">
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg flex flex-col items-center justify-between text-center">
+            <div class="border-b border-brand-gold/20 pb-2 mb-2 w-full">
+              <h3 class="text-base font-bold text-brand-gold flex items-center justify-center gap-1.5">
+                <span>🧭</span> Digital Compass
+              </h3>
+            </div>
+
+            <div class="relative w-32 h-32 my-2 flex items-center justify-center border-2 border-brand-gold/40 rounded-full bg-brand-black/60 shadow-inner">
+              <div class="absolute -top-2 z-10 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-red-500"></div>
+
+              <div id="compass-dial" class="relative w-full h-full rounded-full transition-transform duration-100 ease-out flex items-center justify-center text-xs font-bold font-mono">
+                <span class="absolute top-1 text-brand-gold font-black text-sm">N</span>
+                <span class="absolute right-2 text-amber-200/70">E</span>
+                <span class="absolute bottom-1 text-amber-200/70">S</span>
+                <span class="absolute left-2 text-amber-200/70">W</span>
+                
+                <div class="w-1 h-12 bg-gradient-to-t from-brand-gold to-red-500 rounded-full opacity-80"></div>
+              </div>
+            </div>
+
+            <p id="compass-heading" class="text-xs font-mono font-bold text-brand-gold my-1">Heading: --°</p>
+            <button id="enable-compass-btn" onclick="startCompass()" class="text-[11px] bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-1 px-3 rounded-lg transition shadow">
+              Enable Compass
+            </button>
+          </section>
+
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
+            <div class="flex justify-between items-start border-b border-brand-gold/20 pb-2 mb-2">
               <div>
-                <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+                <h3 class="text-base font-bold text-brand-gold flex items-center gap-1.5">
                   <span>🌤️</span> Weather & Sun
                 </h3>
-                <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
+                <p id="weather-location" class="text-[10px] text-amber-200/70">Base: Chiclana</p>
               </div>
-              <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1 px-2.5 rounded-lg transition flex items-center gap-1">
-                <span>📍</span> Location
+              <button id="location-toggle-btn" onclick="toggleLocation()" class="text-[10px] bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-0.5 px-2 rounded-lg transition flex items-center gap-1">
+                <span>📍</span> GPS
               </button>
             </div>
 
-            <div id="weather-content" class="grid grid-cols-2 gap-2 text-center text-xs">
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p class="text-amber-200/60 text-[10px] uppercase">Temp</p>
-                <p id="weather-temp" class="text-base font-bold text-brand-gold">--°C</p>
+            <div id="weather-content" class="grid grid-cols-2 gap-1.5 text-center text-[11px]">
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p class="text-amber-200/60 text-[9px] uppercase">Temp</p>
+                <p id="weather-temp" class="text-sm font-bold text-brand-gold">--°C</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p class="text-amber-200/60 text-[10px] uppercase">Condition</p>
-                <p id="weather-condition" class="font-semibold text-amber-100">Loading...</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p class="text-amber-200/60 text-[9px] uppercase">Condition</p>
+                <p id="weather-condition" class="font-semibold text-amber-100 truncate">Loading...</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p class="text-amber-200/60 text-[10px] uppercase">Wind</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p class="text-amber-200/60 text-[9px] uppercase">Wind</p>
                 <p id="weather-wind" class="font-semibold text-amber-100">-- km/h</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p class="text-amber-200/60 text-[10px] uppercase">Sunset</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p class="text-amber-200/60 text-[9px] uppercase">Sunset</p>
                 <p id="weather-sunset" class="font-semibold text-amber-100">--:--</p>
               </div>
             </div>
 
-            <div class="mt-3 bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl text-center">
-              <p class="text-[10px] text-amber-200/60 uppercase">Remaining Daylight</p>
+            <div class="mt-2 bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl text-center">
+              <p class="text-[9px] text-amber-200/60 uppercase">Remaining Daylight</p>
               <p id="daylight-countdown" class="text-xs font-bold text-brand-gold">Calculating...</p>
             </div>
           </section>
 
-          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-            <div class="border-b border-brand-gold/20 pb-3 mb-3 flex justify-between items-center">
-              <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-                <span>🚨</span> Alerts & Space Weather
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
+            <div class="border-b border-brand-gold/20 pb-2 mb-2 flex justify-between items-center">
+              <h3 class="text-base font-bold text-brand-gold flex items-center gap-1.5">
+                <span>🚨</span> Alerts & Space
               </h3>
-              <span id="alert-status-badge" class="text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full">All Clear</span>
+              <span id="alert-status-badge" class="text-[10px] font-semibold bg-green-500/20 text-green-400 border border-green-500/40 px-2 py-0.5 rounded-full">Clear</span>
             </div>
 
-            <div id="alert-box" class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl text-center flex-grow flex flex-col justify-center items-center mb-2">
-              <p id="alert-icon" class="text-2xl mb-1">🛡️</p>
+            <div id="alert-box" class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl text-center flex-grow flex flex-col justify-center items-center mb-2">
+              <p id="alert-icon" class="text-xl mb-0.5">🛡️</p>
               <p id="alert-title" class="text-xs font-bold text-emerald-400">Terrestrial: All Clear</p>
-              <p id="alert-desc" class="text-[11px] text-amber-200/70 mt-0.5">No active regional hazard or severe weather alerts.</p>
+              <p id="alert-desc" class="text-[10px] text-amber-200/70 mt-0.5">No active regional hazard or severe weather alerts.</p>
             </div>
 
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl flex justify-between items-center text-xs">
-              <div class="flex items-center gap-2">
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl flex justify-between items-center text-xs">
+              <div class="flex items-center gap-1.5">
                 <span>☀️</span>
                 <div>
-                  <p class="font-semibold text-amber-100">Geomagnetic / GPS</p>
-                  <p class="text-[10px] text-amber-200/60">Solar activity monitor</p>
+                  <p class="font-semibold text-amber-100 text-[11px]">Geomagnetic / GPS</p>
+                  <p class="text-[9px] text-amber-200/60">Solar monitor</p>
                 </div>
               </div>
-              <span id="solar-kp-badge" class="font-bold text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-lg">Kp 2 Normal</span>
+              <span id="solar-kp-badge" class="font-bold text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-lg">Kp 2 Normal</span>
             </div>
           </section>
 
-          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-            <div class="border-b border-brand-gold/20 pb-3 mb-4 flex justify-between items-center">
-              <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-                <span>🎂</span> Birthday Timer
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
+            <div class="border-b border-brand-gold/20 pb-2 mb-2 flex justify-between items-center">
+              <h3 class="text-base font-bold text-brand-gold flex items-center gap-1.5">
+                <span>🎂</span> Birthdays
               </h3>
-              <span id="next-bday-name" class="text-xs font-semibold bg-brand-gold/20 text-brand-gold border border-brand-gold/40 px-2.5 py-1 rounded-full">--</span>
+              <span id="next-bday-name" class="text-[10px] font-semibold bg-brand-gold/20 text-brand-gold border border-brand-gold/40 px-2 py-0.5 rounded-full">--</span>
             </div>
 
-            <div class="grid grid-cols-4 gap-2 text-center my-1">
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-days" class="text-lg font-bold text-brand-gold">00</p>
-                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Days</p>
+            <div class="grid grid-cols-4 gap-1.5 text-center my-1">
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p id="bday-days" class="text-base font-bold text-brand-gold">00</p>
+                <p class="text-[8px] text-amber-200/60 uppercase">Days</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-hours" class="text-lg font-bold text-brand-gold">00</p>
-                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Hours</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p id="bday-hours" class="text-base font-bold text-brand-gold">00</p>
+                <p class="text-[8px] text-amber-200/60 uppercase">Hours</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-mins" class="text-lg font-bold text-brand-gold">00</p>
-                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Mins</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p id="bday-mins" class="text-base font-bold text-brand-gold">00</p>
+                <p class="text-[8px] text-amber-200/60 uppercase">Mins</p>
               </div>
-              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-                <p id="bday-secs" class="text-lg font-bold text-brand-gold">00</p>
-                <p class="text-[9px] text-amber-200/60 uppercase tracking-wider">Secs</p>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-1.5 rounded-xl">
+                <p id="bday-secs" class="text-base font-bold text-brand-gold">00</p>
+                <p class="text-[8px] text-amber-200/60 uppercase">Secs</p>
               </div>
             </div>
 
-            <p id="bday-subtext" class="text-xs text-amber-200/60 text-center mt-2">Next upcoming celebration</p>
+            <p id="bday-subtext" class="text-[10px] text-amber-200/60 text-center mt-1">Next celebration</p>
           </section>
 
         </div>
@@ -634,6 +660,55 @@
     }
 
     // -------------------------------------------------------------
+    // DIGITAL COMPASS ENGINE (ORIENTATION API)
+    // -------------------------------------------------------------
+    function startCompass() {
+      const btn = document.getElementById('enable-compass-btn');
+
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        // iOS Permission Model
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation, true);
+              if (btn) btn.classList.add('hidden');
+            } else {
+              alert('Permission denied for device orientation.');
+            }
+          })
+          .catch(console.error);
+      } else if ('ondeviceorientationabsolute' in window) {
+        // Android Absolute Orientation
+        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+        if (btn) btn.classList.add('hidden');
+      } else if ('ondeviceorientation' in window) {
+        // Standard Orientation Fallback
+        window.addEventListener('deviceorientation', handleOrientation, true);
+        if (btn) btn.classList.add('hidden');
+      } else {
+        alert('Compass orientation is not supported on this device/browser.');
+      }
+    }
+
+    function handleOrientation(event) {
+      let heading = null;
+
+      if (event.webkitCompassHeading) {
+        heading = event.webkitCompassHeading; // Native iOS Magnetic North
+      } else if (event.alpha !== null) {
+        heading = 360 - event.alpha; // Android Fallback
+      }
+
+      if (heading !== null) {
+        const dial = document.getElementById('compass-dial');
+        const text = document.getElementById('compass-heading');
+
+        if (dial) dial.style.transform = `rotate(${-heading}deg)`;
+        if (text) text.textContent = `Heading: ${Math.round(heading)}°`;
+      }
+    }
+
+    // -------------------------------------------------------------
     // STOCKPILE & INVENTORY TRACKER ENGINE
     // -------------------------------------------------------------
     async function loadInventory() {
@@ -828,7 +903,7 @@
     }
 
     // -------------------------------------------------------------
-    // USER PROFILE & ROSTER ENGINE (WITH AVATAR CACHE FIX)
+    // USER PROFILE & ROSTER ENGINE
     // -------------------------------------------------------------
     async function loadUserProfile() {
       if (!currentUser) return;
@@ -1151,7 +1226,7 @@
       userDisplay.textContent = `Logged in as: ${user.email}`;
       userAvatar.textContent = user.email.charAt(0).toUpperCase();
 
-      fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
+      fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana");
       initBirthdayTimer();
       renderPrepList('bugout');
       initChat();
@@ -1214,22 +1289,22 @@
       const alertDesc = document.getElementById('alert-desc');
 
       if (weatherCode >= 95) {
-        alertBadge.className = "text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/40 px-2 py-0.5 rounded-full";
+        alertBadge.className = "text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/40 px-2 py-0.5 rounded-full";
         alertBadge.textContent = "WARNING";
         alertIcon.textContent = "🌩️";
         alertTitle.textContent = "Thunderstorm Warning";
         alertTitle.className = "text-xs font-bold text-red-400";
         alertDesc.textContent = "Active thunderstorms detected. Seek shelter and monitor comms.";
       } else if (windSpeed >= 50) {
-        alertBadge.className = "text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded-full";
+        alertBadge.className = "text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded-full";
         alertBadge.textContent = "ADVISORY";
         alertIcon.textContent = "💨";
         alertTitle.textContent = "High Wind Advisory";
         alertTitle.className = "text-xs font-bold text-amber-400";
         alertDesc.textContent = `High wind speeds of ${Math.round(windSpeed)} km/h detected.`;
       } else {
-        alertBadge.className = "text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full";
-        alertBadge.textContent = "All Clear";
+        alertBadge.className = "text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full";
+        alertBadge.textContent = "Clear";
         alertIcon.textContent = "🛡️";
         alertTitle.textContent = "Terrestrial: All Clear";
         alertTitle.className = "text-xs font-bold text-emerald-400";
@@ -1250,14 +1325,14 @@
             },
             () => {
               alert("Could not access live location. Staying at Chiclana base.");
-              btn.innerHTML = "<span>📍</span> Location";
+              btn.innerHTML = "<span>📍</span> GPS";
             }
           );
         }
       } else {
         isLiveLocation = false;
-        btn.innerHTML = "<span>📍</span> Location";
-        fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
+        btn.innerHTML = "<span>📍</span> GPS";
+        fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana");
       }
     }
 

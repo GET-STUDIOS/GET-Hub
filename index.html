@@ -475,15 +475,20 @@
       <div id="view-signal" class="hidden space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <section id="signal-card" class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4 transition-colors duration-100">
             <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
-              <span>🔦</span> Visual Signaling
+              <span>🔦</span> Visual & Audio Signaling
             </h3>
+
+            <div id="strobe-screen" class="bg-brand-black/90 border border-brand-gold/30 p-6 rounded-xl flex flex-col items-center justify-center space-y-2 transition-all duration-75">
+              <div id="signal-icon" class="text-3xl">💡</div>
+              <p id="signal-status-text" class="text-xs font-mono text-brand-gold font-bold uppercase">Signal Beacon Standby</p>
+            </div>
 
             <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl flex items-center justify-between">
               <div>
                 <p class="font-bold text-amber-100 text-sm">Constant Torch</p>
-                <p class="text-[11px] text-amber-200/60">Toggle camera LED (Mobile/HTTPS only)</p>
+                <p class="text-[11px] text-amber-200/60">Toggle camera LED (Requires HTTPS/Mobile)</p>
               </div>
               <button id="torch-toggle-btn" onclick="toggleTorch()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-4 py-2 rounded-lg text-xs transition">
                 Turn ON
@@ -491,12 +496,12 @@
             </div>
 
             <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl space-y-3">
-              <p class="font-bold text-amber-100 text-sm">Text to Morse Transmit</p>
+              <p class="font-bold text-amber-100 text-sm">Text to Morse Transmit (Audio + Light)</p>
               <input type="text" id="morse-input" placeholder="e.g. SOS or HELP" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-xs text-amber-100 font-mono uppercase focus:outline-none focus:border-brand-gold" />
               
               <div class="flex gap-2">
                 <button id="morse-send-btn" onclick="transmitMorse()" class="flex-1 bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition">
-                  ⚡ Transmit Message
+                  ⚡ Transmit Signal
                 </button>
                 <button id="morse-stop-btn" onclick="stopTransmission()" class="bg-red-500/20 text-red-400 border border-red-500/40 font-bold px-4 py-2 rounded-lg text-xs hover:bg-red-500/30 transition">
                   Stop
@@ -504,7 +509,7 @@
               </div>
 
               <div class="bg-brand-black p-2.5 rounded-lg border border-brand-gold/20 font-mono text-center">
-                <p class="text-[10px] text-amber-200/50 uppercase">Morse Signal Output</p>
+                <p class="text-[10px] text-amber-200/50 uppercase">Morse Signal Sequence</p>
                 <p id="morse-output" class="text-sm font-bold text-brand-gold tracking-widest mt-1">-- --- --</p>
               </div>
             </div>
@@ -515,7 +520,7 @@
               <span>📖</span> Morse Code Guide
             </h3>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono text-xs max-h-[340px] overflow-y-auto pr-1">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono text-xs max-h-[360px] overflow-y-auto pr-1">
               <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">A</span> <span>.-</span></div>
               <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">B</span> <span>-...</span></div>
               <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">C</span> <span>-.-.</span></div>
@@ -746,7 +751,7 @@
     }
 
     // -------------------------------------------------------------
-    // SIGNALING & MORSE CODE ENGINE
+    // SIGNALING & MORSE CODE ENGINE (AUDIO + SCREEN FLASH + TORCH)
     // -------------------------------------------------------------
     const MORSE_MAP = {
       'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
@@ -759,6 +764,42 @@
     let torchTrack = null;
     let isTorchOn = false;
     let isTransmitting = false;
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, durationMs) {
+      return new Promise(resolve => {
+        try {
+          const ctx = getAudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (durationMs / 1000));
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start();
+          osc.stop(ctx.currentTime + (durationMs / 1000));
+        } catch (e) {
+          console.warn("Audio playback error:", e);
+        }
+        setTimeout(resolve, durationMs);
+      });
+    }
 
     async function initTorchStream() {
       if (torchTrack) return torchTrack;
@@ -767,16 +808,31 @@
         torchTrack = stream.getVideoTracks()[0];
         return torchTrack;
       } catch (err) {
-        alert("Camera/Flashlight access error. Ensure you are on HTTPS and on a mobile device.");
+        console.warn("Camera LED hardware flashlight access unavailable/not supported.");
         return null;
       }
     }
 
     async function setTorch(state) {
+      const strobeScreen = document.getElementById('strobe-screen');
+      const statusText = document.getElementById('signal-status-text');
+
+      if (state) {
+        if (strobeScreen) strobeScreen.className = "bg-brand-gold border border-white p-6 rounded-xl flex flex-col items-center justify-center space-y-2 text-brand-black transition-all duration-75 shadow-[0_0_25px_rgba(212,175,55,0.8)]";
+        if (statusText) statusText.textContent = "⚡ SIGNAL TRANSMITTING";
+      } else {
+        if (strobeScreen) strobeScreen.className = "bg-brand-black/90 border border-brand-gold/30 p-6 rounded-xl flex flex-col items-center justify-center space-y-2 transition-all duration-75";
+        if (statusText) statusText.textContent = "Signal Beacon Standby";
+      }
+
       const track = await initTorchStream();
-      if (track && track.getCapabilities().torch) {
-        await track.applyConstraints({ advanced: [{ torch: state }] });
-        isTorchOn = state;
+      if (track && track.getCapabilities && track.getCapabilities().torch) {
+        try {
+          await track.applyConstraints({ advanced: [{ torch: state }] });
+          isTorchOn = state;
+        } catch (err) {
+          console.warn("Could not toggle LED torch:", err);
+        }
       }
     }
 
@@ -802,18 +858,18 @@
       outputEl.textContent = morseSeq || '--';
 
       isTransmitting = true;
-      const unitMs = 200;
+      const unitMs = 150; // Speed of dot
 
       for (let symbol of morseSeq) {
         if (!isTransmitting) break;
 
         if (symbol === '.') {
-          await setTorch(true);
-          await new Promise(r => setTimeout(r, unitMs));
+          setTorch(true);
+          await playTone(750, unitMs);
           await setTorch(false);
         } else if (symbol === '-') {
-          await setTorch(true);
-          await new Promise(r => setTimeout(r, unitMs * 3));
+          setTorch(true);
+          await playTone(750, unitMs * 3);
           await setTorch(false);
         } else {
           await new Promise(r => setTimeout(r, unitMs * 3));
@@ -821,6 +877,7 @@
         await new Promise(r => setTimeout(r, unitMs));
       }
       isTransmitting = false;
+      setTorch(false);
     }
 
     function stopTransmission() {

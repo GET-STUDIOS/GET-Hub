@@ -356,6 +356,14 @@
       { name: "Hailey-Jade", month: 7, day: 29 }
     ];
 
+    // Email to Team Name Mapping
+    const TEAM_MEMBERS_MAP = {
+      "goutierexplorerteam@gmail.com": "Kevin"
+      // Add other members' emails here if needed:
+      // "nikita@example.com": "Nikita",
+      // "hailey@example.com": "Hailey-Jade"
+    };
+
     // Interactive Team Roll-Call State
     let teamStatuses = {
       "Kevin": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
@@ -497,9 +505,13 @@
     }
 
     function updateMyStatus(statusValue) {
-      let username = currentUserEmail ? currentUserEmail.split('@')[0] : 'Member';
-      // Capitalize first letter
-      username = username.charAt(0).toUpperCase() + username.slice(1);
+      // Look up member name from email map first
+      let memberName = TEAM_MEMBERS_MAP[currentUserEmail];
+      
+      if (!memberName) {
+        memberName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Member';
+        memberName = memberName.charAt(0).toUpperCase() + memberName.slice(1);
+      }
 
       let config = { label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" };
       if (statusValue === 'enroute') {
@@ -508,7 +520,7 @@
         config = { label: "🔴 Needs Assistance", color: "bg-red-500/20 text-red-400 border-red-500/40" };
       }
 
-      teamStatuses[username] = { status: statusValue, ...config };
+      teamStatuses[memberName] = { status: statusValue, ...config };
       renderRollCall();
     }
 

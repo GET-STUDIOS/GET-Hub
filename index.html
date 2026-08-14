@@ -56,7 +56,7 @@
       <form id="auth-form" class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-amber-100 mb-1">Email</label>
-          <input type="email" id="email" required placeholder="family@example.com" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-4 py-2.5 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold" />
+          <input type="email" id="email" required placeholder="member@example.com" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-4 py-2.5 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold" />
         </div>
         <div>
           <label class="block text-sm font-medium text-amber-100 mb-1">Password</label>
@@ -67,12 +67,6 @@
           Sign In
         </button>
       </form>
-
-      <div class="mt-4 text-center">
-        <button id="toggle-auth-mode" class="text-xs text-brand-gold hover:underline">
-          Need an account? Sign Up
-        </button>
-      </div>
       
       <p id="auth-error" class="text-red-400 text-xs text-center mt-4 hidden"></p>
     </div>
@@ -158,15 +152,10 @@
     
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // State Variables
-    let isSignUpMode = false;
-
     // DOM Elements
     const authContainer = document.getElementById('auth-container');
     const appContainer = document.getElementById('app-container');
     const authForm = document.getElementById('auth-form');
-    const authSubmitBtn = document.getElementById('auth-submit-btn');
-    const toggleAuthBtn = document.getElementById('toggle-auth-mode');
     const authError = document.getElementById('auth-error');
     const logoutBtn = document.getElementById('logout-btn');
     const userDisplay = document.getElementById('user-display');
@@ -220,47 +209,30 @@
       logoutBtn.classList.add('hidden');
     }
 
-    // 2. Toggle Auth Mode (Login vs Sign Up)
-    toggleAuthBtn.addEventListener('click', () => {
-      isSignUpMode = !isSignUpMode;
-      authSubmitBtn.textContent = isSignUpMode ? "Sign Up" : "Sign In";
-      toggleAuthBtn.textContent = isSignUpMode ? "Already have an account? Sign In" : "Need an account? Sign Up";
-      authError.classList.add('hidden');
-    });
-
-    // 3. Handle Form Submit (Login / Sign Up)
+    // 2. Handle Form Submit (Sign In Only)
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       authError.classList.add('hidden');
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      let result;
-      if (isSignUpMode) {
-        result = await supabase.auth.signUp({ email, password });
-      } else {
-        result = await supabase.auth.signInWithPassword({ email, password });
-      }
+      const result = await supabase.auth.signInWithPassword({ email, password });
 
       if (result.error) {
         authError.textContent = result.error.message;
         authError.classList.remove('hidden');
       } else {
-        if (isSignUpMode && !result.data.session) {
-          alert("Account created! Check your email to confirm registration.");
-        } else {
-          showApp(result.data.user);
-        }
+        showApp(result.data.user);
       }
     });
 
-    // 4. Handle Logout
+    // 3. Handle Logout
     logoutBtn.addEventListener('click', async () => {
       await supabase.auth.signOut();
       showAuth();
     });
 
-    // 5. Fetch Posts from Database
+    // 4. Fetch Posts from Database
     async function fetchPosts() {
       const { data: posts, error } = await supabase
         .from('posts')
@@ -293,7 +265,7 @@
       `).join('');
     }
 
-    // 6. Create New Post
+    // 5. Create New Post
     postBtn.addEventListener('click', async () => {
       const content = postContent.value.trim();
       if (!content) return;

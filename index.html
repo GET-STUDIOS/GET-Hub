@@ -244,9 +244,9 @@
 
     // Team Birthdays Config (Month: 1-12, Day: 1-31)
     const TEAM_BIRTHDAYS = [
-      { name: "Member 1", month: 3, day: 15 },
-      { name: "Member 2", month: 7, day: 22 },
-      { name: "Member 3", month: 11, day: 10 }
+      { name: "Kevin", month: 11, day: 22 },
+      { name: "Nikita", month: 8, day: 16 },
+      { name: "Hailey-Jade", month: 7, day: 29 }
     ];
 
     // DOM Elements
@@ -387,7 +387,8 @@
 
         TEAM_BIRTHDAYS.forEach(b => {
           let bdayDate = new Date(year, b.month - 1, b.day);
-          if (bdayDate < now) {
+          // If birthday already passed this year, set target to next year
+          if (bdayDate - now < 0) {
             bdayDate = new Date(year + 1, b.month - 1, b.day);
           }
           const diff = bdayDate - now;

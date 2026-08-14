@@ -93,7 +93,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
           <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3 mb-4">
@@ -104,7 +104,7 @@
               <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
             </div>
             <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
-              <span>📍</span> Use My Location
+              <span>📍</span> Location
             </button>
           </div>
 
@@ -126,6 +126,23 @@
               <p id="weather-humidity" class="text-xs font-semibold text-amber-100">--%</p>
             </div>
           </div>
+        </section>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+          <div class="border-b border-brand-gold/20 pb-3 mb-3 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+              <span>🚨</span> Disaster Alert
+            </h3>
+            <span id="alert-status-badge" class="text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/40 px-2.5 py-1 rounded-full">Checking...</span>
+          </div>
+
+          <div id="alert-box" class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl my-2 text-center flex-grow flex flex-col justify-center items-center">
+            <p id="alert-icon" class="text-3xl mb-1">🛡️</p>
+            <p id="alert-title" class="text-sm font-bold text-emerald-400">All Clear</p>
+            <p id="alert-desc" class="text-xs text-amber-200/70 mt-1">No active severe weather or disaster alerts reported for this area.</p>
+          </div>
+
+          <p class="text-[10px] text-amber-200/40 text-center">Live Monitoring System</p>
         </section>
 
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
@@ -161,18 +178,6 @@
       </div>
 
       <div id="view-feed" class="space-y-6">
-        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
-          <h3 class="text-lg font-bold text-brand-gold mb-3 flex items-center gap-2">
-            <span>✍️</span> Share an Explorer Log
-          </h3>
-          <textarea id="post-content" rows="3" placeholder="What's the latest update, GET team?" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg p-3 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold resize-none"></textarea>
-          <div class="flex justify-end items-center mt-3">
-            <button id="post-btn" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-semibold px-5 py-2 rounded-lg text-sm transition shadow-md">
-              Post Log
-            </button>
-          </div>
-        </section>
-
         <section>
           <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2">
             <span>📜</span> Expedition Feed
@@ -242,7 +247,7 @@
     const CHICLANA_LON = -6.1500;
     let isLiveLocation = false;
 
-    // Team Birthdays Config (Month: 1-12, Day: 1-31)
+    // Team Birthdays Config (Kevin: 22/11/1984, Nikita: 16/08/1996, Hailey-Jade: 29/07/2016)
     const TEAM_BIRTHDAYS = [
       { name: "Kevin", month: 11, day: 22 },
       { name: "Nikita", month: 8, day: 16 },
@@ -258,8 +263,6 @@
     const logoutBtn = document.getElementById('logout-btn');
     const userDisplay = document.getElementById('user-display');
     const userAvatar = document.getElementById('user-avatar');
-    const postContent = document.getElementById('post-content');
-    const postBtn = document.getElementById('post-btn');
     const postsFeed = document.getElementById('posts-feed');
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
@@ -327,7 +330,7 @@
       logoutBtn.classList.add('hidden');
     }
 
-    // 2. Weather Engine
+    // 2. Weather & Alert Engine
     async function fetchWeather(lat, lon, labelName) {
       document.getElementById('weather-location').textContent = `Base: ${labelName}`;
       try {
@@ -339,8 +342,49 @@
         document.getElementById('weather-humidity').textContent = `${current.relative_humidity_2m}%`;
         document.getElementById('weather-wind').textContent = `${Math.round(current.wind_speed_10m)} km/h`;
         document.getElementById('weather-condition').textContent = getWeatherDescription(current.weather_code);
+
+        // Evaluate Weather Alerts based on weather code and wind speed
+        updateAlertStatus(current.weather_code, current.wind_speed_10m);
       } catch (err) {
         document.getElementById('weather-condition').textContent = "Unavailable";
+      }
+    }
+
+    function updateAlertStatus(weatherCode, windSpeed) {
+      const alertBadge = document.getElementById('alert-status-badge');
+      const alertIcon = document.getElementById('alert-icon');
+      const alertTitle = document.getElementById('alert-title');
+      const alertDesc = document.getElementById('alert-desc');
+
+      // Check for Severe Weather Conditions
+      if (weatherCode >= 95) { // Thunderstorm
+        alertBadge.className = "text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/40 px-2.5 py-1 rounded-full";
+        alertBadge.textContent = "WARNING";
+        alertIcon.textContent = "🌩️";
+        alertTitle.textContent = "Thunderstorm Warning";
+        alertTitle.className = "text-sm font-bold text-red-400";
+        alertDesc.textContent = "Active thunderstorms detected in the area. Seek shelter and monitor comms.";
+      } else if (windSpeed >= 50) { // High Winds
+        alertBadge.className = "text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full";
+        alertBadge.textContent = "ADVISORY";
+        alertIcon.textContent = "💨";
+        alertTitle.textContent = "High Wind Advisory";
+        alertTitle.className = "text-sm font-bold text-amber-400";
+        alertDesc.textContent = `High wind speeds of ${Math.round(windSpeed)} km/h detected. Use caution outdoors.`;
+      } else if (weatherCode >= 63) { // Heavy Rain / Showers
+        alertBadge.className = "text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full";
+        alertBadge.textContent = "ADVISORY";
+        alertIcon.textContent = "🌧️";
+        alertTitle.textContent = "Heavy Rain Advisory";
+        alertTitle.className = "text-sm font-bold text-amber-400";
+        alertDesc.textContent = "Heavy rainfall in progress. Expect reduced visibility.";
+      } else { // Normal Conditions
+        alertBadge.className = "text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-1 rounded-full";
+        alertBadge.textContent = "ALL CLEAR";
+        alertIcon.textContent = "🛡️";
+        alertTitle.textContent = "All Clear";
+        alertTitle.className = "text-sm font-bold text-emerald-400";
+        alertDesc.textContent = "No active severe weather or disaster alerts reported for this area.";
       }
     }
 
@@ -348,22 +392,22 @@
       const btn = document.getElementById('location-toggle-btn');
       if (!isLiveLocation) {
         if (navigator.geolocation) {
-          btn.textContent = "⌛ Locating...";
+          btn.textContent = "⌛...";
           navigator.geolocation.getCurrentPosition(
             (pos) => {
               isLiveLocation = true;
-              btn.innerHTML = "<span>🏰</span> Reset Base";
+              btn.innerHTML = "<span>🏰</span> Base";
               fetchWeather(pos.coords.latitude, pos.coords.longitude, "Live Location");
             },
             () => {
               alert("Could not access live location. Staying at Chiclana base.");
-              btn.innerHTML = "<span>📍</span> Use My Location";
+              btn.innerHTML = "<span>📍</span> Location";
             }
           );
         }
       } else {
         isLiveLocation = false;
-        btn.innerHTML = "<span>📍</span> Use My Location";
+        btn.innerHTML = "<span>📍</span> Location";
         fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
       }
     }
@@ -387,7 +431,6 @@
 
         TEAM_BIRTHDAYS.forEach(b => {
           let bdayDate = new Date(year, b.month - 1, b.day);
-          // If birthday already passed this year, set target to next year
           if (bdayDate - now < 0) {
             bdayDate = new Date(year + 1, b.month - 1, b.day);
           }
@@ -423,7 +466,6 @@
     async function initChat() {
       await fetchMessages();
 
-      // Listen for real-time messages
       supabaseClient
         .channel('public:messages')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
@@ -440,7 +482,7 @@
         .order('created_at', { ascending: true });
 
       if (error) {
-        chatMessages.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Failed to load chat. Run SQL setup script in Supabase.</p>`;
+        chatMessages.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Failed to load chat. Ensure messages table exists in Supabase.</p>`;
         return;
       }
 
@@ -501,7 +543,7 @@
       }
 
       if (posts.length === 0) {
-        postsFeed.innerHTML = `<p class="text-amber-200/50 text-center py-8">No logs added yet. Be the first!</p>`;
+        postsFeed.innerHTML = `<p class="text-amber-200/50 text-center py-8">No logs added yet.</p>`;
         return;
       }
 
@@ -520,22 +562,6 @@
         </div>
       `).join('');
     }
-
-    postBtn.addEventListener('click', async () => {
-      const content = postContent.value.trim();
-      if (!content) return;
-
-      const { error } = await supabaseClient.from('posts').insert([
-        { content, user_email: currentUserEmail }
-      ]);
-
-      if (error) {
-        alert("Error sharing post: " + error.message);
-      } else {
-        postContent.value = '';
-        fetchPosts();
-      }
-    });
 
     // 6. Login / Logout Handlers
     authForm.addEventListener('submit', async (e) => {

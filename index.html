@@ -25,10 +25,10 @@
     }
   </script>
 </head>
-<body class="bg-brand-black text-amber-100 min-h-screen font-sans">
+<body class="bg-brand-black text-amber-100 min-h-screen font-sans flex flex-col">
 
-  <header class="border-b border-brand-brownCard bg-brand-brownDark/90 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+  <header class="border-b border-brand-gold/20 bg-brand-brownDark/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <span class="bg-brand-gold text-brand-black font-black px-2.5 py-1 rounded text-lg tracking-wider">GET</span>
         <h1 class="text-xl font-bold tracking-tight text-brand-gold">Ready Together</h1>
@@ -39,7 +39,7 @@
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 py-8">
+  <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full">
 
     <div id="auth-container" class="max-w-md mx-auto my-8 bg-brand-brownCard border border-brand-gold/30 p-8 rounded-2xl shadow-2xl">
       
@@ -77,29 +77,77 @@
       <p id="auth-error" class="text-red-400 text-xs text-center mt-4 hidden"></p>
     </div>
 
-    <div id="app-container" class="hidden space-y-8">
+    <div id="app-container" class="hidden space-y-6">
       
-      <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
-        <h3 class="text-lg font-bold text-brand-gold mb-3">Share an Explorer Log</h3>
-        <textarea id="post-content" rows="3" placeholder="What's the latest update, GET team?" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg p-3 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold"></textarea>
-        <div class="flex justify-between items-center mt-3">
-          <span id="user-display" class="text-xs text-amber-200/60">Logged in as: </span>
-          <button id="post-btn" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-semibold px-4 py-2 rounded-lg text-sm transition">
-            Post Update
+      <div class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-full bg-brand-gold/20 border border-brand-gold/50 flex items-center justify-center font-bold text-brand-gold text-lg">
+            <span id="user-avatar">?</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-brand-gold">Explorer Portal</h2>
+            <p id="user-display" class="text-xs text-amber-200/70">Logged in as: </p>
+          </div>
+        </div>
+
+        <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full md:w-auto">
+          <button id="tab-feed-btn" onclick="switchTab('feed')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition">
+            Log Feed
+          </button>
+          <button id="tab-resources-btn" onclick="switchTab('resources')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
+            Resources
           </button>
         </div>
-      </section>
+      </div>
 
-      <section>
-        <h3 class="text-lg font-bold text-brand-gold mb-4">Expedition Feed</h3>
-        <div id="posts-feed" class="space-y-4">
-          <p class="text-amber-200/50 text-center py-8">Loading logs...</p>
-        </div>
-      </section>
+      <div id="view-feed" class="space-y-6">
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
+          <h3 class="text-lg font-bold text-brand-gold mb-3 flex items-center gap-2">
+            <span>✍️</span> Share an Explorer Log
+          </h3>
+          <textarea id="post-content" rows="3" placeholder="What's the latest update, GET team?" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg p-3 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold resize-none"></textarea>
+          <div class="flex justify-end items-center mt-3">
+            <button id="post-btn" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-semibold px-5 py-2 rounded-lg text-sm transition shadow-md">
+              Post Log
+            </button>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2">
+            <span>📜</span> Expedition Feed
+          </h3>
+          <div id="posts-feed" class="space-y-4">
+            <p class="text-amber-200/50 text-center py-8">Loading logs...</p>
+          </div>
+        </section>
+      </div>
+
+      <div id="view-resources" class="hidden space-y-6">
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
+          <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2">
+            <span>🛠️</span> Team Resources & Guidelines
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl">
+              <h4 class="font-bold text-brand-gold mb-1">Standard Procedures</h4>
+              <p class="text-xs text-amber-100/80">Checklists and essential guidelines for team expeditions and readiness.</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl">
+              <h4 class="font-bold text-brand-gold mb-1">Emergency Contacts</h4>
+              <p class="text-xs text-amber-100/80">Primary and secondary communication channels for all GET members.</p>
+            </div>
+          </div>
+        </section>
+      </div>
 
     </div>
 
   </main>
+
+  <footer class="text-center py-4 text-xs text-amber-200/40 border-t border-brand-brownCard mt-auto">
+    GET &copy; Ready Together
+  </footer>
 
   <script>
     // -------------------------------------------------------------
@@ -122,9 +170,30 @@
     const authError = document.getElementById('auth-error');
     const logoutBtn = document.getElementById('logout-btn');
     const userDisplay = document.getElementById('user-display');
+    const userAvatar = document.getElementById('user-avatar');
     const postContent = document.getElementById('post-content');
     const postBtn = document.getElementById('post-btn');
     const postsFeed = document.getElementById('posts-feed');
+
+    // Tab Switcher
+    function switchTab(tabName) {
+      const feedView = document.getElementById('view-feed');
+      const resourcesView = document.getElementById('view-resources');
+      const feedBtn = document.getElementById('tab-feed-btn');
+      const resourcesBtn = document.getElementById('tab-resources-btn');
+
+      if (tabName === 'feed') {
+        feedView.classList.remove('hidden');
+        resourcesView.classList.add('hidden');
+        feedBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+        resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      } else {
+        feedView.classList.add('hidden');
+        resourcesView.classList.remove('hidden');
+        resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+        feedBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      }
+    }
 
     // 1. Check Login State on Page Load
     async function checkUser() {
@@ -141,6 +210,7 @@
       appContainer.classList.remove('hidden');
       logoutBtn.classList.remove('hidden');
       userDisplay.textContent = `Logged in as: ${user.email}`;
+      userAvatar.textContent = user.email.charAt(0).toUpperCase();
       fetchPosts();
     }
 
@@ -203,16 +273,21 @@
       }
 
       if (posts.length === 0) {
-        postsFeed.innerHTML = `<p class="text-amber-200/50 text-center py-4">No logs added yet. Be the first!</p>`;
+        postsFeed.innerHTML = `<p class="text-amber-200/50 text-center py-8">No logs added yet. Be the first!</p>`;
         return;
       }
 
       postsFeed.innerHTML = posts.map(post => `
-        <div class="bg-brand-brownCard/60 border border-brand-gold/20 p-4 rounded-xl">
-          <p class="text-amber-100">${escapeHtml(post.content)}</p>
-          <div class="flex justify-between items-center mt-3 text-xs text-amber-200/50">
-            <span>${escapeHtml(post.user_email)}</span>
-            <span>${new Date(post.created_at).toLocaleDateString()}</span>
+        <div class="bg-brand-brownCard/60 border border-brand-gold/20 p-4 rounded-xl flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center font-bold text-brand-gold text-xs shrink-0 mt-1">
+            ${escapeHtml(post.user_email.charAt(0).toUpperCase())}
+          </div>
+          <div class="flex-grow">
+            <div class="flex justify-between items-center text-xs text-amber-200/60 mb-1">
+              <span class="font-semibold text-brand-goldLight">${escapeHtml(post.user_email)}</span>
+              <span>${new Date(post.created_at).toLocaleDateString()}</span>
+            </div>
+            <p class="text-amber-100 text-sm leading-relaxed">${escapeHtml(post.content)}</p>
           </div>
         </div>
       `).join('');

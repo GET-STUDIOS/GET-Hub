@@ -81,8 +81,8 @@
         </div>
 
         <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full md:w-auto">
-          <button id="tab-feed-btn" onclick="switchTab('feed')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition">
-            Log Feed
+          <button id="tab-dashboard-btn" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition">
+            Dashboard
           </button>
           <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
             Team Chat
@@ -93,99 +93,118 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div id="view-dashboard" class="space-y-6">
         
-        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-          <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+            <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3 mb-4">
+              <div>
+                <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+                  <span>🌤️</span> Weather
+                </h3>
+                <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
+              </div>
+              <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
+                <span>📍</span> Location
+              </button>
+            </div>
+
+            <div id="weather-content" class="grid grid-cols-2 gap-3 text-center">
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-xs text-amber-200/60 mb-0.5">Temp</p>
+                <p id="weather-temp" class="text-lg font-bold text-brand-gold">--°C</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-xs text-amber-200/60 mb-0.5">Condition</p>
+                <p id="weather-condition" class="text-xs font-semibold text-amber-100">Loading...</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-xs text-amber-200/60 mb-0.5">Wind</p>
+                <p id="weather-wind" class="text-xs font-semibold text-amber-100">-- km/h</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
+                <p class="text-xs text-amber-200/60 mb-0.5">Humidity</p>
+                <p id="weather-humidity" class="text-xs font-semibold text-amber-100">--%</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+            <div class="border-b border-brand-gold/20 pb-3 mb-3 flex justify-between items-center">
+              <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+                <span>🚨</span> Disaster Alert
+              </h3>
+              <span id="alert-status-badge" class="text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/40 px-2.5 py-1 rounded-full">Checking...</span>
+            </div>
+
+            <div id="alert-box" class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl my-2 text-center flex-grow flex flex-col justify-center items-center">
+              <p id="alert-icon" class="text-3xl mb-1">🛡️</p>
+              <p id="alert-title" class="text-sm font-bold text-emerald-400">All Clear</p>
+              <p id="alert-desc" class="text-xs text-amber-200/70 mt-1">No active severe weather or disaster alerts reported for this area.</p>
+            </div>
+
+            <p class="text-[10px] text-amber-200/40 text-center">Live Monitoring System</p>
+          </section>
+
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+            <div class="border-b border-brand-gold/20 pb-3 mb-4 flex justify-between items-center">
+              <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+                <span>🎂</span> Birthday Countdown
+              </h3>
+              <span id="next-bday-name" class="text-xs font-semibold bg-brand-gold/20 text-brand-gold border border-brand-gold/40 px-2.5 py-1 rounded-full">--</span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 text-center my-2">
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p id="bday-days" class="text-xl font-bold text-brand-gold">00</p>
+                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Days</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p id="bday-hours" class="text-xl font-bold text-brand-gold">00</p>
+                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Hours</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p id="bday-mins" class="text-xl font-bold text-brand-gold">00</p>
+                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Mins</p>
+              </div>
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
+                <p id="bday-secs" class="text-xl font-bold text-brand-gold">00</p>
+                <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Secs</p>
+              </div>
+            </div>
+
+            <p id="bday-subtext" class="text-xs text-amber-200/60 text-center mt-2">Next upcoming celebration</p>
+          </section>
+
+        </div>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-brand-gold/20 pb-4">
             <div>
               <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-                <span>🌤️</span> Weather
+                <span>🎒</span> Emergency Prepping Gear Checklist
               </h3>
-              <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
+              <p class="text-xs text-amber-200/60">Essential readiness gear lists for quick deployment.</p>
             </div>
-            <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
-              <span>📍</span> Location
-            </button>
+
+            <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full sm:w-auto">
+              <button id="prep-btn-bugout" onclick="switchPrepCategory('bugout')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold bg-brand-gold text-brand-black transition">
+                Bug Out Bag (72h)
+              </button>
+              <button id="prep-btn-car" onclick="switchPrepCategory('car')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
+                Car Emergency Kit
+              </button>
+              <button id="prep-btn-home" onclick="switchPrepCategory('home')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition">
+                Home Shelter
+              </button>
+            </div>
           </div>
 
-          <div id="weather-content" class="grid grid-cols-2 gap-3 text-center">
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-              <p class="text-xs text-amber-200/60 mb-0.5">Temp</p>
-              <p id="weather-temp" class="text-lg font-bold text-brand-gold">--°C</p>
+          <div id="prep-items-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             </div>
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-              <p class="text-xs text-amber-200/60 mb-0.5">Condition</p>
-              <p id="weather-condition" class="text-xs font-semibold text-amber-100">Loading...</p>
-            </div>
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-              <p class="text-xs text-amber-200/60 mb-0.5">Wind</p>
-              <p id="weather-wind" class="text-xs font-semibold text-amber-100">-- km/h</p>
-            </div>
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2.5 rounded-xl">
-              <p class="text-xs text-amber-200/60 mb-0.5">Humidity</p>
-              <p id="weather-humidity" class="text-xs font-semibold text-amber-100">--%</p>
-            </div>
-          </div>
         </section>
 
-        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-          <div class="border-b border-brand-gold/20 pb-3 mb-3 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-              <span>🚨</span> Disaster Alert
-            </h3>
-            <span id="alert-status-badge" class="text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/40 px-2.5 py-1 rounded-full">Checking...</span>
-          </div>
-
-          <div id="alert-box" class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl my-2 text-center flex-grow flex flex-col justify-center items-center">
-            <p id="alert-icon" class="text-3xl mb-1">🛡️</p>
-            <p id="alert-title" class="text-sm font-bold text-emerald-400">All Clear</p>
-            <p id="alert-desc" class="text-xs text-amber-200/70 mt-1">No active severe weather or disaster alerts reported for this area.</p>
-          </div>
-
-          <p class="text-[10px] text-amber-200/40 text-center">Live Monitoring System</p>
-        </section>
-
-        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-          <div class="border-b border-brand-gold/20 pb-3 mb-4 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-              <span>🎂</span> Birthday Countdown
-            </h3>
-            <span id="next-bday-name" class="text-xs font-semibold bg-brand-gold/20 text-brand-gold border border-brand-gold/40 px-2.5 py-1 rounded-full">--</span>
-          </div>
-
-          <div class="grid grid-cols-4 gap-2 text-center my-2">
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-              <p id="bday-days" class="text-xl font-bold text-brand-gold">00</p>
-              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Days</p>
-            </div>
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-              <p id="bday-hours" class="text-xl font-bold text-brand-gold">00</p>
-              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Hours</p>
-            </div>
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-              <p id="bday-mins" class="text-xl font-bold text-brand-gold">00</p>
-              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Mins</p>
-            </div>
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-2 rounded-xl">
-              <p id="bday-secs" class="text-xl font-bold text-brand-gold">00</p>
-              <p class="text-[10px] text-amber-200/60 uppercase tracking-wider">Secs</p>
-            </div>
-          </div>
-
-          <p id="bday-subtext" class="text-xs text-amber-200/60 text-center mt-2">Next upcoming celebration</p>
-        </section>
-
-      </div>
-
-      <div id="view-feed" class="space-y-6">
-        <section>
-          <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2">
-            <span>📜</span> Expedition Feed
-          </h3>
-          <div id="posts-feed" class="space-y-4">
-            <p class="text-amber-200/50 text-center py-8">Loading logs...</p>
-          </div>
-        </section>
       </div>
 
       <div id="view-chat" class="hidden space-y-6">
@@ -209,7 +228,7 @@
 
       <div id="view-resources" class="hidden space-y-6">
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
-          <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2">
+          <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2 border-b border-brand-gold/20 pb-3">
             <span>🛠️</span> Team Resources & Guidelines
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -254,6 +273,42 @@
       { name: "Hailey-Jade", month: 7, day: 29 }
     ];
 
+    // Prepping List Data
+    const PREPPING_LISTS = {
+      bugout: [
+        "Water supply (3L per person / 3 days)",
+        "Non-perishable food / MREs (3-day ration)",
+        "Water purification tablets / portable filter",
+        "Comprehensive First Aid & trauma kit",
+        "Multi-tool / Heavy-duty survival knife",
+        "Tactical flashlight & headlamp (extra batteries)",
+        "Emergency thermal blankets / bivvy sack",
+        "Power bank & solar charging cable",
+        "Whistle, signal mirror & emergency compass",
+        "Copies of essential IDs & cash in waterproof bag"
+      ],
+      car: [
+        "Jumper cables & portable jump-starter pack",
+        "Tire inflator pump & tire repair sealant kit",
+        "Heavy-duty tow strap & work gloves",
+        "High-visibility safety vests & warning triangle",
+        "Compact shovel & glass breaker / seatbelt cutter",
+        "Emergency blanket & spare warm clothes",
+        "Heavy-duty flashlight or LED flare torch",
+        "Basic tool set (socket wrench, pliers, duct tape)"
+      ],
+      home: [
+        "2-week non-perishable food reserve",
+        "1-week stored drinking water reserve",
+        "NOAA weather radio / crank radio",
+        "Full emergency medical & prescription reserve",
+        "Fire extinguisher & fire blanket",
+        "Backup generator or large portable power station",
+        "Sanitation & hygiene supplies (wet wipes, trash bags)",
+        "Hard copies of emergency contact & route maps"
+      ]
+    };
+
     // DOM Elements
     const authContainer = document.getElementById('auth-container');
     const appContainer = document.getElementById('app-container');
@@ -263,7 +318,6 @@
     const logoutBtn = document.getElementById('logout-btn');
     const userDisplay = document.getElementById('user-display');
     const userAvatar = document.getElementById('user-avatar');
-    const postsFeed = document.getElementById('posts-feed');
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
@@ -272,24 +326,24 @@
 
     // Tab Switcher
     function switchTab(tabName) {
-      const feedView = document.getElementById('view-feed');
+      const dashboardView = document.getElementById('view-dashboard');
       const chatView = document.getElementById('view-chat');
       const resourcesView = document.getElementById('view-resources');
-      const feedBtn = document.getElementById('tab-feed-btn');
+      const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const chatBtn = document.getElementById('tab-chat-btn');
       const resourcesBtn = document.getElementById('tab-resources-btn');
 
-      feedView.classList.add('hidden');
+      dashboardView.classList.add('hidden');
       chatView.classList.add('hidden');
       resourcesView.classList.add('hidden');
 
-      feedBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      dashboardBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
       chatBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
       resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
 
-      if (tabName === 'feed') {
-        feedView.classList.remove('hidden');
-        feedBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+      if (tabName === 'dashboard') {
+        dashboardView.classList.remove('hidden');
+        dashboardBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
       } else if (tabName === 'chat') {
         chatView.classList.remove('hidden');
         chatBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
@@ -298,6 +352,35 @@
         resourcesView.classList.remove('hidden');
         resourcesBtn.className = "flex-1 md:flex-none px-4 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
       }
+    }
+
+    // Prepping List Switcher
+    function switchPrepCategory(category) {
+      const bugoutBtn = document.getElementById('prep-btn-bugout');
+      const carBtn = document.getElementById('prep-btn-car');
+      const homeBtn = document.getElementById('prep-btn-home');
+
+      bugoutBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      carBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+      homeBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition";
+
+      if (category === 'bugout') bugoutBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+      if (category === 'car') carBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+      if (category === 'home') homeBtn.className = "flex-1 sm:flex-none px-3 py-1.5 rounded-lg font-semibold bg-brand-gold text-brand-black transition";
+
+      renderPrepList(category);
+    }
+
+    function renderPrepList(category) {
+      const container = document.getElementById('prep-items-container');
+      const items = PREPPING_LISTS[category] || [];
+
+      container.innerHTML = items.map((item, index) => `
+        <label class="flex items-center gap-3 bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl cursor-pointer hover:border-brand-gold/50 transition">
+          <input type="checkbox" id="prep-item-${category}-${index}" class="w-4 h-4 accent-amber-500 rounded cursor-pointer" />
+          <span class="text-xs text-amber-100/90 leading-relaxed">${escapeHtml(item)}</span>
+        </label>
+      `).join('');
     }
 
     // 1. Authentication State
@@ -318,9 +401,9 @@
       userDisplay.textContent = `Logged in as: ${user.email}`;
       userAvatar.textContent = user.email.charAt(0).toUpperCase();
 
-      fetchPosts();
       fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
       initBirthdayTimer();
+      renderPrepList('bugout');
       initChat();
     }
 
@@ -343,7 +426,6 @@
         document.getElementById('weather-wind').textContent = `${Math.round(current.wind_speed_10m)} km/h`;
         document.getElementById('weather-condition').textContent = getWeatherDescription(current.weather_code);
 
-        // Evaluate Weather Alerts based on weather code and wind speed
         updateAlertStatus(current.weather_code, current.wind_speed_10m);
       } catch (err) {
         document.getElementById('weather-condition').textContent = "Unavailable";
@@ -356,29 +438,28 @@
       const alertTitle = document.getElementById('alert-title');
       const alertDesc = document.getElementById('alert-desc');
 
-      // Check for Severe Weather Conditions
-      if (weatherCode >= 95) { // Thunderstorm
+      if (weatherCode >= 95) {
         alertBadge.className = "text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/40 px-2.5 py-1 rounded-full";
         alertBadge.textContent = "WARNING";
         alertIcon.textContent = "🌩️";
         alertTitle.textContent = "Thunderstorm Warning";
         alertTitle.className = "text-sm font-bold text-red-400";
         alertDesc.textContent = "Active thunderstorms detected in the area. Seek shelter and monitor comms.";
-      } else if (windSpeed >= 50) { // High Winds
+      } else if (windSpeed >= 50) {
         alertBadge.className = "text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full";
         alertBadge.textContent = "ADVISORY";
         alertIcon.textContent = "💨";
         alertTitle.textContent = "High Wind Advisory";
         alertTitle.className = "text-sm font-bold text-amber-400";
         alertDesc.textContent = `High wind speeds of ${Math.round(windSpeed)} km/h detected. Use caution outdoors.`;
-      } else if (weatherCode >= 63) { // Heavy Rain / Showers
+      } else if (weatherCode >= 63) {
         alertBadge.className = "text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full";
         alertBadge.textContent = "ADVISORY";
         alertIcon.textContent = "🌧️";
         alertTitle.textContent = "Heavy Rain Advisory";
         alertTitle.className = "text-sm font-bold text-amber-400";
         alertDesc.textContent = "Heavy rainfall in progress. Expect reduced visibility.";
-      } else { // Normal Conditions
+      } else {
         alertBadge.className = "text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-1 rounded-full";
         alertBadge.textContent = "ALL CLEAR";
         alertIcon.textContent = "🛡️";
@@ -530,40 +611,7 @@
       if (error) alert('Failed to send message: ' + error.message);
     });
 
-    // 5. Expedition Log Feed Engine
-    async function fetchPosts() {
-      const { data: posts, error } = await supabaseClient
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        postsFeed.innerHTML = `<p class="text-red-400 text-center py-4">Failed to load logs.</p>`;
-        return;
-      }
-
-      if (posts.length === 0) {
-        postsFeed.innerHTML = `<p class="text-amber-200/50 text-center py-8">No logs added yet.</p>`;
-        return;
-      }
-
-      postsFeed.innerHTML = posts.map(post => `
-        <div class="bg-brand-brownCard/60 border border-brand-gold/20 p-4 rounded-xl flex gap-3">
-          <div class="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center font-bold text-brand-gold text-xs shrink-0 mt-1">
-            ${escapeHtml((post.user_email || 'U').charAt(0).toUpperCase())}
-          </div>
-          <div class="flex-grow">
-            <div class="flex justify-between items-center text-xs text-amber-200/60 mb-1">
-              <span class="font-semibold text-brand-goldLight">${escapeHtml(post.user_email || 'Explorer')}</span>
-              <span>${new Date(post.created_at).toLocaleDateString()}</span>
-            </div>
-            <p class="text-amber-100 text-sm leading-relaxed">${escapeHtml(post.content)}</p>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // 6. Login / Logout Handlers
+    // 5. Login / Logout Handlers
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       authError.classList.add('hidden');

@@ -96,6 +96,39 @@
         </div>
       </div>
 
+      <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-brand-gold/20 pb-4 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+              <span>🌤️</span> Expedition Weather
+            </h3>
+            <p id="weather-location" class="text-xs text-amber-200/70">Base: Chiclana de la Frontera</p>
+          </div>
+          <button id="location-toggle-btn" onclick="toggleLocation()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
+            <span>📍</span> Use My Location
+          </button>
+        </div>
+
+        <div id="weather-content" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
+            <p class="text-xs text-amber-200/60 mb-1">Temperature</p>
+            <p id="weather-temp" class="text-xl font-bold text-brand-gold">--°C</p>
+          </div>
+          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
+            <p class="text-xs text-amber-200/60 mb-1">Condition</p>
+            <p id="weather-condition" class="text-sm font-semibold text-amber-100">Loading...</p>
+          </div>
+          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
+            <p class="text-xs text-amber-200/60 mb-1">Wind Speed</p>
+            <p id="weather-wind" class="text-sm font-semibold text-amber-100">-- km/h</p>
+          </div>
+          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl">
+            <p class="text-xs text-amber-200/60 mb-1">Humidity</p>
+            <p id="weather-humidity" class="text-sm font-semibold text-amber-100">--%</p>
+          </div>
+        </div>
+      </section>
+
       <div id="view-feed" class="space-y-6">
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
           <h3 class="text-lg font-bold text-brand-gold mb-3 flex items-center gap-2">
@@ -154,6 +187,11 @@
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Default Coordinates: Chiclana de la Frontera, Spain
+    const CHICLANA_LAT = 36.4167;
+    const CHICLANA_LON = -6.1500;
+    let isLiveLocation = false;
+
     // DOM Elements
     const authContainer = document.getElementById('auth-container');
     const appContainer = document.getElementById('app-container');
@@ -204,6 +242,7 @@
       userDisplay.textContent = `Logged in as: ${user.email}`;
       userAvatar.textContent = user.email.charAt(0).toUpperCase();
       fetchPosts();
+      fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
     }
 
     function showAuth() {
@@ -212,7 +251,63 @@
       logoutBtn.classList.add('hidden');
     }
 
-    // 2. Handle Form Submit
+    // 2. Weather Fetcher (Open-Meteo API)
+    async function fetchWeather(lat, lon, labelName) {
+      document.getElementById('weather-location').textContent = `Base: ${labelName}`;
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`);
+        const data = await res.json();
+        const current = data.current;
+
+        document.getElementById('weather-temp').textContent = `${Math.round(current.temperature_2m)}°C`;
+        document.getElementById('weather-humidity').textContent = `${current.relative_humidity_2m}%`;
+        document.getElementById('weather-wind').textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+        document.getElementById('weather-condition').textContent = getWeatherDescription(current.weather_code);
+      } catch (err) {
+        document.getElementById('weather-condition').textContent = "Unavailable";
+      }
+    }
+
+    function toggleLocation() {
+      const btn = document.getElementById('location-toggle-btn');
+      if (!isLiveLocation) {
+        if (navigator.geolocation) {
+          btn.textContent = "⌛ Locating...";
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              isLiveLocation = true;
+              btn.innerHTML = "<span>🏰</span> Reset to Base";
+              fetchWeather(pos.coords.latitude, pos.coords.longitude, "Live Location");
+            },
+            () => {
+              alert("Could not access live location. Staying at Chiclana base.");
+              btn.innerHTML = "<span>📍</span> Use My Location";
+            }
+          );
+        } else {
+          alert("Geolocation is not supported by your browser.");
+        }
+      } else {
+        isLiveLocation = false;
+        btn.innerHTML = "<span>📍</span> Use My Location";
+        fetchWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana de la Frontera");
+      }
+    }
+
+    function getWeatherDescription(code) {
+      const codes = {
+        0: '☀️ Clear Sky',
+        1: '🌤️ Mostly Clear', 2: 'Partly Cloudy', 3: '☁️ Overcast',
+        45: '🌫️ Foggy', 48: '🌫️ Rime Fog',
+        51: '🌦️ Light Drizzle', 53: '🌦️ Drizzle', 55: '🌦️ Heavy Drizzle',
+        61: '🌧️ Light Rain', 63: '🌧️ Rain', 65: '🌧️ Heavy Rain',
+        80: '🌧️ Rain Showers', 81: '🌧️ Heavy Showers',
+        95: '🌩️ Thunderstorm'
+      };
+      return codes[code] || '🌤️ Fair';
+    }
+
+    // 3. Handle Form Submit
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       authError.classList.add('hidden');
@@ -240,13 +335,13 @@
       }
     });
 
-    // 3. Handle Logout
+    // 4. Handle Logout
     logoutBtn.addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       showAuth();
     });
 
-    // 4. Fetch Posts from Database
+    // 5. Fetch Posts from Database
     async function fetchPosts() {
       const { data: posts, error } = await supabaseClient
         .from('posts')
@@ -254,7 +349,7 @@
         .order('created_at', { ascending: false });
 
       if (error) {
-        postsFeed.innerHTML = `<p class="text-red-400 text-center py-4">Failed to load logs. Ensure your Supabase posts table exist with public read permissions.</p>`;
+        postsFeed.innerHTML = `<p class="text-red-400 text-center py-4">Failed to load logs. Ensure your Supabase posts table permissions are set.</p>`;
         return;
       }
 
@@ -279,7 +374,7 @@
       `).join('');
     }
 
-    // 5. Create New Post
+    // 6. Create New Post
     postBtn.addEventListener('click', async () => {
       const content = postContent.value.trim();
       if (!content) return;

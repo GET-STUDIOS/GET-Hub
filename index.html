@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GET - Ready Together</title>
+  <link rel="icon" href="data:,">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
@@ -147,8 +149,8 @@
     // -------------------------------------------------------------
     // SUPABASE CREDENTIALS
     // -------------------------------------------------------------
-    const SUPABASE_URL = "https://wrmmsosrwtqthptcpxvg.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_Sh5qd5BzgGCPBEGi3sVAVw_dr7qmNke";
+    const SUPABASE_URL = "https://yiinbykxpqlbehjzzuvh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpaW5ieWt4cHFsYmVoanp6dXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NDYwODUsImV4cCI6MjEwMjIyMjA4NX0.cbTxKk68lp7qg0pVKqBF4VppNAR01Tz_-_eIiBkSObs";
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -252,7 +254,7 @@
         .order('created_at', { ascending: false });
 
       if (error) {
-        postsFeed.innerHTML = `<p class="text-red-400 text-center py-4">Failed to load logs. Ensure table RLS allows reading.</p>`;
+        postsFeed.innerHTML = `<p class="text-red-400 text-center py-4">Failed to load logs. Ensure your Supabase posts table exist with public read permissions.</p>`;
         return;
       }
 

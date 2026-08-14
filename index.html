@@ -480,17 +480,17 @@
               <span>🔦</span> Visual & Audio Signaling
             </h3>
 
-            <div id="strobe-screen" class="bg-brand-black/90 border border-brand-gold/30 p-6 rounded-xl flex flex-col items-center justify-center space-y-2 transition-all duration-75">
-              <div id="signal-icon" class="text-3xl">💡</div>
-              <p id="signal-status-text" class="text-xs font-mono text-brand-gold font-bold uppercase">Signal Beacon Standby</p>
+            <div id="strobe-screen" class="bg-brand-black/90 border border-brand-gold/30 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all duration-75 min-h-[220px]">
+              <div id="signal-icon" class="text-5xl">💡</div>
+              <p id="signal-status-text" class="text-sm font-mono text-brand-gold font-bold uppercase tracking-wider">Signal Beacon Standby</p>
             </div>
 
             <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl flex items-center justify-between">
               <div>
                 <p class="font-bold text-amber-100 text-sm">Constant Torch</p>
-                <p class="text-[11px] text-amber-200/60">Toggle camera LED (Requires HTTPS/Mobile)</p>
+                <p class="text-[11px] text-amber-200/60">Toggle bright screen beacon and mobile LED</p>
               </div>
-              <button id="torch-toggle-btn" onclick="toggleTorch()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-4 py-2 rounded-lg text-xs transition">
+              <button id="torch-toggle-btn" onclick="toggleTorch()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition">
                 Turn ON
               </button>
             </div>
@@ -751,7 +751,7 @@
     }
 
     // -------------------------------------------------------------
-    // SIGNALING & MORSE CODE ENGINE (AUDIO + SCREEN FLASH + TORCH)
+    // SIGNALING & MORSE CODE ENGINE (AUDIO + BRIGHT WHITE SCREEN FLASH)
     // -------------------------------------------------------------
     const MORSE_MAP = {
       'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
@@ -818,11 +818,19 @@
       const statusText = document.getElementById('signal-status-text');
 
       if (state) {
-        if (strobeScreen) strobeScreen.className = "bg-brand-gold border border-white p-6 rounded-xl flex flex-col items-center justify-center space-y-2 text-brand-black transition-all duration-75 shadow-[0_0_25px_rgba(212,175,55,0.8)]";
-        if (statusText) statusText.textContent = "⚡ SIGNAL TRANSMITTING";
+        // Bright white flash mode with heavy glowing aura
+        if (strobeScreen) strobeScreen.className = "bg-white border-2 border-amber-200 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 text-black transition-all duration-75 shadow-[0_0_50px_rgba(255,255,255,1)] min-h-[220px]";
+        if (statusText) {
+          statusText.textContent = "⚡ SIGNAL TRANSMITTING";
+          statusText.className = "text-sm font-mono text-black font-bold uppercase tracking-wider";
+        }
       } else {
-        if (strobeScreen) strobeScreen.className = "bg-brand-black/90 border border-brand-gold/30 p-6 rounded-xl flex flex-col items-center justify-center space-y-2 transition-all duration-75";
-        if (statusText) statusText.textContent = "Signal Beacon Standby";
+        // Standby mode
+        if (strobeScreen) strobeScreen.className = "bg-brand-black/90 border border-brand-gold/30 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all duration-75 min-h-[220px]";
+        if (statusText) {
+          statusText.textContent = "Signal Beacon Standby";
+          statusText.className = "text-sm font-mono text-brand-gold font-bold uppercase tracking-wider";
+        }
       }
 
       const track = await initTorchStream();
@@ -839,13 +847,15 @@
     async function toggleTorch() {
       const btn = document.getElementById('torch-toggle-btn');
       if (!isTorchOn) {
+        isTorchOn = true;
         await setTorch(true);
         btn.textContent = "Turn OFF";
-        btn.className = "bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition";
+        btn.className = "bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-lg text-xs transition";
       } else {
+        isTorchOn = false;
         await setTorch(false);
         btn.textContent = "Turn ON";
-        btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-4 py-2 rounded-lg text-xs transition";
+        btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition";
       }
     }
 
@@ -864,11 +874,11 @@
         if (!isTransmitting) break;
 
         if (symbol === '.') {
-          setTorch(true);
+          await setTorch(true);
           await playTone(750, unitMs);
           await setTorch(false);
         } else if (symbol === '-') {
-          setTorch(true);
+          await setTorch(true);
           await playTone(750, unitMs * 3);
           await setTorch(false);
         } else {
@@ -877,12 +887,23 @@
         await new Promise(r => setTimeout(r, unitMs));
       }
       isTransmitting = false;
-      setTorch(false);
+      isTorchOn = false;
+      await setTorch(false);
+      
+      // Reset button state if constant torch wasn't active
+      const btn = document.getElementById('torch-toggle-btn');
+      btn.textContent = "Turn ON";
+      btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition";
     }
 
     function stopTransmission() {
       isTransmitting = false;
+      isTorchOn = false;
       setTorch(false);
+      
+      const btn = document.getElementById('torch-toggle-btn');
+      btn.textContent = "Turn ON";
+      btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition";
     }
 
     // -------------------------------------------------------------

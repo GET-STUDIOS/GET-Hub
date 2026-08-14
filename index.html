@@ -93,6 +93,9 @@
           <button id="tab-prepping-btn" onclick="switchTab('prepping')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             🎒 Prepping
           </button>
+          <button id="tab-signal-btn" onclick="switchTab('signal')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+            🔦 Signal & Morse
+          </button>
           <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             Team Chat
           </button>
@@ -469,6 +472,82 @@
         </section>
       </div>
 
+      <div id="view-signal" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+              <span>🔦</span> Visual Signaling
+            </h3>
+
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl flex items-center justify-between">
+              <div>
+                <p class="font-bold text-amber-100 text-sm">Constant Torch</p>
+                <p class="text-[11px] text-amber-200/60">Toggle camera LED (Mobile/HTTPS only)</p>
+              </div>
+              <button id="torch-toggle-btn" onclick="toggleTorch()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-4 py-2 rounded-lg text-xs transition">
+                Turn ON
+              </button>
+            </div>
+
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl space-y-3">
+              <p class="font-bold text-amber-100 text-sm">Text to Morse Transmit</p>
+              <input type="text" id="morse-input" placeholder="e.g. SOS or HELP" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-xs text-amber-100 font-mono uppercase focus:outline-none focus:border-brand-gold" />
+              
+              <div class="flex gap-2">
+                <button id="morse-send-btn" onclick="transmitMorse()" class="flex-1 bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition">
+                  ⚡ Transmit Message
+                </button>
+                <button id="morse-stop-btn" onclick="stopTransmission()" class="bg-red-500/20 text-red-400 border border-red-500/40 font-bold px-4 py-2 rounded-lg text-xs hover:bg-red-500/30 transition">
+                  Stop
+                </button>
+              </div>
+
+              <div class="bg-brand-black p-2.5 rounded-lg border border-brand-gold/20 font-mono text-center">
+                <p class="text-[10px] text-amber-200/50 uppercase">Morse Signal Output</p>
+                <p id="morse-output" class="text-sm font-bold text-brand-gold tracking-widest mt-1">-- --- --</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+              <span>📖</span> Morse Code Guide
+            </h3>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono text-xs max-h-[340px] overflow-y-auto pr-1">
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">A</span> <span>.-</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">B</span> <span>-...</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">C</span> <span>-.-.</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">D</span> <span>-..</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">E</span> <span>.</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">F</span> <span>..-.</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">G</span> <span>--.</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">H</span> <span>....</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">I</span> <span>..</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">J</span> <span>.---</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">K</span> <span>-.-</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">L</span> <span>.-..</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">M</span> <span>--</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">N</span> <span>-.</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">O</span> <span>---</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">P</span> <span>.--.</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">Q</span> <span>--.-</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">R</span> <span>.-.</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">S</span> <span>...</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">T</span> <span>-</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">U</span> <span>..-</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">V</span> <span>...-</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">W</span> <span>.--</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">X</span> <span>-..-</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">Y</span> <span>-.--</span></div>
+              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">Z</span> <span>--..</span></div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
       <div id="view-chat" class="hidden space-y-6">
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg flex flex-col h-[500px]">
           <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2 border-b border-brand-gold/20 pb-3">
@@ -610,6 +689,7 @@
       const inventoryView = document.getElementById('view-inventory');
       const profileView = document.getElementById('view-profile');
       const preppingView = document.getElementById('view-prepping');
+      const signalView = document.getElementById('view-signal');
       const chatView = document.getElementById('view-chat');
       const resourcesView = document.getElementById('view-resources');
       
@@ -617,6 +697,7 @@
       const inventoryBtn = document.getElementById('tab-inventory-btn');
       const profileBtn = document.getElementById('tab-profile-btn');
       const preppingBtn = document.getElementById('tab-prepping-btn');
+      const signalBtn = document.getElementById('tab-signal-btn');
       const chatBtn = document.getElementById('tab-chat-btn');
       const resourcesBtn = document.getElementById('tab-resources-btn');
 
@@ -624,6 +705,7 @@
       inventoryView.classList.add('hidden');
       profileView.classList.add('hidden');
       preppingView.classList.add('hidden');
+      if (signalView) signalView.classList.add('hidden');
       chatView.classList.add('hidden');
       resourcesView.classList.add('hidden');
 
@@ -634,6 +716,7 @@
       inventoryBtn.className = inactiveStyle;
       profileBtn.className = inactiveStyle;
       preppingBtn.className = inactiveStyle;
+      if (signalBtn) signalBtn.className = inactiveStyle;
       chatBtn.className = inactiveStyle;
       resourcesBtn.className = inactiveStyle;
 
@@ -649,6 +732,9 @@
       } else if (tabName === 'prepping') {
         preppingView.classList.remove('hidden');
         preppingBtn.className = activeStyle;
+      } else if (tabName === 'signal') {
+        if (signalView) signalView.classList.remove('hidden');
+        if (signalBtn) signalBtn.className = activeStyle;
       } else if (tabName === 'chat') {
         chatView.classList.remove('hidden');
         chatBtn.className = activeStyle;
@@ -660,13 +746,95 @@
     }
 
     // -------------------------------------------------------------
+    // SIGNALING & MORSE CODE ENGINE
+    // -------------------------------------------------------------
+    const MORSE_MAP = {
+      'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+      'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+      'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+      'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+      'Y': '-.--', 'Z': '--..', ' ': '/'
+    };
+
+    let torchTrack = null;
+    let isTorchOn = false;
+    let isTransmitting = false;
+
+    async function initTorchStream() {
+      if (torchTrack) return torchTrack;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        torchTrack = stream.getVideoTracks()[0];
+        return torchTrack;
+      } catch (err) {
+        alert("Camera/Flashlight access error. Ensure you are on HTTPS and on a mobile device.");
+        return null;
+      }
+    }
+
+    async function setTorch(state) {
+      const track = await initTorchStream();
+      if (track && track.getCapabilities().torch) {
+        await track.applyConstraints({ advanced: [{ torch: state }] });
+        isTorchOn = state;
+      }
+    }
+
+    async function toggleTorch() {
+      const btn = document.getElementById('torch-toggle-btn');
+      if (!isTorchOn) {
+        await setTorch(true);
+        btn.textContent = "Turn OFF";
+        btn.className = "bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition";
+      } else {
+        await setTorch(false);
+        btn.textContent = "Turn ON";
+        btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-4 py-2 rounded-lg text-xs transition";
+      }
+    }
+
+    async function transmitMorse() {
+      const text = document.getElementById('morse-input').value.toUpperCase().trim();
+      const outputEl = document.getElementById('morse-output');
+      if (!text) return;
+
+      const morseSeq = text.split('').map(c => MORSE_MAP[c] || '').join(' ');
+      outputEl.textContent = morseSeq || '--';
+
+      isTransmitting = true;
+      const unitMs = 200;
+
+      for (let symbol of morseSeq) {
+        if (!isTransmitting) break;
+
+        if (symbol === '.') {
+          await setTorch(true);
+          await new Promise(r => setTimeout(r, unitMs));
+          await setTorch(false);
+        } else if (symbol === '-') {
+          await setTorch(true);
+          await new Promise(r => setTimeout(r, unitMs * 3));
+          await setTorch(false);
+        } else {
+          await new Promise(r => setTimeout(r, unitMs * 3));
+        }
+        await new Promise(r => setTimeout(r, unitMs));
+      }
+      isTransmitting = false;
+    }
+
+    function stopTransmission() {
+      isTransmitting = false;
+      setTorch(false);
+    }
+
+    // -------------------------------------------------------------
     // DIGITAL COMPASS ENGINE (ORIENTATION API)
     // -------------------------------------------------------------
     function startCompass() {
       const btn = document.getElementById('enable-compass-btn');
 
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS Permission Model
         DeviceOrientationEvent.requestPermission()
           .then(permissionState => {
             if (permissionState === 'granted') {
@@ -678,11 +846,9 @@
           })
           .catch(console.error);
       } else if ('ondeviceorientationabsolute' in window) {
-        // Android Absolute Orientation
         window.addEventListener('deviceorientationabsolute', handleOrientation, true);
         if (btn) btn.classList.add('hidden');
       } else if ('ondeviceorientation' in window) {
-        // Standard Orientation Fallback
         window.addEventListener('deviceorientation', handleOrientation, true);
         if (btn) btn.classList.add('hidden');
       } else {
@@ -694,9 +860,9 @@
       let heading = null;
 
       if (event.webkitCompassHeading) {
-        heading = event.webkitCompassHeading; // Native iOS Magnetic North
+        heading = event.webkitCompassHeading;
       } else if (event.alpha !== null) {
-        heading = 360 - event.alpha; // Android Fallback
+        heading = 360 - event.alpha;
       }
 
       if (heading !== null) {

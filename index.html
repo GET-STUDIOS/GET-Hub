@@ -279,29 +279,40 @@
               <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
                 <span>📦</span> Stockpile & Inventory Tracker
               </h3>
-              <p class="text-xs text-amber-200/60">Monitor food, water, medical, and gear reserves with expiration alerts.</p>
+              <p class="text-xs text-amber-200/60">Monitor reserves, location labels, tracking codes, and expiration dates.</p>
             </div>
             
-            <div class="flex gap-3 text-xs w-full md:w-auto">
-              <div class="bg-brand-black/60 border border-brand-gold/20 px-3 py-1.5 rounded-xl text-center flex-1">
-                <p class="text-amber-200/50 text-[10px] uppercase">Total Items</p>
-                <p id="inv-stat-total" class="font-bold text-brand-gold text-base">0</p>
-              </div>
-              <div class="bg-brand-black/60 border border-amber-500/40 px-3 py-1.5 rounded-xl text-center flex-1">
-                <p class="text-amber-200/50 text-[10px] uppercase">Expiring Soon</p>
-                <p id="inv-stat-expiring" class="font-bold text-amber-400 text-base">0</p>
+            <div class="flex flex-col sm:flex-row gap-3 text-xs w-full md:w-auto items-stretch sm:items-center">
+              <input type="text" id="inv-search" oninput="renderInventory()" placeholder="🔍 Search code, item, location..." class="bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-1.5 text-amber-100 focus:outline-none focus:border-brand-gold text-xs" />
+              <div class="flex gap-2">
+                <div class="bg-brand-black/60 border border-brand-gold/20 px-3 py-1.5 rounded-xl text-center flex-1">
+                  <p class="text-amber-200/50 text-[10px] uppercase">Total Items</p>
+                  <p id="inv-stat-total" class="font-bold text-brand-gold text-base">0</p>
+                </div>
+                <div class="bg-brand-black/60 border border-amber-500/40 px-3 py-1.5 rounded-xl text-center flex-1">
+                  <p class="text-amber-200/50 text-[10px] uppercase">Expiring Soon</p>
+                  <p id="inv-stat-expiring" class="font-bold text-amber-400 text-base">0</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <form id="inventory-form" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-brand-black/60 p-4 rounded-xl border border-brand-gold/20 text-xs">
+          <form id="inventory-form" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 bg-brand-black/60 p-4 rounded-xl border border-brand-gold/20 text-xs">
             <div class="md:col-span-2">
-              <label class="block font-semibold text-amber-100 mb-1">Item Name</label>
-              <input type="text" id="inv-name" required placeholder="e.g. Bottled Water (6L)" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-amber-100 focus:outline-none focus:border-brand-gold" />
+              <label class="block font-semibold text-amber-100 mb-1">Item Code</label>
+              <input type="text" id="inv-code" placeholder="e.g. WTR-01" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-amber-100 focus:outline-none focus:border-brand-gold font-mono uppercase" />
             </div>
-            <div>
+            <div class="md:col-span-3">
+              <label class="block font-semibold text-amber-100 mb-1">Item Name</label>
+              <input type="text" id="inv-name" required placeholder="e.g. Bottled Water 6L" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-amber-100 focus:outline-none focus:border-brand-gold" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block font-semibold text-amber-100 mb-1">Location / Bin</label>
+              <input type="text" id="inv-location" placeholder="e.g. Shelf A, Box 2" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-amber-100 focus:outline-none focus:border-brand-gold" />
+            </div>
+            <div class="md:col-span-2">
               <label class="block font-semibold text-amber-100 mb-1">Category</label>
-              <select id="inv-category" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-2 text-amber-100 focus:outline-none focus:border-brand-gold cursor-pointer">
+              <select id="inv-category" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2 py-2 text-amber-100 focus:outline-none focus:border-brand-gold cursor-pointer">
                 <option value="Food & Water">💧 Food & Water</option>
                 <option value="Medical">🏥 Medical</option>
                 <option value="Power & Light">⚡ Power & Light</option>
@@ -309,19 +320,19 @@
                 <option value="Defense & Security">🛡️ Defense & Gear</option>
               </select>
             </div>
-            <div>
+            <div class="md:col-span-2">
               <label class="block font-semibold text-amber-100 mb-1">Qty & Unit</label>
               <div class="flex gap-1">
                 <input type="number" id="inv-qty" required min="1" value="1" class="w-16 bg-brand-black border border-brand-gold/40 rounded-lg px-2 py-2 text-amber-100 focus:outline-none focus:border-brand-gold" />
                 <input type="text" id="inv-unit" placeholder="packs" value="units" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2 py-2 text-amber-100 focus:outline-none focus:border-brand-gold" />
               </div>
             </div>
-            <div>
+            <div class="md:col-span-2">
               <label class="block font-semibold text-amber-100 mb-1">Expiration Date</label>
-              <input type="date" id="inv-exp" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-2 text-amber-100 focus:outline-none focus:border-brand-gold" />
+              <input type="date" id="inv-exp" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2 py-2 text-amber-100 focus:outline-none focus:border-brand-gold" />
             </div>
-            <div class="flex items-end">
-              <button type="submit" id="add-inv-btn" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg transition text-xs shadow-lg">
+            <div class="md:col-span-10 flex items-end justify-end">
+              <button type="submit" id="add-inv-btn" class="w-full md:w-auto bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-6 py-2 rounded-lg transition text-xs shadow-lg">
                 + Add Item
               </button>
             </div>
@@ -331,7 +342,9 @@
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="border-b border-brand-gold/30 text-brand-gold uppercase text-[10px] tracking-wider">
+                  <th class="py-2.5 px-3">Code</th>
                   <th class="py-2.5 px-3">Item</th>
+                  <th class="py-2.5 px-3">📍 Location</th>
                   <th class="py-2.5 px-3">Category</th>
                   <th class="py-2.5 px-3 text-center">Quantity</th>
                   <th class="py-2.5 px-3">Expiration</th>
@@ -340,7 +353,7 @@
               </thead>
               <tbody id="inventory-list-body" class="divide-y divide-brand-gold/10">
                 <tr>
-                  <td colspan="5" class="text-center py-6 text-amber-200/50">Loading inventory items...</td>
+                  <td colspan="7" class="text-center py-6 text-amber-200/50">Loading inventory items...</td>
                 </tr>
               </tbody>
             </table>
@@ -634,12 +647,29 @@
       renderInventory();
     }
 
+    function generateItemCode(category, name) {
+      const prefix = (category || 'GEN').substring(0, 3).toUpperCase();
+      const randomNum = Math.floor(100 + Math.random() * 900);
+      return `${prefix}-${randomNum}`;
+    }
+
     function renderInventory() {
       const body = document.getElementById('inventory-list-body');
       const totalStat = document.getElementById('inv-stat-total');
       const expStat = document.getElementById('inv-stat-expiring');
+      const searchQuery = (document.getElementById('inv-search')?.value || '').toLowerCase().trim();
 
       if (!body) return;
+
+      let itemsToDisplay = inventoryItems;
+      if (searchQuery) {
+        itemsToDisplay = inventoryItems.filter(item => 
+          (item.item_code || '').toLowerCase().includes(searchQuery) ||
+          (item.item_name || '').toLowerCase().includes(searchQuery) ||
+          (item.location || '').toLowerCase().includes(searchQuery) ||
+          (item.category || '').toLowerCase().includes(searchQuery)
+        );
+      }
 
       totalStat.textContent = inventoryItems.length;
 
@@ -647,32 +677,47 @@
       const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
       let expiringCount = 0;
 
-      if (inventoryItems.length === 0) {
-        body.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-amber-200/50">No inventory items added yet. Use the form above to add your first item!</td></tr>`;
-        expStat.textContent = "0";
+      inventoryItems.forEach(item => {
+        if (item.expiration_date) {
+          const diff = new Date(item.expiration_date) - now;
+          if (diff < thirtyDaysMs) expiringCount++;
+        }
+      });
+      expStat.textContent = expiringCount;
+
+      if (itemsToDisplay.length === 0) {
+        body.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-amber-200/50">${searchQuery ? 'No matching items found.' : 'No inventory items added yet.'}</td></tr>`;
         return;
       }
 
-      body.innerHTML = inventoryItems.map(item => {
+      body.innerHTML = itemsToDisplay.map(item => {
         let expBadge = `<span class="text-amber-200/60">--</span>`;
         if (item.expiration_date) {
           const expDate = new Date(item.expiration_date);
           const diff = expDate - now;
 
           if (diff < 0) {
-            expiringCount++;
             expBadge = `<span class="bg-red-500/20 text-red-400 border border-red-500/40 px-2 py-0.5 rounded text-[10px] font-bold">⚠️ EXPIRED (${item.expiration_date})</span>`;
           } else if (diff < thirtyDaysMs) {
-            expiringCount++;
             expBadge = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-[10px] font-bold">⏳ Soon (${item.expiration_date})</span>`;
           } else {
             expBadge = `<span class="text-emerald-400">${item.expiration_date}</span>`;
           }
         }
 
+        const codeDisplay = item.item_code 
+          ? `<span class="bg-brand-gold/20 text-brand-gold border border-brand-gold/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold">${escapeHtml(item.item_code)}</span>`
+          : `<span class="text-amber-200/40 text-[10px]">--</span>`;
+
+        const locationDisplay = item.location
+          ? `<span class="text-amber-100 flex items-center gap-1">📍 ${escapeHtml(item.location)}</span>`
+          : `<span class="text-amber-200/40 italic">Unassigned</span>`;
+
         return `
           <tr class="hover:bg-brand-black/40 transition">
+            <td class="py-3 px-3">${codeDisplay}</td>
             <td class="py-3 px-3 font-semibold text-amber-100">${escapeHtml(item.item_name)}</td>
+            <td class="py-3 px-3">${locationDisplay}</td>
             <td class="py-3 px-3 text-amber-200/70">${escapeHtml(item.category)}</td>
             <td class="py-3 px-3 text-center">
               <div class="inline-flex items-center gap-2 bg-brand-black/80 px-2 py-1 rounded-lg border border-brand-gold/20">
@@ -682,14 +727,13 @@
               </div>
             </td>
             <td class="py-3 px-3">${expBadge}</td>
-            <td class="py-3 px-3 text-right">
-              <button onclick="deleteInvItem('${item.id}')" class="text-red-400/70 hover:text-red-400 font-bold px-2 py-1 rounded transition">✕</button>
+            <td class="py-3 px-3 text-right space-x-1">
+              <button onclick="editLocation('${item.id}', '${escapeHtml(item.location || '')}', '${escapeHtml(item.item_code || '')}')" title="Edit Code & Location" class="text-brand-gold/80 hover:text-brand-gold font-bold px-1.5 py-1 rounded transition text-xs">✏️</button>
+              <button onclick="deleteInvItem('${item.id}')" title="Delete" class="text-red-400/70 hover:text-red-400 font-bold px-1.5 py-1 rounded transition text-xs">✕</button>
             </td>
           </tr>
         `;
       }).join('');
-
-      expStat.textContent = expiringCount;
     }
 
     document.getElementById('inventory-form').addEventListener('submit', async (e) => {
@@ -700,14 +744,22 @@
 
       const name = document.getElementById('inv-name').value.trim();
       const category = document.getElementById('inv-category').value;
+      let code = document.getElementById('inv-code').value.trim().toUpperCase();
+      const location = document.getElementById('inv-location').value.trim();
       const qty = parseInt(document.getElementById('inv-qty').value, 10);
       const unit = document.getElementById('inv-unit').value.trim();
       const exp = document.getElementById('inv-exp').value;
 
+      if (!code) {
+        code = generateItemCode(category, name);
+      }
+
       let memberName = TEAM_MEMBERS_MAP[currentUserEmail] || currentUserEmail.split('@')[0];
 
       const { error } = await supabaseClient.from('inventory').insert([{
+        item_code: code,
         item_name: name,
+        location: location || null,
         category: category,
         quantity: qty,
         unit: unit,
@@ -721,12 +773,33 @@
       if (error) {
         alert("Error adding item: " + error.message);
       } else {
+        document.getElementById('inv-code').value = '';
         document.getElementById('inv-name').value = '';
+        document.getElementById('inv-location').value = '';
         document.getElementById('inv-qty').value = '1';
         document.getElementById('inv-exp').value = '';
         await loadInventory();
       }
     });
+
+    async function editLocation(id, currentLoc, currentCode) {
+      const newCode = prompt("Update Item Tracking Code:", currentCode || "");
+      if (newCode === null) return;
+
+      const newLoc = prompt("Update Location / Bin (e.g., Pantry Shelf A, Box 3):", currentLoc || "");
+      if (newLoc === null) return;
+
+      const { error } = await supabaseClient.from('inventory').update({
+        item_code: newCode.trim().toUpperCase() || null,
+        location: newLoc.trim() || null
+      }).eq('id', id);
+
+      if (error) {
+        alert("Failed to update item: " + error.message);
+      } else {
+        await loadInventory();
+      }
+    }
 
     async function updateQty(id, newQty) {
       if (newQty < 0) return;
@@ -805,7 +878,6 @@
         if (fileInput.files.length > 0) {
           const file = fileInput.files[0];
           const fileExt = file.name.split('.').pop();
-          // Unique filename using timestamp to avoid cache/overwrite issues
           const filePath = `${currentUser.id}/avatar_${Date.now()}.${fileExt}`;
 
           const { error: uploadError } = await supabaseClient.storage
@@ -818,7 +890,6 @@
             .from('avatars')
             .getPublicUrl(filePath);
 
-          // Append timestamp parameter to force browser refresh
           avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
         }
 
@@ -844,7 +915,6 @@
           setAvatarPreview(avatarUrl);
         }
 
-        // Reset file input after upload
         fileInput.value = "";
 
         feedback.classList.remove('hidden');

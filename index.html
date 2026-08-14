@@ -244,15 +244,19 @@
                 <span>🙋</span> Team Safety Roll-Call
               </h3>
               
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] text-amber-200/60 uppercase font-semibold">My Status:</span>
-                <select id="user-status-select" onchange="updateMyStatus(this.value)" class="bg-brand-black border border-brand-gold/40 text-amber-100 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:border-brand-gold cursor-pointer">
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <select id="user-status-select" class="bg-brand-black border border-brand-gold/40 text-amber-100 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-brand-gold cursor-pointer flex-grow sm:flex-grow-0">
                   <option value="safe">🟢 Safe at Base</option>
                   <option value="enroute">🟡 En Route</option>
                   <option value="alert">🔴 Needs Assistance</option>
                 </select>
+                <button onclick="saveMyStatus()" id="save-status-btn" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black text-xs font-bold py-1.5 px-3 rounded-lg transition whitespace-nowrap">
+                  Save Status
+                </button>
               </div>
             </div>
+
+            <p id="status-save-feedback" class="text-[11px] text-emerald-400 font-semibold hidden text-right">✓ Status saved and synced live!</p>
 
             <div id="roll-call-list" class="space-y-2 text-xs">
               </div>
@@ -356,10 +360,10 @@
       { name: "Hailey-Jade", month: 7, day: 29 }
     ];
 
-    // Email Map
+    // Email Mapping
     const TEAM_MEMBERS_MAP = {
       "goutierexplorerteam@gmail.com": "Kevin",
-      "nikita@gmail.com": "Nikita" // Update with Nikita's exact email address if different
+      "nikita-meijer@outlook.com": "Nikita"
     };
 
     // Default Fallback Statuses
@@ -489,18 +493,16 @@
       }
 
       if (pushToDb) {
-        await supabaseClient.from('system_state').upsert({ key: 'readiness_level', value: level });
+        await supabaseClient.from('system_state').upsert({ key: 'readiness_level', value: String(level) });
       }
     }
 
     async function initReadinessSync() {
-      // Fetch initial level
-      const { data } = await supabaseClient.from('system_state').select('value').eq('key', 'readiness_level').single();
+      const { data } = await supabaseClient.from('system_state').select('value').eq('key', 'readiness_level').maybeSingle();
       if (data && data.value) {
         setReadinessLevel(Number(data.value), false);
       }
 
-      // Listen for updates from other users
       supabaseClient
         .channel('public:system_state')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'system_state' }, payload => {
@@ -528,9 +530,15 @@
       `).join('');
     }
 
-    async function updateMyStatus(statusValue) {
+    async function saveMyStatus() {
+      const saveBtn = document.getElementById('save-status-btn');
+      const feedback = document.getElementById('status-save-feedback');
+      const statusValue = document.getElementById('user-status-select').value;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
       let memberName = TEAM_MEMBERS_MAP[currentUserEmail];
-      
       if (!memberName) {
         memberName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Member';
         memberName = memberName.charAt(0).toUpperCase() + memberName.slice(1);
@@ -543,21 +551,28 @@
         config = { label: "🔴 Needs Assistance", color: "bg-red-500/20 text-red-400 border-red-500/40" };
       }
 
-      // Update locally
-      teamStatuses[memberName] = { status: statusValue, ...config };
-      renderRollCall();
-
-      // Save to Supabase so Nikita and others see it instantly
-      await supabaseClient.from('team_status').upsert({
+      const { error } = await supabaseClient.from('team_status').upsert({
         name: memberName,
         status: statusValue,
         label: config.label,
         color: config.color
       });
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save Status";
+
+      if (error) {
+        alert("Error saving status: " + error.message);
+      } else {
+        teamStatuses[memberName] = { status: statusValue, ...config };
+        renderRollCall();
+
+        feedback.classList.remove('hidden');
+        setTimeout(() => feedback.classList.add('hidden'), 3000);
+      }
     }
 
     async function initRollCallSync() {
-      // 1. Fetch initial status database records
       const { data, error } = await supabaseClient.from('team_status').select('*');
       if (!error && data) {
         data.forEach(row => {
@@ -568,7 +583,6 @@
           };
         });
         
-        // Set selector dropdown to match current logged in user status
         let memberName = TEAM_MEMBERS_MAP[currentUserEmail];
         if (memberName && teamStatuses[memberName]) {
           document.getElementById('user-status-select').value = teamStatuses[memberName].status;
@@ -577,7 +591,6 @@
         renderRollCall();
       }
 
-      // 2. Real-time Subscription for Roll-Call updates from other team members
       supabaseClient
         .channel('public:team_status')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'team_status' }, payload => {

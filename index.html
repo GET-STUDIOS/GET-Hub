@@ -87,6 +87,9 @@
           <button id="tab-inventory-btn" onclick="switchTab('inventory')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             📦 Stockpile Tracker
           </button>
+          <button id="tab-knowledge-btn" onclick="switchTab('knowledge')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+            📖 Field Manual
+          </button>
           <button id="tab-news-btn" onclick="switchTab('news')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             📰 News Feed
           </button>
@@ -302,6 +305,70 @@
 
         </div>
 
+      </div>
+
+      <!-- KNOWLEDGE BASE / FIELD MANUAL VIEW -->
+      <div id="view-knowledge" class="hidden space-y-6">
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-6">
+          <div class="border-b border-brand-gold/20 pb-4">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+              <span>📖</span> Survival Field Manual & Knowledge Base
+            </h3>
+            <p class="text-xs text-amber-200/60 mt-1">Essential standard operating procedures and outdoor survival techniques.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            
+            <!-- WATER PURIFICATION -->
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-5 rounded-xl space-y-3">
+              <h4 class="font-bold text-brand-gold text-sm flex items-center gap-2">
+                <span>💧</span> Water Purification
+              </h4>
+              <ul class="space-y-2 text-amber-100/90 leading-relaxed">
+                <li><strong class="text-brand-gold">1. Boiling (Most Reliable):</strong> Bring water to a rolling boil for at least 1 minute (3 minutes at elevations above 2,000 meters) to kill all harmful pathogens, bacteria, and viruses.</li>
+                <li><strong class="text-brand-gold">2. Filtration:</strong> Pass water through a microfilter or a DIY gravity filter (layers of fine sand, charcoal, and cloth) to remove sediment and particulate matter. Follow with boiling or purification tablets.</li>
+                <li><strong class="text-brand-gold">3. Chemical Treatment:</strong> Use chlorine dioxide or iodine tablets according to manufacturer instructions. Let sit for 30 minutes before drinking.</li>
+              </ul>
+            </div>
+
+            <!-- FIRE MAKING -->
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-5 rounded-xl space-y-3">
+              <h4 class="font-bold text-brand-gold text-sm flex items-center gap-2">
+                <span>🔥</span> Fire Making Essentials
+              </h4>
+              <ul class="space-y-2 text-amber-100/90 leading-relaxed">
+                <li><strong class="text-brand-gold">1. The Three Elements:</strong> Gather Tinder (dry grass, feather sticks, cotton), Kindling (pencil-thick dry twigs), and Fuel (larger logs of seasoned wood).</li>
+                <li><strong class="text-brand-gold">2. Ignition Sources:</strong> Utilize waterproof matches, a ferrocerium (ferro) rod striking against steel, or a lighter.</li>
+                <li><strong class="text-brand-gold">3. Laying Structure:</strong> Build a teepee or log cabin structure around your tinder nest to ensure airflow while sustaining a flame.</li>
+              </ul>
+            </div>
+
+            <!-- SHELTER BASICS -->
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-5 rounded-xl space-y-3">
+              <h4 class="font-bold text-brand-gold text-sm flex items-center gap-2">
+                <span>⛺</span> Emergency Shelter Basics
+              </h4>
+              <ul class="space-y-2 text-amber-100/90 leading-relaxed">
+                <li><strong class="text-brand-gold">Location Selection:</strong> Choose high, dry ground away from dead-fall hazards, flash flood paths, and excessive wind exposure.</li>
+                <li><strong class="text-brand-gold">Lean-To Construction:</strong> Rest a sturdy ridgepole between two trees, prop branches along one side at a 45-degree angle, and thatch with leafy debris or a tarp.</li>
+                <li><strong class="text-brand-gold">Insulation:</strong> Never sleep directly on bare ground. Use dry leaves, pine needles, or an insulating sleeping pad to prevent core body heat loss.</li>
+              </ul>
+            </div>
+
+            <!-- SEVERE WEATHER & DISASTER PROTOCOL -->
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-5 rounded-xl space-y-3">
+              <h4 class="font-bold text-brand-gold text-sm flex items-center gap-2">
+                <span>🌩️</span> Natural Disaster Protocols
+              </h4>
+              <ul class="space-y-2 text-amber-100/90 leading-relaxed">
+                <li><strong class="text-brand-gold">Earthquakes:</strong> Drop, Cover, and Hold On under sturdy furniture. Stay away from glass and exterior walls.</li>
+                <li><strong class="text-brand-gold">Severe Storms / Floods:</strong> Move immediately to higher ground. Avoid low-lying areas, bridges, and downed electrical lines.</li>
+                <li><strong class="text-brand-gold">Communication Strategy:</strong> Keep mobile devices on battery-saver mode, monitor emergency radio frequencies, and confirm status check-ins with team members.</li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
       </div>
 
       <div id="view-inventory" class="hidden space-y-6">
@@ -715,6 +782,7 @@
     function switchTab(tabName) {
       const dashboardView = document.getElementById('view-dashboard');
       const inventoryView = document.getElementById('view-inventory');
+      const knowledgeView = document.getElementById('view-knowledge');
       const newsView = document.getElementById('view-news');
       const profileView = document.getElementById('view-profile');
       const preppingView = document.getElementById('view-prepping');
@@ -724,6 +792,7 @@
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
+      const knowledgeBtn = document.getElementById('tab-knowledge-btn');
       const newsBtn = document.getElementById('tab-news-btn');
       const profileBtn = document.getElementById('tab-profile-btn');
       const preppingBtn = document.getElementById('tab-prepping-btn');
@@ -733,6 +802,7 @@
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
+      if (knowledgeView) knowledgeView.classList.add('hidden');
       if (newsView) newsView.classList.add('hidden');
       profileView.classList.add('hidden');
       preppingView.classList.add('hidden');
@@ -745,6 +815,7 @@
 
       dashboardBtn.className = inactiveStyle;
       inventoryBtn.className = inactiveStyle;
+      if (knowledgeBtn) knowledgeBtn.className = inactiveStyle;
       if (newsBtn) newsBtn.className = inactiveStyle;
       profileBtn.className = inactiveStyle;
       preppingBtn.className = inactiveStyle;
@@ -758,6 +829,9 @@
       } else if (tabName === 'inventory') {
         inventoryView.classList.remove('hidden');
         inventoryBtn.className = activeStyle;
+      } else if (tabName === 'knowledge') {
+        if (knowledgeView) knowledgeView.classList.remove('hidden');
+        if (knowledgeBtn) knowledgeBtn.className = activeStyle;
       } else if (tabName === 'news') {
         if (newsView) newsView.classList.remove('hidden');
         if (newsBtn) newsBtn.className = activeStyle;
@@ -791,7 +865,6 @@
       container.innerHTML = `<p class="text-amber-200/60 text-center py-6 text-xs">Fetching latest feeds...</p>`;
 
       try {
-        // Fetching global earthquake feed (USGS GeoJSON) and a public news feed proxy
         const [quakeRes, rssRes] = await Promise.all([
           fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson').catch(() => null),
           fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml').catch(() => null)

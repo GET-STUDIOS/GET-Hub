@@ -87,6 +87,9 @@
           <button id="tab-inventory-btn" onclick="switchTab('inventory')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             📦 Stockpile Tracker
           </button>
+          <button id="tab-news-btn" onclick="switchTab('news')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+            📰 News Feed
+          </button>
           <button id="tab-profile-btn" onclick="switchTab('profile')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             👤 My Profile
           </button>
@@ -386,6 +389,26 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </section>
+      </div>
+
+      <div id="view-news" class="hidden space-y-6">
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-brand-gold/20 pb-4">
+            <div>
+              <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+                <span>📰</span> Live Emergency & World News Feed
+              </h3>
+              <p class="text-xs text-amber-200/60">Real-time headlines and feeds from global channels.</p>
+            </div>
+            <button onclick="loadNewsFeed()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black text-xs font-bold py-1.5 px-3 rounded-lg transition">
+              🔄 Refresh Feed
+            </button>
+          </div>
+
+          <div id="news-container" class="space-y-3">
+            <p class="text-amber-200/50 text-center py-8 text-xs">Loading live news feeds...</p>
           </div>
         </section>
       </div>
@@ -692,6 +715,7 @@
     function switchTab(tabName) {
       const dashboardView = document.getElementById('view-dashboard');
       const inventoryView = document.getElementById('view-inventory');
+      const newsView = document.getElementById('view-news');
       const profileView = document.getElementById('view-profile');
       const preppingView = document.getElementById('view-prepping');
       const signalView = document.getElementById('view-signal');
@@ -700,6 +724,7 @@
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
+      const newsBtn = document.getElementById('tab-news-btn');
       const profileBtn = document.getElementById('tab-profile-btn');
       const preppingBtn = document.getElementById('tab-prepping-btn');
       const signalBtn = document.getElementById('tab-signal-btn');
@@ -708,6 +733,7 @@
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
+      if (newsView) newsView.classList.add('hidden');
       profileView.classList.add('hidden');
       preppingView.classList.add('hidden');
       if (signalView) signalView.classList.add('hidden');
@@ -719,6 +745,7 @@
 
       dashboardBtn.className = inactiveStyle;
       inventoryBtn.className = inactiveStyle;
+      if (newsBtn) newsBtn.className = inactiveStyle;
       profileBtn.className = inactiveStyle;
       preppingBtn.className = inactiveStyle;
       if (signalBtn) signalBtn.className = inactiveStyle;
@@ -731,6 +758,10 @@
       } else if (tabName === 'inventory') {
         inventoryView.classList.remove('hidden');
         inventoryBtn.className = activeStyle;
+      } else if (tabName === 'news') {
+        if (newsView) newsView.classList.remove('hidden');
+        if (newsBtn) newsBtn.className = activeStyle;
+        loadNewsFeed();
       } else if (tabName === 'profile') {
         profileView.classList.remove('hidden');
         profileBtn.className = activeStyle;
@@ -747,6 +778,78 @@
       } else {
         resourcesView.classList.remove('hidden');
         resourcesBtn.className = activeStyle;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // LIVE NEWS & EMERGENCY RSS FEED ENGINE
+    // -------------------------------------------------------------
+    async function loadNewsFeed() {
+      const container = document.getElementById('news-container');
+      if (!container) return;
+
+      container.innerHTML = `<p class="text-amber-200/60 text-center py-6 text-xs">Fetching latest feeds...</p>`;
+
+      try {
+        // Fetching global earthquake feed (USGS GeoJSON) and a public news feed proxy
+        const [quakeRes, rssRes] = await Promise.all([
+          fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson').catch(() => null),
+          fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml').catch(() => null)
+        ]);
+
+        let htmlContent = '';
+
+        if (quakeRes && quakeRes.ok) {
+          const quakeData = await quakeRes.json();
+          const quakes = quakeData.features.slice(0, 5);
+          if (quakes.length > 0) {
+            htmlContent += `<div class="mb-4"><h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">🌍 Recent Significant Earthquakes (USGS)</h4><div class="space-y-2">`;
+            quakes.forEach(q => {
+              const mag = q.properties.mag;
+              const place = q.properties.place;
+              const time = new Date(q.properties.time).toLocaleString();
+              const url = q.properties.url;
+              htmlContent += `
+                <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl flex justify-between items-center text-xs">
+                  <div>
+                    <p class="font-bold text-amber-100">Magnitude ${mag} - ${escapeHtml(place)}</p>
+                    <p class="text-[10px] text-amber-200/60">${time}</p>
+                  </div>
+                  <a href="${url}" target="_blank" class="bg-brand-gold/20 hover:bg-brand-gold text-brand-gold hover:text-brand-black border border-brand-gold/40 px-2.5 py-1 rounded-lg font-bold transition text-[10px] whitespace-nowrap">Details ↗</a>
+                </div>
+              `;
+            });
+            htmlContent += `</div></div>`;
+          }
+        }
+
+        if (rssRes && rssRes.ok) {
+          const rssData = await rssRes.json();
+          if (rssData && rssData.items && rssData.items.length > 0) {
+            htmlContent += `<div><h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">📡 World News Headlines (BBC)</h4><div class="space-y-2">`;
+            rssData.items.slice(0, 6).forEach(item => {
+              const pubDate = new Date(item.pubDate).toLocaleString();
+              htmlContent += `
+                <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl space-y-1 text-xs">
+                  <div class="flex justify-between items-start gap-2">
+                    <a href="${item.link}" target="_blank" class="font-bold text-amber-100 hover:text-brand-gold transition leading-snug">${escapeHtml(item.title)}</a>
+                    <span class="text-[10px] text-amber-200/50 whitespace-nowrap">${pubDate}</span>
+                  </div>
+                  <p class="text-[11px] text-amber-200/70 line-clamp-2">${escapeHtml(item.description || '')}</p>
+                </div>
+              `;
+            });
+            htmlContent += `</div></div>`;
+          }
+        }
+
+        if (!htmlContent) {
+          container.innerHTML = `<p class="text-amber-200/50 text-center py-6 text-xs">Unable to load live feeds at the moment. Please try again later.</p>`;
+        } else {
+          container.innerHTML = htmlContent;
+        }
+      } catch (err) {
+        container.innerHTML = `<p class="text-red-400 text-center py-6 text-xs">Error loading news feeds.</p>`;
       }
     }
 
@@ -818,14 +921,12 @@
       const statusText = document.getElementById('signal-status-text');
 
       if (state) {
-        // Bright white flash mode with heavy glowing aura
         if (strobeScreen) strobeScreen.className = "bg-white border-2 border-amber-200 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 text-black transition-all duration-75 shadow-[0_0_50px_rgba(255,255,255,1)] min-h-[220px]";
         if (statusText) {
           statusText.textContent = "⚡ SIGNAL TRANSMITTING";
           statusText.className = "text-sm font-mono text-black font-bold uppercase tracking-wider";
         }
       } else {
-        // Standby mode
         if (strobeScreen) strobeScreen.className = "bg-brand-black/90 border border-brand-gold/30 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all duration-75 min-h-[220px]";
         if (statusText) {
           statusText.textContent = "Signal Beacon Standby";
@@ -868,7 +969,7 @@
       outputEl.textContent = morseSeq || '--';
 
       isTransmitting = true;
-      const unitMs = 150; // Speed of dot
+      const unitMs = 150;
 
       for (let symbol of morseSeq) {
         if (!isTransmitting) break;
@@ -890,7 +991,6 @@
       isTorchOn = false;
       await setTorch(false);
       
-      // Reset button state if constant torch wasn't active
       const btn = document.getElementById('torch-toggle-btn');
       btn.textContent = "Turn ON";
       btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition";

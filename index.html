@@ -45,7 +45,7 @@
 
     <div id="auth-container" class="max-w-md mx-auto my-8 bg-brand-brownCard border border-brand-gold/30 p-8 rounded-2xl shadow-2xl">
       <div class="flex justify-center mb-6">
-        <img src="./Logo.png.png" alt="GET Logo" class="h-32 object-contain drop-shadow-md" />
+        <img src="./Logo.png.png" alt="GET Logo" class="h-32 object-contain drop-shadow-md" onError="this.onerror=null; this.src='https://placehold.co/128x128/3A2415/D4AF37?text=GET';" />
       </div>
       <p class="text-amber-200/70 text-sm text-center mb-6">Sign in to access the GET portal.</p>
       
@@ -299,23 +299,23 @@
 
             <p id="status-save-feedback" class="text-[11px] text-emerald-400 font-semibold hidden text-right">✓ Status saved and synced live!</p>
 
-            <div id="roll-call-list" class="space-y-2 text-xs"></div>
+            <div id="roll-call-list" class="space-y-2 text-xs">
+            </div>
           </section>
 
         </div>
 
       </div>
 
-      <!-- KNOWLEDGE BASE / FIELD MANUAL VIEW -->
       <div id="view-knowledge" class="hidden space-y-6">
         <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
           <div class="border-b border-brand-gold/20 pb-4 mb-5">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
-                  <span>📖</span> GET Survival Field Manual
+                  <span>📖</span> GET Survival & Emergency Field Manual
                 </h3>
-                <p class="text-xs text-amber-200/60 mt-1">Practical survival knowledge, emergency procedures, bushcraft and family preparedness.</p>
+                <p class="text-xs text-amber-200/60 mt-1">Comprehensive step-by-step practical guides for off-grid survival, emergency response, and bushcraft.</p>
               </div>
               <div class="flex gap-2 w-full md:w-auto">
                 <button onclick="openAllManualSections()" class="flex-1 md:flex-none bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-3 py-2 rounded-lg text-xs transition">
@@ -330,404 +330,247 @@
 
           <div class="mb-5">
             <div class="relative">
-              <input id="manual-search" type="text" placeholder="🔍 Search the Field Manual..." oninput="searchManual()" class="w-full bg-brand-black/70 border border-brand-gold/30 rounded-xl px-4 py-3 text-xs text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold" />
-            </div>
-          </div>
-
-          <div class="bg-brand-black/50 border border-brand-gold/20 rounded-xl p-4 mb-6">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-brand-gold mb-3">📚 Quick Index</h4>
-            <div class="flex flex-wrap gap-2 text-[10px]">
-              <button onclick="openManualSection('manual-water')" class="manual-index-btn">💧 Water</button>
-              <button onclick="openManualSection('manual-fire')" class="manual-index-btn">🔥 Fire</button>
-              <button onclick="openManualSection('manual-shelter')" class="manual-index-btn">⛺ Shelter</button>
-              <button onclick="openManualSection('manual-navigation')" class="manual-index-btn">🧭 Navigation</button>
-              <button onclick="openManualSection('manual-firstaid')" class="manual-index-btn">🩹 First Aid</button>
-              <button onclick="openManualSection('manual-food')" class="manual-index-btn">🍲 Food</button>
-              <button onclick="openManualSection('manual-sanitation')" class="manual-index-btn">🧼 Sanitation</button>
-              <button onclick="openManualSection('manual-power')" class="manual-index-btn">⚡ Power</button>
-              <button onclick="openManualSection('manual-comms')" class="manual-index-btn">📻 Comms</button>
-              <button onclick="openManualSection('manual-vehicle')" class="manual-index-btn">🚗 Vehicle</button>
-              <button onclick="openManualSection('manual-evacuation')" class="manual-index-btn">🎒 Evacuation</button>
-              <button onclick="openManualSection('manual-disasters')" class="manual-index-btn">🌪️ Disasters</button>
-              <button onclick="openManualSection('manual-wildfire')" class="manual-index-btn">🔥 Wildfire</button>
-              <button onclick="openManualSection('manual-flood')" class="manual-index-btn">🌊 Flood</button>
-              <button onclick="openManualSection('manual-storms')" class="manual-index-btn">🌪️ Storms</button>
-              <button onclick="openManualSection('manual-heat')" class="manual-index-btn">☀️ Heat</button>
-              <button onclick="openManualSection('manual-cold')" class="manual-index-btn">❄️ Cold</button>
-              <button onclick="openManualSection('manual-radiological')" class="manual-index-btn">☢️ Radiological</button>
-              <button onclick="openManualSection('manual-saferoom')" class="manual-index-btn">🏠 Safe Room</button>
-              <button onclick="openManualSection('manual-blackout')" class="manual-index-btn">🕯️ Blackout</button>
-              <button onclick="openManualSection('manual-bushcraft')" class="manual-index-btn">🪢 Bushcraft</button>
-              <button onclick="openManualSection('manual-wildlife')" class="manual-index-btn">🐾 Wildlife</button>
-              <button onclick="openManualSection('manual-route')" class="manual-index-btn">🗺️ Routes</button>
-              <button onclick="openManualSection('manual-longterm')" class="manual-index-btn">📦 Long Term</button>
-              <button onclick="openManualSection('manual-repairs')" class="manual-index-btn">🧰 Repairs</button>
-              <button onclick="openManualSection('manual-mindset')" class="manual-index-btn">🧠 Mindset</button>
-              <button onclick="openManualSection('manual-documents')" class="manual-index-btn">🪪 Documents</button>
-              <button onclick="openManualSection('manual-fire-safety')" class="manual-index-btn">🧯 Fire Safety</button>
-              <button onclick="openManualSection('manual-priorities')" class="manual-index-btn">📋 Priorities</button>
+              <input id="manual-search" type="text" placeholder="🔍 Search topics (e.g. water, fire, shelter, knots, first aid, compass, radio)..." oninput="searchManual()" class="w-full bg-brand-black/70 border border-brand-gold/30 rounded-xl px-4 py-3 text-xs text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold" />
             </div>
           </div>
 
           <div id="manual-sections-container" class="space-y-3">
-            <details id="manual-water" class="manual-section">
-              <summary><span class="manual-title"><span>💧</span><span>Water Purification & Storage</span></span><span class="manual-arrow">+</span></summary>
+            
+            <details id="manual-water" class="manual-section" open>
+              <summary><span class="manual-title"><span>💧</span><span>1. Water Procurement, Filtration & Purification</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>Water priority:</strong> Safe drinking water should be treated as an immediate priority during prolonged disruptions.</li>
-                  <li><strong>Boiling:</strong> Bring clear water to a rolling boil for at least 1 minute (3+ minutes at high altitudes). Allow it to cool in a clean covered container.</li>
-                  <li><strong>Filtration:</strong> Use a hollow-fiber membrane or ceramic water filter whenever possible. Know what pore size and contaminants the filter removes.</li>
-                  <li><strong>Chemical treatment:</strong> Use chlorine dioxide or household bleach (unscented 5-6%) when boiling is impossible. Follow exact dosage and contact times.</li>
-                  <li><strong>Storage:</strong> Store at least 3 to 4 liters per person per day in food-safe BPA-free containers. Keep out of direct sunlight and off concrete floors.</li>
-                  <li><strong>Redundancy:</strong> Maintain at least two separate independent purification methods.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3"><strong>Core Rule of 3s:</strong> Humans can survive only 3 days without potable water. Never drink raw surface water without treatment.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Step-by-Step Water Treatment Protocol:</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-4">
+                  <li><strong>Step 1: Water Sourcing:</strong> Prioritize fast-flowing streams over stagnant ponds. Collect rainwater using clean tarps or extract morning dew using cotton clothes wrapped around legs while walking through tall grass.</li>
+                  <li><strong>Step 2: Pre-Filtration (Sediment Removal):</strong> Pass murky water through a bandana, coffee filter, or a layered DIY tripod filter (grass, sand, crushed charcoal, gravel) to remove suspended dirt and large particulates.</li>
+                  <li><strong>Step 3: Biological Sterilization (Choose 1 method):</strong>
+                    <ul class="list-disc pl-4 mt-1 space-y-1 text-amber-200/80">
+                      <li><strong>Rolling Boil:</strong> Heat water to a vigorous rolling boil for 1 full minute (3 minutes at elevations above 2,000m). Kills 100% of viruses, bacteria, and protozoa.</li>
+                      <li><strong>Chemical Purification:</strong> Add 2 drops of unscented household bleach (5-6% sodium hypochlorite) per 1 Liter of clear water. Stir and let sit for 30 minutes in a sealed container before drinking.</li>
+                      <li><strong>Hollow-Fiber Membrane Filter:</strong> Push water through a 0.1-micron portable water filter (e.g. Sawyer Mini, LifeStraw) to clear bacteria and cysts.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Step 4: Safe Storage & Maintenance:</strong> Store purified water in food-grade, opaque BPA-free containers away from direct sunlight. Rotate home water reserves every 6 months.</li>
+                </ol>
+                <div class="bg-brand-black/60 p-2.5 rounded-lg border border-brand-gold/20 text-[11px] text-amber-200/70">
+                  💡 <strong>Pro Tip:</strong> SODIS (Solar Water Disinfection) Method — Fill clear PET plastic bottles with clear water and expose to direct sunlight for 6 hours. UV rays neutralize pathogens when boiling fuel is unavailable.
+                </div>
               </div>
             </details>
 
             <details id="manual-fire" class="manual-section">
-              <summary><span class="manual-title"><span>🔥</span><span>Fire Making & Ignition Mastery</span></span><span class="manual-arrow">+</span></summary>
+              <summary><span class="manual-title"><span>🔥</span><span>2. Fire Crafts & Ignition Mastery</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>Tinder:</strong> Gather ultra-dry fibrous materials like birch bark, fatwood shavings, dry grass, or cotton balls soaked in petroleum jelly.</li>
-                  <li><strong>Kindling:</strong> Collect pencil-thick dry twigs and sticks. Never lay wood directly on wet ground; build a raised platform.</li>
-                  <li><strong>Fuel Logs:</strong> Hardwoods burn slower and hotter than softwoods. Sort wood by size before lighting.</li>
-                  <li><strong>Ignition Redundancy:</strong> Carry stormproof matches, a ferrocerium rod (ferro rod), and a reliable butane lighter in waterproof containers.</li>
-                  <li><strong>Oxygen Flow:</strong> Arrange fuel in a teepee or log-cabin structure to ensure adequate airflow underneath the flame.</li>
-                  <li><strong>Extinguishing:</strong> Drown with water, stir embers, and feel the ash with the back of your hand to ensure 0% heat before departure.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3">Fire provides heat, water purification, cooking capability, wild animal protection, and rescue signaling.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Step-by-Step Fire Building Process:</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-4">
+                  <li><strong>Step 1: Prepare Ground & Firebed:</strong> Clear a 1-meter radius down to bare mineral soil. Build a base of dry logs or bark to insulate the fire from cold or wet ground.</li>
+                  <li><strong>Step 2: Gather Materials in 3 Sizes:</strong>
+                    <ul class="list-disc pl-4 mt-1 space-y-1 text-amber-200/80">
+                      <li><strong>Tinder:</strong> Dryer lint, vaseline-soaked cotton balls, shredded birch bark, or fine feather sticks (fist-sized bundle).</li>
+                      <li><strong>Kindling:</strong> Small dry twigs ranging from matchstick to pencil thickness (armful quantity).</li>
+                      <li><strong>Fuel Wood:</strong> Hardwood logs ranging from wrist to thigh thickness.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Step 3: Construct the Structure:</strong> Build a classic <em>Tepee</em> or <em>Log Cabin</em> structure over your tinder bundle, leaving a windward opening for oxygen flow.</li>
+                  <li><strong>Step 4: Ignition Step-by-Step:</strong> Hold a ferrocerium rod at a 45-degree angle right against the tinder. Scrape the spine of your knife firmly down the rod to shower 3000°C sparks into the tinder. Gently blow on the ember until it bursts into flame.</li>
+                  <li><strong>Step 5: Fire Extinction (Cold Out):</strong> Douse with water, stir ashes with a stick, douse again. Touch embers with the back of your hand to ensure it is cold to the touch before leaving.</li>
+                </ol>
               </div>
             </details>
 
             <details id="manual-shelter" class="manual-section">
-              <summary><span class="manual-title"><span>⛺</span><span>Emergency Shelter & Insulation</span></span><span class="manual-arrow">+</span></summary>
+              <summary><span class="manual-title"><span>⛺</span><span>3. Emergency Shelter Construction</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>Location Safety:</strong> Avoid flash-flood riverbeds, widow-makers (dead leaning branches), avalanche zones, and exposed ridge tops.</li>
-                  <li><strong>Ground Insulation:</strong> Conduction steals body heat 20x faster than air. Layer pine boughs, leaves, or sleeping pads underneath your body.</li>
-                  <li><strong>Tarp Configuration:</strong> Rig an A-frame or lean-to tarp setup using paracord anchored to sturdy trees or trekking poles.</li>
-                  <li><strong>Windbreak:</strong> Position your shelter opening perpendicular to prevailing winds or natural terrain barriers.</li>
-                  <li><strong>Thermal Management:</strong> Keep sleeping gear bone dry. Change out of sweaty clothing before resting.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-navigation" class="manual-section">
-              <summary><span class="manual-title"><span>🧭</span><span>Navigation & Land Orienteering</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Topographic Literacy:</strong> Understand contour lines—close lines indicate steep slopes; wide lines indicate flat terrain.</li>
-                  <li><strong>Compass Discipline:</strong> Always account for magnetic declination in your geographic region. Keep compass away from metal tools and electronics.</li>
-                  <li><strong>Handrails & Catching Features:</strong> Use linear features (rivers, roads, ridges) as handrails and prominent features as backstops to avoid overshooting.</li>
-                  <li><strong>Dead Reckoning:</strong> Track your pacing (count double-steps per 100 meters) and elapsed travel time.</li>
-                  <li><strong>Backup Tech:</strong> Keep offline vector maps downloaded on mobile devices with external power banks.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3">Hypothermia is the #1 cause of death in wilderness survival. A shelter traps body heat and protects against rain and wind.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Step-by-Step Debris Hut (Insulated Survival Shelter):</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-4">
+                  <li><strong>Step 1: Site Selection:</strong> Find flat ground free of overhead hazards ("widowmaker" dead branches, bee hives, high-water flash flood channels).</li>
+                  <li><strong>Step 2: Main Ridgepole Placement:</strong> Secure a sturdy branch (about 3 meters long) into the fork of a tree or onto two bi-pod support sticks at hip-height.</li>
+                  <li><strong>Step 3: Ribbing Frame:</strong> Prop sturdy branches along both sides of the ridgepole at a 45-degree angle to create a tight wedge frame just large enough for your body.</li>
+                  <li><strong>Step 4: Latching Lattice:</strong> Weave smaller leafy twigs horizontally across the ribbing to hold the insulation layer in place.</li>
+                  <li><strong>Step 5: Thick Insulation Layer:</strong> Heap a thick layer (at least 60-90 cm / 2 to 3 feet thick) of dry leaves, pine needles, or ferns over the entire frame.</li>
+                  <li><strong>Step 6: Ground Mattress:</strong> Fill the inside floor with at least 30 cm of dry leaves to prevent ground thermal transfer from draining body heat.</li>
+                </ol>
               </div>
             </details>
 
             <details id="manual-firstaid" class="manual-section">
-              <summary><span class="manual-title"><span>🩹</span><span>Trauma & Advanced First Aid</span></span><span class="manual-arrow">+</span></summary>
+              <summary><span class="manual-title"><span>🏥</span><span>4. Emergency First Aid & Trauma Response</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>MARCH PAWS Protocol:</strong> Massive Hemorrhage, Airway, Respiration, Circulation, Hypothermia/Head, Pain management, Administration, Wounds, Splinting.</li>
-                  <li><strong>Tourniquet Application:</strong> Apply high and tight on extremities for severe arterial bleeding. Never loosen a properly placed tourniquet in the field.</li>
-                  <li><strong>Wound Packing:</strong> Pack deep junctional wounds tightly with gauze and hold direct pressure for a minimum of 3 minutes.</li>
-                  <li><strong>Burn Care:</strong> Cool burns with cool (not freezing) water for 10-20 minutes. Do not rupture blisters; cover loosely with sterile non-adherent dressings.</li>
-                  <li><strong>Shock Treatment:</strong> Keep the casualty warm, lying flat with feet slightly elevated unless head or chest trauma is suspected.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3">In grid-down situations, medical response times will be delayed. Immediate basic stabilizing interventions save lives.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Primary Assessment & Action Protocols:</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-4">
+                  <li><strong>Step 1: Check Scene Safety:</strong> Ensure you are not putting yourself in danger before approaching an injured person.</li>
+                  <li><strong>Step 2: Assess ABCs (Airway, Breathing, Circulation):</strong> Open airway, verify breathing, check for severe bleeding.</li>
+                  <li><strong>Step 3: Severe Hemorrhage Control:</strong>
+                    <ul class="list-disc pl-4 mt-1 space-y-1 text-amber-200/80">
+                      <li>Apply firm, direct pressure with sterile gauze or clean cloth directly onto the wound.</li>
+                      <li>Wrap tightly with a compression bandage.</li>
+                      <li>If life-threatening arterial bleeding on limbs continues, apply a commercial CAT tourniquet 5-7 cm above the wound site and tighten until bleeding stops. Note time of application on forehead.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Step 4: Treating Shock:</strong> Lay patient flat on their back, elevate feet slightly (20 cm), cover with thermal space blanket to retain warmth, keep calm.</li>
+                  <li><strong>Step 5: Burn Management:</strong> Flush burn immediately with cool running water for 10-20 minutes. Cover loosely with a clean, non-stick sterile dressing. Never break blisters or apply butter/grease.</li>
+                  <li><strong>Step 6: Splinting Fractures:</strong> Immobilize the joint above and joint below the broken bone using rigid padded sticks and cloth ties. Check capillary refill in digits to ensure circulation is not cut off.</li>
+                </ol>
               </div>
             </details>
 
-            <details id="manual-food" class="manual-section">
-              <summary><span class="manual-title"><span>🍲</span><span>Emergency Nutrition & Preservation</span></span><span class="manual-arrow">+</span></summary>
+            <details id="manual-nav" class="manual-section">
+              <summary><span class="manual-title"><span>🧩</span><span>5. Land Navigation, Compass & Mapping</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>FIFO Rotation:</strong> First In, First Out. Regularly rotate stock items to prevent spoilage during long-term storage.</li>
-                  <li><strong>Caloric Density:</strong> Prioritize calorie-dense, shelf-stable foods (rice, oats, legumes, peanut butter, honey, canned meats).</li>
-                  <li><strong>Off-Grid Cooking:</strong> Maintain propane camping stoves, multi-fuel burners, or a Dutch oven setup for outdoor cooking.</li>
-                  <li><strong>Pest Prevention:</strong> Store dry grains in airtight food-grade buckets with oxygen absorbers and gamma seal lids.</li>
-                  <li><strong>Foraging Warning:</strong> Never consume wild plants, mushrooms, or berries unless 100% positively identified by an expert.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3">When GPS networks fail, magnetic compasses and topographic maps are essential for terrain navigation.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">How to Take a Bearing Step-by-Step:</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-4">
+                  <li><strong>Step 1: Orient the Map:</strong> Place compass flat on map. Rotate map until blue grid lines align with the magnetic needle pointing North.</li>
+                  <li><strong>Step 2: Plot Destination:</strong> Lay the edge of your baseplate compass connecting your current location to your target destination on the map.</li>
+                  <li><strong>Step 3: Dial the Bezel:</strong> Turn the rotating compass housing until the orienting lines match the N-S grid lines on the map.</li>
+                  <li><strong>Step 4: Follow Bearing:</strong> Lift compass to chest level. Turn your body until the red magnetic needle rests inside the orienting arrow ("Put the Red in the Shed"). The direction-of-travel arrow points your exact heading.</li>
+                  <li><strong>Step 5: Shadow-Stick Compass (Without Magnet):</strong> Push a 1-meter stick vertically into flat ground. Mark the tip of its shadow with a pebble. Wait 20 minutes and mark the new shadow tip. Draw a straight line between pebbles: the first mark is WEST, the second mark is EAST.</li>
+                </ol>
+              </div>
+            </details>
+
+            <details id="manual-knots" class="manual-section">
+              <summary><span class="manual-title"><span>🪢</span><span>6. Essential Knots & Lashings</span></span><span class="manual-arrow">+</span></summary>
+              <div class="manual-content">
+                <p class="text-xs text-amber-200/80 mb-3">Knowing 4 key knots allows you to pitch tarps, secure loads, anchor guy lines, and build wilderness furniture.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-amber-100/90 mt-2">
+                  <div class="bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+                    <h5 class="font-bold text-brand-gold mb-1">1. Bowline (King of Knots)</h5>
+                    <p class="text-[11px] text-amber-200/80">Creates a fixed secure loop at the end of a rope that never slips under tension.</p>
+                    <p class="text-[10px] text-amber-200/60 mt-1"><em>Step:</em> Make a small loop (tree). Rabbit comes up out of hole, goes around tree, and back down into the hole. Tighten.</p>
+                  </div>
+
+                  <div class="bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+                    <h5 class="font-bold text-brand-gold mb-1">2. Taut-Line Hitch</h5>
+                    <p class="text-[11px] text-amber-200/80">Adjustable friction knot for tarp guy lines and tent stakes. Allows tightening saggy lines.</p>
+                    <p class="text-[10px] text-amber-200/60 mt-1"><em>Step:</em> Pass working end around anchor. Wrap twice inside loop towards anchor, then once outside loop. Pull tight.</p>
+                  </div>
+
+                  <div class="bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+                    <h5 class="font-bold text-brand-gold mb-1">3. Clove Hitch</h5>
+                    <p class="text-[11px] text-amber-200/80">Quick binding knot used to start lashings or tether a line to a post or tree trunk.</p>
+                    <p class="text-[10px] text-amber-200/60 mt-1"><em>Step:</em> Pass rope around post, cross over main line, wrap around post again, and tuck under the cross loop.</p>
+                  </div>
+
+                  <div class="bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+                    <h5 class="font-bold text-brand-gold mb-1">4. Square Lashing</h5>
+                    <p class="text-[11px] text-amber-200/80">Used to join two timber poles together at right angles (90°) for shelters and frames.</p>
+                    <p class="text-[10px] text-amber-200/60 mt-1"><em>Step:</em> Tie Clove Hitch to standing pole. Wrap tightly around both poles 3 times. Frapping wraps 2 times between poles. Finish with Clove hitch.</p>
+                  </div>
+                </div>
               </div>
             </details>
 
             <details id="manual-sanitation" class="manual-section">
-              <summary><span class="manual-title"><span>🧼</span><span>Hygiene & Waste Management</span></span><span class="manual-arrow">+</span></summary>
+              <summary><span class="manual-title"><span>🧼</span><span>7. Off-Grid Sanitation, Hygiene & Waste</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>Handwashing:</strong> Wash hands thoroughly with soap for 20 seconds before food prep and after latrine use. Use hand sanitizer (>60% alcohol) when water is scarce.</li>
-                  <li><strong>Cat-Holes:</strong> Dig emergency latrines at least 60 meters (200 feet) away from natural water sources, trails, and camp areas, at least 15-20 cm deep.</li>
-                  <li><strong>Graywater Disposal:</strong> Scatter dishwater and washing water well away from natural water bodies using biodegradable soap.</li>
-                  <li><strong>Vector Control:</strong> Keep garbage sealed in heavy-duty bags to prevent attracting rodents, flies, and predators.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3">Poor sanitation leads to cholera, dysentery, and rapid disease outbreak during extended power or water grid failures.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Emergency Two-Bucket Toilet System:</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-3">
+                  <li><strong>Step 1: Bucket Separation:</strong> Reserve Bucket #1 strictly for urine (liquid) and Bucket #2 lined with heavy-duty garbage bag for solid waste. Separating liquids drastically reduces odor and bacteria.</li>
+                  <li><strong>Step 2: Carbon Cover Material:</strong> After each use of Bucket #2, cover waste with a 2 cm layer of dry sawdust, peat moss, crushed charcoal, or dried leaves.</li>
+                  <li><strong>Step 3: Field Latrine (Outdoors):</strong> Dig a cathole 15-20 cm deep at least 60 meters away from water sources, camp sites, and trails. Cover thoroughly with soil after use.</li>
+                  <li><strong>Step 4: Hand Wash Station Setup:</strong> Hang a water jug with a small nail hole at the bottom. Use biodegradable soap and scrub hands for 20 seconds before preparing food or treating injuries.</li>
+                </ol>
               </div>
             </details>
 
-            <details id="manual-power" class="manual-section">
-              <summary><span class="manual-title"><span>⚡</span><span>Grid-Down Power & Battery Discipline</span></span><span class="manual-arrow">+</span></summary>
+            <details id="manual-radio" class="manual-section">
+              <summary><span class="manual-title"><span>📻</span><span>8. Emergency Radio Communications</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>Load Shedding:</strong> Turn off high-draw appliances immediately during grid failures. Prioritize medical equipment, lighting, and radios.</li>
-                  <li><strong>Solar Charging:</strong> Position portable solar panels at optimal angles perpendicular to midday sun. Keep panels clean and free of shade.</li>
-                  <li><strong>Battery Storage:</strong> Store LiFePO4 and power banks at 50-60% charge in climate-controlled, dry environments.</li>
-                  <li><strong>Rechargeable Rotation:</strong> Label rechargeable AA/AAA batteries so depleted cells are never mixed with fresh ones.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3">When cellular networks overload or go dark, handheld radios (PMR446, Baofeng, VHF) maintain team contact.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Comms Protocol Step-by-Step:</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-3">
+                  <li><strong>Step 1: Pre-set Channels:</strong> Agree on primary channel (e.g. PMR Ch 3) and backup channel (PMR Ch 8) with team members prior to deployment.</li>
+                  <li><strong>Step 2: 3x3x3 Rule:</strong> Turn on radio for 3 minutes at the top of every 3rd hour (e.g. 09:00, 12:00, 15:00, 18:00) to save battery while preserving contact windows.</li>
+                  <li><strong>Step 3: Voice Transmission Method:</strong> Press PTT (Push-To-Talk), pause 1 second before speaking clearly. Keep transmissions short and concise:
+                    <br/><em class="text-brand-gold">"[Recipient Call Sign], this is [Your Call Sign], Status Update, over."</em>
+                  </li>
+                  <li><strong>Step 4: Radio Terminology:</strong>
+                    <ul class="list-disc pl-4 mt-1 space-y-1 text-amber-200/80 text-[11px]">
+                      <li><strong>Over:</strong> Finished speaking, expecting response.</li>
+                      <li><strong>Out:</strong> Finished transmission, closing channel.</li>
+                      <li><strong>Wilco:</strong> Message received and will comply.</li>
+                      <li><strong>Say Again:</strong> Repeat last transmission.</li>
+                    </ul>
+                  </li>
+                </ol>
               </div>
             </details>
 
-            <details id="manual-comms" class="manual-section">
-              <summary><span class="manual-title"><span>📻</span><span>Radio Operations & Protocols</span></span><span class="manual-arrow">+</span></summary>
+            <details id="manual-foraging" class="manual-section">
+              <summary><span class="manual-title"><span>🌱</span><span>9. Emergency Food, Calorie Conservation & Foraging Safety</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>Phonetic Alphabet:</strong> Use Alpha, Bravo, Charlie, Delta, Echo, Foxtrot, Golf, Hotel... for spelling critical call signs and locations over voice radio.</li>
-                  <li><strong>Schedule Windows:</strong> Establish predetermined check-in windows (e.g., every 4 hours on the hour) to conserve radio battery life.</li>
-                  <li><strong>Signal Reports:</strong> Use Readability-Strength-Tone (RST) system. Example: "5 by 9" indicates perfect audio clarity and maximum signal strength.</li>
-                  <li><strong>Squelch Adjustment:</strong> Adjust radio squelch just until static background hiss disappears to catch weak distant transmissions.</li>
-                </ul>
+                <p class="text-xs text-amber-200/80 mb-3">Energy management is essential. Conserve movement and avoid poisonous plants in wild areas.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Universal Edibility Testing Protocol (Extreme Emergencies Only):</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-3">
+                  <li><strong>Step 1: Universal Rules:</strong> Avoid plants with milky sap, umbrella-shaped flower clusters, bitter almond scent, fine hairs on stems, or red berries unless 100% positive on identification.</li>
+                  <li><strong>Step 2: Skin Contact Test:</strong> Crush a small portion of the plant leaf. Rub on inside wrist or elbow. Wait 15 minutes to check for burning, itching, or redness.</li>
+                  <li><strong>Step 3: Lip & Tongue Test:</strong> Touch a small piece to outer lip for 3 minutes. If no reaction, place on tip of tongue for 15 minutes. Do not swallow. If stinging occurs, spit out immediately and wash mouth.</li>
+                  <li><strong>Step 4: Swallow Test:</strong> Swallow one tiny bite. Wait 8 hours without eating anything else. If no stomach cramps or nausea, plant is likely safe in small emergency quantities.</li>
+                </ol>
               </div>
             </details>
 
-            <details id="manual-vehicle" class="manual-section">
-              <summary><span class="manual-title"><span>🚗</span><span>Vehicle Hardening & Recovery</span></span><span class="manual-arrow">+</span></summary>
+            <details id="manual-disaster" class="manual-section">
+              <summary><span class="manual-title"><span>⚡</span><span>10. Severe Weather & Natural Disaster Response</span></span><span class="manual-arrow">+</span></summary>
               <div class="manual-content">
-                <ul>
-                  <li><strong>Fuel Discipline:</strong> Never let your vehicle tank drop below 1/2 full during unstable periods.</li>
-                  <li><strong>Self-Recovery Gear:</strong> Carry kinetic tow straps, heavy-duty shackles, traction boards, a folding shovel, and tire repair plugs.</li>
-                  <li><strong>Bug-Out Maintenance:</strong> Check oil, coolant, brake fluid, windshield washer fluid, and tire pressures weekly.</li>
-                  <li><strong>Glass Breaker / Seatbelt Cutter:</strong> Mount an emergency egress tool securely within arm's reach of the driver seat.</li>
-                </ul>
-              </div>
-            </details>
+                <p class="text-xs text-amber-200/80 mb-3">Immediate automated reactions during natural hazards save crucial seconds.</p>
+                
+                <div class="space-y-3 text-xs text-amber-100/90">
+                  <div class="bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+                    <h5 class="font-bold text-brand-gold mb-1">🌍 Earthquake Protocol</h5>
+                    <p class="text-[11px] text-amber-200/80"><strong>DROP, COVER, HOLD ON:</strong> Drop to hands and knees. Cover head and neck under a sturdy table or desk. Hold on until shaking stops. If outdoors, move to open area away from power lines and buildings.</p>
+                  </div>
 
-            <details id="manual-evacuation" class="manual-section">
-              <summary><span class="manual-title"><span>🎒</span><span>Evacuation & Bug-Out Protocols</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>The 72-Hour Rule:</strong> Every bug-out bag must sustain an individual independently for a minimum of 3 days without resupply.</li>
-                  <li><strong>Primary vs Alternate Routes:</strong> Always plan two distinct evacuation routes off your grid square to bypass potential roadblocks.</li>
-                  <li><strong>Rally Points:</strong> Establish an immediate neighborhood rally point and an off-site regional rally point.</li>
-                  <li><strong>Roll-Call Verification:</strong> Confirm every GET member's status before initiating movement.</li>
-                </ul>
-              </div>
-            </details>
+                  <div class="bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+                    <h5 class="font-bold text-brand-gold mb-1">🌊 Flash Flood Protocol</h5>
+                    <p class="text-[11px] text-amber-200/80"><strong>SEEK HIGH GROUND:</strong> Never walk or drive through moving water. 15 cm (6 inches) of fast-flowing water can knock an adult down; 60 cm (2 feet) will float most motor vehicles.</p>
+                  </div>
 
-            <details id="manual-disasters" class="manual-section">
-              <summary><span class="manual-title"><span>🌪️</span><span>General Disaster Protocols</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Earthquake:</strong> Drop to hands and knees, Cover your head/neck under sturdy furniture, and Hold On until shaking stops.</li>
-                  <li><strong>Flash Flood:</strong> Move immediately to higher ground. Turn Around, Don't Drown—just 15 cm of moving water can sweep adults off their feet.</li>
-                  <li><strong>Severe Thunderstorm:</strong> Seek rigid shelter indoors immediately. Unplug sensitive electronics. Avoid tall isolated trees and metal fences.</li>
-                  <li><strong>Tsunami:</strong> If near the coast and you feel a strong earthquake lasting 20+ seconds, evacuate immediately to high ground without waiting for sirens.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-wildfire" class="manual-section">
-              <summary><span class="manual-title"><span>🔥</span><span>Wildfire Defense & Survival</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Defensible Space:</strong> Clear flammable brush, dry leaves, and wood piles at least 10 meters away from structures.</li>
-                  <li><strong>Ember Defense:</strong> Close all windows, doors, and attic vents to prevent wind-driven embers from igniting interiors.</li>
-                  <li><strong>Evacuate Early:</strong> Never wait for flames to become visible before leaving. Smoke inhalation and road gridlock are primary hazards.</li>
-                  <li><strong>Protective Clothing:</strong> Wear 100% cotton or wool garments, sturdy boots, and an N95 mask/respirator to filter toxic smoke particulates.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-flood" class="manual-section">
-              <summary><span class="manual-title"><span>🌊</span><span>Flood Preparedness & Post-Flood</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Utility Shutdown:</strong> Turn off electricity at the main breaker and gas valves if instructed or if waters rise inside the home.</li>
-                  <li><strong>Contamination Warning:</strong> Assume all floodwater is contaminated with sewage, chemicals, and biological pathogens. Wear waterproof boots and gloves.</li>
-                  <li><strong>Mold Prevention:</strong> Dry out water-damaged structures within 24-48 hours using cross-ventilation and dehumidifiers.</li>
-                  <li><strong>Bridge Safety:</strong> Never cross washed-out bridges or flooded roads, as roadbeds may have eroded underneath.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-storms" class="manual-section">
-              <summary><span class="manual-title"><span>🌪️</span><span>Tornado & Hurricane Preparedness</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Tornado Safe Room:</strong> Move to a basement, cellar, or interior windowless room on the lowest floor (bathroom or hallway). Cover head with mattress.</li>
-                  <li><strong>Hurricane Shutters:</strong> Install storm shutters or plywood over glass windows before high winds arrive. Secure loose outdoor patio furniture.</li>
-                  <li><strong>Eye of the Storm:</strong> During a hurricane, remember the calm eye is temporary; violent winds will resume from the opposite direction.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-heat" class="manual-section">
-              <summary><span class="manual-title"><span>☀️</span><span>Extreme Heat & Heatstroke Prevention</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Hydration Discipline:</strong> Drink water before feeling thirsty (approx. 500ml-1L per hour in extreme exertion). Include electrolyte replacements.</li>
-                  <li><strong>Heat Exhaustion Symptoms:</strong> Heavy sweating, dizziness, nausea, headache, clammy skin. Move to shade and cool down immediately.</li>
-                  <li><strong>Heatstroke (Medical Emergency):</strong> High body temperature (>39°C), confusion, loss of consciousness, dry hot skin (no sweating). Immerse in cool water or apply ice packs immediately.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-cold" class="manual-section">
-              <summary><span class="manual-title"><span>❄️</span><span>Cold Weather & Hypothermia Survival</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>The CBGT Rule:</strong> Cotton Kills (retains moisture and chills body). Wear moisture-wicking synthetics or wool baselayers, insulating midlayers, and windproof outer shell.</li>
-                  <li><strong>Hypothermia Stages:</strong> Shivering (mild), confusion/slurred speech (moderate), unresponsiveness/loss of shivering (severe). Handle casualties extremely gently.</li>
-                  <li><strong>Frostbite Care:</strong> Never rub frostbitten skin. Warm gradually in warm water (37-39°C) only if there is zero risk of refreezing.</li>
-                  <li><strong>Tent Ventilation:</strong> When using heaters inside winter tents, always maintain cross-ventilation to prevent lethal carbon monoxide poisoning.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-radiological" class="manual-section">
-              <summary><span class="manual-title"><span>☢️</span><span>Nuclear & Radiological Emergency Protocol</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Immediate Shelter:</strong> Get Inside, Stay Inside, Stay Tuned. Move to the center of a basement or multi-story concrete building immediately.</li>
-                  <li><strong>Fallout Shielding:</strong> Dense materials like concrete, thick earth, and brick provide optimal radiation attenuation. Stay sheltered for at least 24-48 hours.</li>
-                  <li><strong>Decontamination:</strong> Remove outer layers of contaminated clothing and shoes at the entryway. Shower thoroughly with soap and lukewarm water.</li>
-                  <li><strong>Air Sealing:</strong> Turn off HVAC systems and seal windows/doors with plastic sheeting and duct tape if instructed by civil defense authorities.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-saferoom" class="manual-section">
-              <summary><span class="manual-title"><span>🏠</span><span>Home Safe Room Establishment</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Room Selection:</strong> Choose an internal room with no exterior walls or windows, reinforced ceiling if possible.</li>
-                  <li><strong>Dedicated Cache:</strong> Stock water reserves, emergency rations, battery lanterns, hand-crank radio, first aid kit, and portable chemical toilet.</li>
-                  <li><strong>Communication Hub:</strong> Keep backup PMR/walkie-talkies and printed contact sheets inside the safe room.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-blackout" class="manual-section">
-              <summary><span class="manual-title"><span>🕯️</span><span>Extended Blackout Protocol</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>First 10 Minutes:</strong> Verify whether the outage is localized (check household breaker panel) or grid-wide. Conserve phone batteries.</li>
-                  <li><strong>Refrigerator Management:</strong> Keep refrigerator and freezer doors closed. A closed freezer maintains safe temperatures for up to 48 hours.</li>
-                  <li><strong>Water Preservation:</strong> Fill bathtubs and spare containers with tap water immediately upon notice of grid/water infrastructure failure.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-bushcraft" class="manual-section">
-              <summary><span class="manual-title"><span>🪢</span><span>Bushcraft & Knot Tying</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Square Knot:</strong> Joining two ropes of equal diameter securely.</li>
-                  <li><strong>Bowline:</strong> The "King of Knots"—creates a secure, non-slip loop under heavy loads that is easy to untie afterwards.</li>
-                  <li><strong>Taut-Line Hitch:</strong> Adjustable loop for tensioning tent guy lines and tarps.</li>
-                  <li><strong>Clove Hitch:</strong> Fast starting and ending hitch for securing ropes to posts or spars.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-wildlife" class="manual-section">
-              <summary><span class="manual-title"><span>🐾</span><span>Wildlife & Dangerous Encounters</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Bear Encounter:</strong> Do not run. Stand tall, speak calmly, and back away slowly. If attacked by a grizzly/brown bear, play dead; if black bear, fight back aggressively.</li>
-                  <li><strong>Wild Boar / Large Mammals:</strong> Give wide berth, especially if mothers are accompanied by young. Climb a sturdy tree if charged.</li>
-                  <li><strong>Snakebites:</strong> Keep calm, immobilize the affected limb below heart level, remove restrictive jewelry, and seek urgent medical evacuation. Never cut or suck venom.</li>
-                  <li><strong>Tick Removal:</strong> Use fine-tipped tweezers to grasp the tick as close to the skin as possible. Pull straight up firmly and disinfect the bite area.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-route" class="manual-section">
-              <summary><span class="manual-title"><span>🗺️</span><span>Route Planning & Rally Points</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Primary Evacuation Vector:</strong> Highway/road corridor mapped out to regional safe zones.</li>
-                  <li><strong>Secondary Off-Road Route:</strong> Secondary forestry tracks or foot trails bypassing chokepoints.</li>
-                  <li><strong>Rally Point Alpha:</strong> Local neighborhood assembly point (within 1 km).</li>
-                  <li><strong>Rally Point Bravo:</strong> Regional high-ground rendezvous point (outside urban perimeter).</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-longterm" class="manual-section">
-              <summary><span class="manual-title"><span>📦</span><span>Long-Term Grid Disruption Survival</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Sustained Water Security:</strong> Establish multi-tier collection (rainwater harvesting, gravity filters, boiling stations).</li>
-                  <li><strong>Food Security:</strong> Supplement stored rations with microgreens, sprouted grains, or community bartering networks.</li>
-                  <li><strong>Mental Resilience:</strong> Maintain daily routines, assigned community chores, physical exercise, and evening debriefs to combat stress.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-repairs" class="manual-section">
-              <summary><span class="manual-title"><span>🧰</span><span>Improvised Repairs & Field Craft</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Duct Tape & Paracord:</strong> The universal fix-all for gear tears, splints, tool handles, and temporary shelter lashings.</li>
-                  <li><strong>Zip Ties & Wire:</strong> Essential for securing loose vehicle bumpers, hoses, and fencing repairs.</li>
-                  <li><strong>Epoxy / Super Glue:</strong> Fast structural bonding for cracked tool grips, cookware handles, and eye-wear frames.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-mindset" class="manual-section">
-              <summary><span class="manual-title"><span>🧠</span><span>Mindset & Team Psychology</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>STOP Formula:</strong> Stop, Think, Observe, Plan. Never panic or act rashly under sudden stress.</li>
-                  <li><strong>Leadership Roles:</strong> Delegate clear responsibilities (Medics, Communicators, Quartermasters, Security) to maintain order.</li>
-                  <li><strong>Calm Communication:</strong> Keep discussions objective, reassuring, and morale-focused, especially around younger team members.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-documents" class="manual-section">
-              <summary><span class="manual-title"><span>🪪</span><span>Vital Documents & Secure Records</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>Physical Waterproof Copies:</strong> Passports, IDs, medical history cards, insurance policies, and property deeds stored in a waterproof pouch.</li>
-                  <li><strong>Encrypted Digital Backups:</strong> USB flash drives and secure cloud storage containing scanned copies.</li>
-                  <li><strong>Emergency Contact Ledger:</strong> Printed list of family numbers, blood types, allergies, and local emergency dispatch numbers.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-fire-safety" class="manual-section">
-              <summary><span class="manual-title"><span>🧯</span><span>Structural Fire Safety & Suppression</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <ul>
-                  <li><strong>PASS Method (Extinguishers):</strong> Pull pin, Aim low at the base of fire, Squeeze handle, Sweep side to side.</li>
-                  <li><strong>Smoke Evacuation:</strong> Crawl low under smoke where cleaner, cooler air remains near the floor.</li>
-                  <li><strong>Door Check:</strong> Feel closed doors with the back of your hand before opening. If hot, use an alternate escape route.</li>
-                  <li><strong>Never Re-Enter:</strong> Once evacuated from a burning structure, never re-enter for any reason.</li>
-                </ul>
-              </div>
-            </details>
-
-            <details id="manual-priorities" class="manual-section">
-              <summary><span class="manual-title"><span>📋</span><span>Universal Survival Priorities</span></span><span class="manual-arrow">+</span></summary>
-              <div class="manual-content">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <div class="manual-priority"><span>1</span> Account for every GET team member.</div>
-                  <div class="manual-priority"><span>2</span> Identify and mitigate immediate life threats.</div>
-                  <div class="manual-priority"><span>3</span> Establish protection from extreme weather (Shelter).</div>
-                  <div class="manual-priority"><span>4</span> Secure clean drinking water (Hydration).</div>
-                  <div class="manual-priority"><span>5</span> Stabilize injuries and administer First Aid.</div>
-                  <div class="manual-priority"><span>6</span> Establish communication links & monitor local feeds.</div>
-                  <div class="manual-priority"><span>7</span> Assess whether to shelter in place or evacuate.</div>
-                  <div class="manual-priority"><span>8</span> Conserve energy, battery reserves, and food.</div>
+                  <div class="bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+                    <h5 class="font-bold text-brand-gold mb-1">🌪️ Severe Storm / High Wind Protocol</h5>
+                    <p class="text-[11px] text-amber-200/80">Move to the lowest level interior room (bathroom, hallway, cellar) away from exterior glass windows. Cover body with heavy blankets or mattress to protect against flying debris.</p>
+                  </div>
                 </div>
               </div>
             </details>
-          </div>
 
-          <div class="mt-6 bg-amber-900/20 border border-amber-600/30 p-4 rounded-xl">
-            <p class="text-[11px] text-amber-200/70 leading-relaxed">
-              <strong class="text-brand-gold">GET Field Manual:</strong>
-              This manual is a preparedness reference and does not replace professional medical, emergency or technical training. Follow official local emergency instructions whenever available.
-            </p>
+            <details id="manual-urban" class="manual-section">
+              <summary><span class="manual-title"><span>🏢</span><span>11. Urban Evacuation & Bug-Out Protocols</span></span><span class="manual-arrow">+</span></summary>
+              <div class="manual-content">
+                <p class="text-xs text-amber-200/80 mb-3">Evacuating populated areas during civil emergencies or severe weather mandates pre-planned routes and family coordination.</p>
+                
+                <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">Step-by-Step Evacuation Plan:</h4>
+                <ol class="list-decimal pl-5 text-xs text-amber-100/90 space-y-2 mb-3">
+                  <li><strong>Step 1: Define PACE Communication Plan:</strong>
+                    <ul class="list-disc pl-4 mt-1 space-y-1 text-amber-200/80 text-[11px]">
+                      <li><strong>Primary:</strong> Mobile Phone Call/SMS</li>
+                      <li><strong>Alternate:</strong> Team Radio / PMR446</li>
+                      <li><strong>Contingency:</strong> Out-of-area relative message contact</li>
+                      <li><strong>Emergency:</strong> Physical pre-marked rally point on map</li>
+                    </ul>
+                  </li>
+                  <li><strong>Step 2: Route Mapping:</strong> Highlight 3 distinct evacuation routes out of your district (Primary arterial road, Secondary backroad, Tertiary walking route).</li>
+                  <li><strong>Step 3: Vehicle Preparation:</strong> Keep vehicle fuel tank at least half full at all times. Maintain emergency car kit in trunk.</li>
+                  <li><strong>Step 4: Bug Out Action:</strong> Grab 72-hour Bug Out Bags, shut off home main gas/water valves, secure property locks, and notify GET team of status before departing.</li>
+                </ol>
+              </div>
+            </details>
+
           </div>
         </section>
       </div>
@@ -851,17 +694,6 @@
           </div>
 
           <form id="profile-form" class="space-y-4">
-            <div class="flex items-center space-x-4 bg-brand-black/60 p-4 rounded-xl border border-brand-gold/20">
-              <div id="profile-avatar-preview" class="w-16 h-16 rounded-full bg-brand-gold/20 border-2 border-brand-gold flex items-center justify-center font-bold text-brand-gold text-2xl overflow-hidden shrink-0">
-                <span>?</span>
-              </div>
-              <div class="space-y-1">
-                <label class="block text-xs font-bold text-brand-gold">Profile Picture</label>
-                <input type="file" id="profile-avatar-input" accept="image/*" class="text-xs text-amber-200/80 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-gold file:text-brand-black hover:file:bg-brand-goldLight cursor-pointer" />
-                <p class="text-[10px] text-amber-200/50">PNG, JPG or WEBP (Max 5MB)</p>
-              </div>
-            </div>
-
             <div>
               <label class="block text-xs font-semibold text-amber-100 mb-1">Display Name / Call Sign</label>
               <input type="text" id="profile-display-name" placeholder="e.g. Kevin" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
@@ -872,24 +704,10 @@
               <input type="text" id="profile-phone" placeholder="e.g. +34 600 000 000" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-amber-100 mb-1">Hobbies, Skills & Specializations</label>
-              <textarea id="profile-hobbies" rows="3" placeholder="e.g. Hiking, Radio Comms, First Aid, Photography..." class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold"></textarea>
-            </div>
-
             <button type="submit" id="save-profile-btn" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-xs shadow-lg">
               Save Profile Changes
             </button>
           </form>
-
-          <p id="profile-feedback" class="text-xs text-center text-emerald-400 font-semibold hidden bg-emerald-950/50 p-2.5 rounded border border-emerald-800/50">✓ Profile saved successfully!</p>
-        </section>
-
-        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4 max-w-4xl mx-auto">
-          <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
-            <span>🪪</span> Team Roster Directory
-          </h3>
-          <div id="roster-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
         </section>
       </div>
 
@@ -935,7 +753,7 @@
             <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl flex items-center justify-between">
               <div>
                 <p class="font-bold text-amber-100 text-sm">Constant Torch</p>
-                <p class="text-[11px] text-amber-200/60">Toggle bright screen beacon and mobile LED</p>
+                <p class="text-[11px] text-amber-200/60">Toggle bright screen beacon</p>
               </div>
               <button id="torch-toggle-btn" onclick="toggleTorch()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition">
                 Turn ON
@@ -943,7 +761,7 @@
             </div>
 
             <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl space-y-3">
-              <p class="font-bold text-amber-100 text-sm">Text to Morse Transmit (Audio + Light)</p>
+              <p class="font-bold text-amber-100 text-sm">Text to Morse Transmit</p>
               <input type="text" id="morse-input" placeholder="e.g. SOS or HELP" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-xs text-amber-100 font-mono uppercase focus:outline-none focus:border-brand-gold" />
               
               <div class="flex gap-2">
@@ -961,41 +779,6 @@
               </div>
             </div>
           </section>
-
-          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
-            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
-              <span>📖</span> Morse Code Guide
-            </h3>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono text-xs max-h-[360px] overflow-y-auto pr-1">
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">A</span> <span>.-</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">B</span> <span>-...</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">C</span> <span>-.-.</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">D</span> <span>-..</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">E</span> <span>.</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">F</span> <span>..-.</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">G</span> <span>--.</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">H</span> <span>....</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">I</span> <span>..</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">J</span> <span>.---</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">K</span> <span>-.-</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">L</span> <span>.-..</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">M</span> <span>--</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">N</span> <span>-.</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">O</span> <span>---</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">P</span> <span>.--.</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">Q</span> <span>--.-</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">R</span> <span>.-.</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">S</span> <span>...</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">T</span> <span>-</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">U</span> <span>..-</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">V</span> <span>...-</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">W</span> <span>.--</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">X</span> <span>-..-</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">Y</span> <span>-.--</span></div>
-              <div class="bg-brand-black/60 p-2 rounded border border-brand-gold/20 flex justify-between"><span class="text-brand-gold font-bold">Z</span> <span>--..</span></div>
-            </div>
-          </section>
         </div>
       </div>
 
@@ -1009,7 +792,7 @@
             <p class="text-amber-200/50 text-center py-8">Loading chat history...</p>
           </div>
 
-          <form id="chat-form" class="flex gap-2">
+          <form id="chat-form" onsubmit="sendChatMessage(event); return false;" class="flex gap-2">
             <input type="text" id="chat-input" placeholder="Type a message..." required class="flex-grow bg-brand-black border border-brand-gold/40 rounded-lg px-4 py-2.5 text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-brand-gold text-sm" />
             <button type="submit" id="chat-send-btn" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg transition text-sm">
               Send
@@ -1110,64 +893,16 @@
       border-top: 1px solid rgba(212, 175, 55, 0.12);
     }
 
-    .manual-content ul {
-      margin: 0.9rem 0 0 0;
-      padding-left: 1.2rem;
+    .manual-content ul, .manual-content ol {
+      margin-top: 0.5rem;
     }
 
     .manual-content li {
-      color: rgba(255, 242, 220, 0.9);
-      font-size: 0.75rem;
-      line-height: 1.65;
-      margin-bottom: 0.55rem;
-    }
-
-    .manual-content li:last-child {
-      margin-bottom: 0;
+      line-height: 1.6;
     }
 
     .manual-content strong {
       color: #D4AF37;
-    }
-
-    .manual-index-btn {
-      background: rgba(212, 175, 55, 0.08);
-      border: 1px solid rgba(212, 175, 55, 0.25);
-      color: #D4AF37;
-      padding: 0.35rem 0.55rem;
-      border-radius: 0.45rem;
-      transition: all 0.2s ease;
-    }
-
-    .manual-index-btn:hover {
-      background: rgba(212, 175, 55, 0.18);
-      border-color: rgba(212, 175, 55, 0.5);
-    }
-
-    .manual-priority {
-      background: rgba(212, 175, 55, 0.05);
-      border: 1px solid rgba(212, 175, 55, 0.12);
-      border-radius: 0.6rem;
-      padding: 0.65rem;
-      color: rgba(255, 242, 220, 0.9);
-      font-size: 0.72rem;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .manual-priority span {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(212, 175, 55, 0.15);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      border-radius: 50%;
-      color: #D4AF37;
-      font-weight: 800;
-      flex-shrink: 0;
     }
 
     .manual-hidden {
@@ -1179,6 +914,18 @@
     const SUPABASE_URL = "https://yiinbykxpqlbehjzzuvh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpaW5ieWt4cHFsYmVoanp6dXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NDYwODUsImV4cCI6MjEwMjIyMjA4NX0.cbTxKk68lp7qg0pVKqBF4VppNAR01Tz_-_eIiBkSObs";
     
+    // Global listener to suppress WebSocket restrictions in sandboxed canvas/iframe environments
+    window.addEventListener('unhandledrejection', function(event) {
+      if (event.reason && (
+        String(event.reason).includes('WebSocket') || 
+        String(event.reason.message || '').includes('WebSocket') ||
+        String(event.reason).includes('Canvas')
+      )) {
+        console.warn('WebSocket connections restricted in current frame environment; falling back to automatic HTTP polling.', event.reason);
+        event.preventDefault();
+      }
+    });
+
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const CHICLANA_LAT = 36.4167;
@@ -1193,16 +940,21 @@
 
     const TEAM_MEMBERS_MAP = {
       "goutierexplorerteam@gmail.com": "Kevin",
-      "nikita-meijer@outlook.com": "Nikita"
+      "nikita-meijer@outlook.com": "Nikita",
+      "hailey-jade@outlook.com": "Hailey-Jade"
     };
 
     let teamStatuses = {
-      "Kevin": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
-      "Nikita": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
-      "Hailey-Jade": { status: "safe", label: "🟢 Safe at Base", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" }
+      "Kevin": { status: "safe", updated_at: new Date().toISOString() },
+      "Nikita": { status: "safe", updated_at: new Date().toISOString() },
+      "Hailey-Jade": { status: "safe", updated_at: new Date().toISOString() }
     };
+
     let userProfiles = {};
     let inventoryItems = [];
+    let localChatMessages = [
+      { sender_name: "GET System", message: "Team encrypted comms channel established.", created_at: new Date().toISOString(), user_email: "system" }
+    ];
 
     const PREPPING_LISTS = {
       bugout: [
@@ -1248,9 +1000,7 @@
     const userDisplay = document.getElementById('user-display');
     const userDisplayName = document.getElementById('user-display-name');
     const userAvatar = document.getElementById('user-avatar');
-    const headerAvatarContainer = document.getElementById('header-avatar-container');
     const chatMessages = document.getElementById('chat-messages');
-    const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
 
     let currentUser = null;
@@ -1325,6 +1075,7 @@
       } else if (tabName === 'chat') {
         chatView.classList.remove('hidden');
         chatBtn.className = activeStyle;
+        loadChatMessages();
         scrollToBottomChat();
       } else {
         resourcesView.classList.remove('hidden');
@@ -1332,13 +1083,154 @@
       }
     }
 
-    function openManualSection(id) {
-      const section = document.getElementById(id);
-      if (!section) return;
-      section.open = true;
-      setTimeout(() => {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 80);
+    function renderRollCallList() {
+      const container = document.getElementById('roll-call-list');
+      if (!container) return;
+
+      const currentMemberName = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
+
+      const statusMapConfig = {
+        'safe': {
+          label: '🟢 Safe at Base',
+          badgeClass: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+        },
+        'enroute': {
+          label: '🟡 En Route',
+          badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+        },
+        'alert': {
+          label: '🔴 Needs Assistance',
+          badgeClass: 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse font-bold'
+        }
+      };
+
+      const members = Object.keys(teamStatuses);
+      
+      if (members.length === 0) {
+        container.innerHTML = `<p class="text-amber-200/50 text-center py-3">No team status data available.</p>`;
+        return;
+      }
+
+      container.innerHTML = members.map(memberName => {
+        const item = teamStatuses[memberName] || { status: 'safe', updated_at: new Date().toISOString() };
+        const conf = statusMapConfig[item.status] || statusMapConfig['safe'];
+        const isYou = memberName.toLowerCase() === currentMemberName.toLowerCase();
+        
+        let timeAgo = 'Recently';
+        if (item.updated_at) {
+          const date = new Date(item.updated_at);
+          if (!isNaN(date)) {
+            timeAgo = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+        }
+
+        return `
+          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl flex items-center justify-between gap-3 transition-colors">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center font-bold text-brand-gold text-xs shrink-0">
+                ${escapeHtml(memberName.charAt(0).toUpperCase())}
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-amber-100 text-xs">${escapeHtml(memberName)}</span>
+                  ${isYou ? '<span class="text-[9px] bg-brand-gold/20 text-brand-gold border border-brand-gold/30 px-1.5 py-0.2 rounded font-semibold">(You)</span>' : ''}
+                </div>
+                <p class="text-[10px] text-amber-200/50">Updated: ${timeAgo}</p>
+              </div>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold px-2.5 py-1 rounded-lg border ${conf.badgeClass}">
+                ${conf.label}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function saveMyStatus() {
+      const statusSelect = document.getElementById('user-status-select');
+      const feedback = document.getElementById('status-save-feedback');
+      if (!statusSelect) return;
+
+      const statusVal = statusSelect.value;
+      const currentMemberName = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
+
+      const nowIso = new Date().toISOString();
+      teamStatuses[currentMemberName] = {
+        status: statusVal,
+        updated_at: nowIso
+      };
+
+      renderRollCallList();
+
+      try {
+        const { error } = await supabaseClient.from('team_status').upsert({
+          user_email: currentUserEmail,
+          member_name: currentMemberName,
+          status: statusVal,
+          updated_at: nowIso
+        }, { onConflict: 'member_name' });
+
+        if (error) {
+          console.warn("Supabase team_status notice:", error.message);
+        }
+      } catch (err) {
+        console.warn("Supabase save error:", err);
+      }
+
+      if (feedback) {
+        feedback.classList.remove('hidden');
+        setTimeout(() => {
+          feedback.classList.add('hidden');
+        }, 3000);
+      }
+    }
+
+    async function loadTeamStatuses() {
+      try {
+        const { data, error } = await supabaseClient.from('team_status').select('*');
+        if (!error && data && data.length > 0) {
+          data.forEach(row => {
+            if (row.member_name) {
+              teamStatuses[row.member_name] = {
+                status: row.status || 'safe',
+                updated_at: row.updated_at || new Date().toISOString()
+              };
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("Status fetch notice:", err);
+      }
+      renderRollCallList();
+    }
+
+    function subscribeToTeamStatus() {
+      if (!window.statusPollTimer) {
+        window.statusPollTimer = setInterval(loadTeamStatuses, 8000);
+      }
+
+      try {
+        supabaseClient
+          .channel('public:team_status_channel')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'team_status' }, payload => {
+            if (payload.new && payload.new.member_name) {
+              teamStatuses[payload.new.member_name] = {
+                status: payload.new.status || 'safe',
+                updated_at: payload.new.updated_at || new Date().toISOString()
+              };
+              renderRollCallList();
+            }
+          })
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              console.warn("Realtime status channel unavailable; relying on polling fallback.");
+            }
+          });
+      } catch (err) {
+        console.warn("WebSocket subscription not supported in this frame environment:", err);
+      }
     }
 
     function openAllManualSections() {
@@ -1497,7 +1389,6 @@
       if (!error) loadInventory();
     }
 
-    // Initialize application events on DOM load
     document.addEventListener('DOMContentLoaded', () => {
       authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1529,7 +1420,6 @@
         authSubmitBtn.disabled = false;
       });
 
-      // Check existing session
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
         if (session && session.user) {
           currentUser = session.user;
@@ -1537,6 +1427,49 @@
           initSessionUI();
         }
       });
+
+      const invForm = document.getElementById('inventory-form');
+      if (invForm) {
+        invForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const code = document.getElementById('inv-code').value.trim();
+          const name = document.getElementById('inv-name').value.trim();
+          const location = document.getElementById('inv-location').value.trim();
+          const category = document.getElementById('inv-category').value;
+          const qty = parseInt(document.getElementById('inv-qty').value, 10) || 1;
+          const unit = document.getElementById('inv-unit').value.trim() || 'units';
+          const exp = document.getElementById('inv-exp').value;
+
+          const newItem = {
+            item_code: code || `ITEM-${Math.floor(Math.random() * 8999 + 1000)}`,
+            item_name: name,
+            location: location || 'Base Shelf',
+            category: category,
+            quantity: qty,
+            unit: unit,
+            expiration_date: exp || null,
+            created_at: new Date().toISOString()
+          };
+
+          const { error } = await supabaseClient.from('inventory').insert(newItem);
+          if (error) {
+            console.error("Inventory insert error:", error);
+          } else {
+            invForm.reset();
+            loadInventory();
+          }
+        });
+      }
+
+      const chatForm = document.getElementById('chat-form');
+      if (chatForm) {
+        chatForm.addEventListener('submit', sendChatMessage);
+      }
+
+      switchPrepCategory('bugout');
+      updateBirthdayCountdown();
+      setInterval(updateBirthdayCountdown, 1000);
+      loadWeather();
     });
 
     function initSessionUI() {
@@ -1549,7 +1482,11 @@
       userDisplayName.textContent = `${name}'s Portal`;
       userAvatar.textContent = name.charAt(0).toUpperCase();
 
+      loadTeamStatuses();
+      subscribeToTeamStatus();
       loadInventory();
+      loadChatMessages();
+      subscribeToChat();
       switchTab('dashboard');
     }
 
@@ -1604,12 +1541,6 @@
       `).join('');
     }
 
-    // Initialize prepping checklist on load
-    document.addEventListener('DOMContentLoaded', () => {
-      switchPrepCategory('bugout');
-    });
-
-    // Signaling and Morse functions
     let isTorchOn = false;
     async function toggleTorch() {
       const btn = document.getElementById('torch-toggle-btn');
@@ -1633,6 +1564,7 @@
       }
     }
 
+    let morseTimeout = null;
     function transmitMorse() {
       const input = document.getElementById('morse-input').value.toUpperCase();
       const output = document.getElementById('morse-output');
@@ -1648,31 +1580,268 @@
 
       const res = input.split('').map(c => map[c] || '').join(' ');
       output.textContent = res || '--';
-      toggleTorch();
-      setTimeout(toggleTorch, 2500);
+      if (!isTorchOn) toggleTorch();
+      morseTimeout = setTimeout(() => {
+        if (isTorchOn) toggleTorch();
+      }, 2500);
     }
 
     function stopTransmission() {
+      if (morseTimeout) clearTimeout(morseTimeout);
       if (isTorchOn) toggleTorch();
+      const output = document.getElementById('morse-output');
+      if (output) output.textContent = "-- --- --";
     }
 
     function startCompass() {
-      alert('Compass orientation requested. Move device gently to calibrate.');
+      if (window.DeviceOrientationEvent) {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+          DeviceOrientationEvent.requestPermission().then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation);
+            }
+          });
+        } else {
+          window.addEventListener('deviceorientation', handleOrientation);
+        }
+      }
+    }
+
+    function handleOrientation(event) {
+      let alpha = event.alpha;
+      if (alpha !== null) {
+        const heading = Math.round(360 - alpha);
+        const dial = document.getElementById('compass-dial');
+        const text = document.getElementById('compass-heading');
+        if (dial) dial.style.transform = `rotate(${-heading}deg)`;
+        if (text) text.textContent = `Heading: ${heading}°`;
+      }
     }
 
     function toggleLocation() {
+      if (!navigator.geolocation) return;
       isLiveLocation = !isLiveLocation;
-      document.getElementById('weather-location').textContent = isLiveLocation ? "Base: GPS Live Position" : "Base: Chiclana";
+      if (isLiveLocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          loadWeather(pos.coords.latitude, pos.coords.longitude, "GPS Position");
+        });
+      } else {
+        loadWeather(CHICLANA_LAT, CHICLANA_LON, "Chiclana");
+      }
     }
 
-    function saveMyStatus() {
-      const feedback = document.getElementById('status-save-feedback');
-      feedback.classList.remove('hidden');
-      setTimeout(() => feedback.classList.add('hidden'), 3000);
+    async function loadWeather(lat = CHICLANA_LAT, lon = CHICLANA_LON, locationName = "Chiclana") {
+      const locElem = document.getElementById('weather-location');
+      const tempElem = document.getElementById('weather-temp');
+      const condElem = document.getElementById('weather-condition');
+      const windElem = document.getElementById('weather-wind');
+      const sunsetElem = document.getElementById('weather-sunset');
+      const daylightElem = document.getElementById('daylight-countdown');
+
+      if (locElem) locElem.textContent = `Base: ${locationName}`;
+
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunset,sunrise&timezone=auto`);
+        if (!res.ok) throw new Error("Weather fetch failed");
+        const data = await res.json();
+
+        if (data.current_weather) {
+          if (tempElem) tempElem.textContent = `${Math.round(data.current_weather.temperature)}°C`;
+          if (windElem) windElem.textContent = `${Math.round(data.current_weather.windspeed)} km/h`;
+
+          const code = data.current_weather.weathercode;
+          let condText = "Clear";
+          if (code >= 1 && code <= 3) condText = "Partly Cloudy";
+          else if (code >= 45 && code <= 48) condText = "Foggy";
+          else if (code >= 51 && code <= 67) condText = "Rainy";
+          else if (code >= 71) condText = "Snow / Storm";
+          if (condElem) condElem.textContent = condText;
+        }
+
+        if (data.daily && data.daily.sunset && data.daily.sunset.length > 0) {
+          const sunsetTime = new Date(data.daily.sunset[0]);
+          if (sunsetElem) sunsetElem.textContent = sunsetTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          const now = new Date();
+          const diffMs = sunsetTime - now;
+
+          if (daylightElem) {
+            if (diffMs > 0) {
+              const h = Math.floor(diffMs / (1000 * 60 * 60));
+              const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+              daylightElem.textContent = `${h}h ${m}m remaining`;
+              daylightElem.className = "text-xs font-bold text-brand-gold";
+            } else {
+              daylightElem.textContent = "Nighttime (Sun has set)";
+              daylightElem.className = "text-xs font-bold text-amber-200/60";
+            }
+          }
+        }
+      } catch (err) {
+        if (condElem) condElem.textContent = "Unavailable";
+      }
+    }
+
+    function updateBirthdayCountdown() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+
+      let upcoming = TEAM_BIRTHDAYS.map(b => {
+        let bdate = new Date(currentYear, b.month - 1, b.day);
+        if (bdate < now) {
+          bdate = new Date(currentYear + 1, b.month - 1, b.day);
+        }
+        return { name: b.name, date: bdate, diff: bdate - now };
+      });
+
+      upcoming.sort((a, b) => a.diff - b.diff);
+      const nextBday = upcoming[0];
+
+      if (!nextBday) return;
+
+      const totalSecs = Math.floor(nextBday.diff / 1000);
+      const days = Math.floor(totalSecs / 86400);
+      const hours = Math.floor((totalSecs % 86400) / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+
+      const nameElem = document.getElementById('next-bday-name');
+      const daysElem = document.getElementById('bday-days');
+      const hoursElem = document.getElementById('bday-hours');
+      const minsElem = document.getElementById('bday-mins');
+      const secsElem = document.getElementById('bday-secs');
+      const subtextElem = document.getElementById('bday-subtext');
+
+      if (nameElem) nameElem.textContent = nextBday.name;
+      if (daysElem) daysElem.textContent = String(days).padStart(2, '0');
+      if (hoursElem) hoursElem.textContent = String(hours).padStart(2, '0');
+      if (minsElem) minsElem.textContent = String(mins).padStart(2, '0');
+      if (secsElem) secsElem.textContent = String(secs).padStart(2, '0');
+      if (subtextElem) {
+        const formattedDate = nextBday.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        subtextElem.textContent = `${nextBday.name}'s birthday on ${formattedDate}`;
+      }
+    }
+
+    async function loadChatMessages() {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('chat_messages')
+          .select('*')
+          .order('created_at', { ascending: true })
+          .limit(50);
+
+        if (error || !data) {
+          console.warn("Supabase chat fetch notice:", error);
+          renderChatList(localChatMessages);
+          return;
+        }
+
+        if (data.length === 0) {
+          renderChatList(localChatMessages);
+          return;
+        }
+
+        const allMsgs = [...data];
+        renderChatList(allMsgs);
+      } catch (err) {
+        console.warn("Error loading chat messages:", err);
+        renderChatList(localChatMessages);
+      }
+    }
+
+    function renderChatList(messages) {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+
+      if (!messages || messages.length === 0) {
+        container.innerHTML = `<p class="text-amber-200/50 text-center py-4 text-xs">No messages yet. Send a message to start!</p>`;
+        return;
+      }
+
+      container.innerHTML = messages.map(msg => {
+        const isMe = msg.user_email === currentUserEmail;
+        const time = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const senderName = msg.sender_name || msg.user_email?.split('@')[0] || 'Member';
+
+        return `
+          <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="text-[10px] font-bold ${isMe ? 'text-brand-gold' : 'text-amber-200/80'}">${escapeHtml(senderName)}</span>
+              <span class="text-[9px] text-amber-200/40">${time}</span>
+            </div>
+            <div class="max-w-[80%] rounded-xl px-3.5 py-2 text-xs ${isMe ? 'bg-brand-gold text-brand-black font-medium' : 'bg-brand-black/80 border border-brand-gold/20 text-amber-100'}">
+              ${escapeHtml(msg.message)}
+            </div>
+          </div>`;
+      }).join('');
+
+      scrollToBottomChat();
+    }
+
+    async function sendChatMessage(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      const input = document.getElementById('chat-input');
+      if (!input) return false;
+
+      const text = input.value.trim();
+      if (!text) return false;
+
+      input.value = '';
+      const name = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
+
+      const newMsg = {
+        user_email: currentUserEmail || 'explorer@get.org',
+        sender_name: name,
+        message: text,
+        created_at: new Date().toISOString()
+      };
+
+      localChatMessages.push(newMsg);
+      renderChatList(localChatMessages);
+
+      try {
+        await supabaseClient.from('chat_messages').insert(newMsg);
+        loadChatMessages();
+      } catch (err) {
+        console.warn("Failed to persist chat message to database:", err);
+      }
+
+      return false;
+    }
+
+    function subscribeToChat() {
+      if (!window.chatPollTimer) {
+        window.chatPollTimer = setInterval(loadChatMessages, 4000);
+      }
+
+      try {
+        supabaseClient
+          .channel('public:chat_messages_channel')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, () => {
+            loadChatMessages();
+          })
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              console.warn("Realtime chat channel unavailable; relying on polling fallback.");
+            }
+          });
+      } catch (err) {
+        console.warn("WebSocket chat subscription not supported in this frame environment:", err);
+      }
     }
 
     function scrollToBottomChat() {
-      if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+      if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
     }
   </script>
 </body>

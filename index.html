@@ -100,7 +100,7 @@
             🎒 Prepping
           </button>
           <button id="tab-signal-btn" onclick="switchTab('signal')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
-            🔦 Signal & Morse
+            flashlight Signal & Morse
           </button>
           <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             Team Chat
@@ -1390,85 +1390,79 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-// 1. In DOMContentLoaded, REMOVE or COMMENT OUT this line to avoid double-submission:
-// chatForm.addEventListener('submit', sendChatMessage);
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        authSubmitBtn.disabled = true;
+        authError.classList.add('hidden');
 
-// 2. Updated Chat Functions
-async function loadChatMessages() {
-  const container = document.getElementById('chat-messages');
-  if (!container) return;
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
 
-  try {
-    const { data, error } = await supabaseClient
-      .from('chat_messages')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(50);
-
-    if (error) {
-      console.warn("Supabase chat fetch error:", error);
-      renderChatList(localChatMessages);
-      return;
-    }
-
-    if (data && data.length > 0) {
-      // Merge remote messages with local memory to prevent disappearing messages
-      const combined = [...data];
-      localChatMessages.forEach(localMsg => {
-        if (!combined.some(m => m.created_at === localMsg.created_at && m.message === localMsg.message)) {
-          combined.push(localMsg);
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          authError.textContent = error.message;
+          authError.classList.remove('hidden');
+          authSubmitBtn.disabled = false;
+        } else {
+          currentUser = data.user;
+          currentUserEmail = email;
+          initSessionUI();
         }
       });
-      renderChatList(combined);
-    } else {
-      renderChatList(localChatMessages);
-    }
-  } catch (err) {
-    console.warn("Error loading chat messages:", err);
-    renderChatList(localChatMessages);
-  }
-}
 
-async function sendChatMessage(e) {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
+      logoutBtn.addEventListener('click', async () => {
+        await supabaseClient.auth.signOut();
+        currentUser = null;
+        currentUserEmail = '';
+        appContainer.classList.add('hidden');
+        authContainer.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        authSubmitBtn.disabled = false;
+      });
 
-  const input = document.getElementById('chat-input');
-  if (!input) return false;
+      supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (session && session.user) {
+          currentUser = session.user;
+          currentUserEmail = currentUser.email;
+          initSessionUI();
+        }
+      });
 
-  const text = input.value.trim();
-  if (!text) return false;
+      const invForm = document.getElementById('inventory-form');
+      if (invForm) {
+        invForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const code = document.getElementById('inv-code').value.trim();
+          const name = document.getElementById('inv-name').value.trim();
+          const location = document.getElementById('inv-location').value.trim();
+          const category = document.getElementById('inv-category').value;
+          const qty = parseInt(document.getElementById('inv-qty').value, 10) || 1;
+          const unit = document.getElementById('inv-unit').value.trim() || 'units';
+          const exp = document.getElementById('inv-exp').value;
 
-  input.value = '';
-  const name = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
+          const newItem = {
+            item_code: code || `ITEM-${Math.floor(Math.random() * 8999 + 1000)}`,
+            item_name: name,
+            location: location || 'Base Shelf',
+            category: category,
+            quantity: qty,
+            unit: unit,
+            expiration_date: exp || null,
+            created_at: new Date().toISOString()
+          };
 
-  const newMsg = {
-    user_email: currentUserEmail || 'explorer@get.org',
-    sender_name: name,
-    message: text,
-    created_at: new Date().toISOString()
-  };
-
-  // Optimistic UI update
-  localChatMessages.push(newMsg);
-  renderChatList(localChatMessages);
-
-  try {
-    const { error } = await supabaseClient.from('chat_messages').insert(newMsg);
-    if (error) {
-      console.error("Database insert blocked or failed:", error.message);
-    } else {
-      await loadChatMessages();
-    }
-  } catch (err) {
-    console.warn("Failed to persist chat message:", err);
-  }
-
-  return false;
-}
+          const { error } = await supabaseClient.from('inventory').insert(newItem);
+          if (error) {
+            console.error("Inventory insert error:", error);
+          } else {
+            invForm.reset();
+            loadInventory();
+          }
+        });
       }
+
+      // 1. In DOMContentLoaded, REMOVE or COMMENT OUT this line to avoid double-submission:
+      // chatForm.addEventListener('submit', sendChatMessage);
 
       switchPrepCategory('bugout');
       updateBirthdayCountdown();
@@ -1727,6 +1721,7 @@ async function sendChatMessage(e) {
       }
     }
 
+    // 2. Updated Chat Functions
     async function loadChatMessages() {
       const container = document.getElementById('chat-messages');
       if (!container) return;
@@ -1738,19 +1733,24 @@ async function sendChatMessage(e) {
           .order('created_at', { ascending: true })
           .limit(50);
 
-        if (error || !data) {
-          console.warn("Supabase chat fetch notice:", error);
+        if (error) {
+          console.warn("Supabase chat fetch error:", error);
           renderChatList(localChatMessages);
           return;
         }
 
-        if (data.length === 0) {
+        if (data && data.length > 0) {
+          // Merge remote messages with local memory to prevent disappearing messages
+          const combined = [...data];
+          localChatMessages.forEach(localMsg => {
+            if (!combined.some(m => m.created_at === localMsg.created_at && m.message === localMsg.message)) {
+              combined.push(localMsg);
+            }
+          });
+          renderChatList(combined);
+        } else {
           renderChatList(localChatMessages);
-          return;
         }
-
-        const allMsgs = [...data];
-        renderChatList(allMsgs);
       } catch (err) {
         console.warn("Error loading chat messages:", err);
         renderChatList(localChatMessages);
@@ -1808,14 +1808,19 @@ async function sendChatMessage(e) {
         created_at: new Date().toISOString()
       };
 
+      // Optimistic UI update
       localChatMessages.push(newMsg);
       renderChatList(localChatMessages);
 
       try {
-        await supabaseClient.from('chat_messages').insert(newMsg);
-        loadChatMessages();
+        const { error } = await supabaseClient.from('chat_messages').insert(newMsg);
+        if (error) {
+          console.error("Database insert blocked or failed:", error.message);
+        } else {
+          await loadChatMessages();
+        }
       } catch (err) {
-        console.warn("Failed to persist chat message to database:", err);
+        console.warn("Failed to persist chat message:", err);
       }
 
       return false;

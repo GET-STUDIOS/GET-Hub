@@ -100,13 +100,13 @@
             🎒 Prepping
           </button>
           <button id="tab-signal-btn" onclick="switchTab('signal')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
-            flashlight Signal & Morse
+            🔦 Signal & Morse
           </button>
           <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
-            Team Chat
+            💬 Team Chat
           </button>
           <button id="tab-resources-btn" onclick="switchTab('resources')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
-            Resources
+            🛠️ Resources
           </button>
         </div>
       </div>
@@ -742,7 +742,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section id="signal-card" class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4 transition-colors duration-100">
             <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
-              <span>🔦</span> Visual & Audio Signaling
+              <span>🔦</span> Visual & Camera Flashlight Signaling
             </h3>
 
             <div id="strobe-screen" class="bg-brand-black/90 border border-brand-gold/30 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all duration-75 min-h-[220px]">
@@ -752,8 +752,8 @@
 
             <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl flex items-center justify-between">
               <div>
-                <p class="font-bold text-amber-100 text-sm">Constant Torch</p>
-                <p class="text-[11px] text-amber-200/60">Toggle bright screen beacon</p>
+                <p class="font-bold text-amber-100 text-sm">Constant Torch / Screen Beacon</p>
+                <p class="text-[11px] text-amber-200/60">Toggle camera flashlight & screen</p>
               </div>
               <button id="torch-toggle-btn" onclick="toggleTorch()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition">
                 Turn ON
@@ -1461,8 +1461,18 @@
         });
       }
 
-      // 1. In DOMContentLoaded, REMOVE or COMMENT OUT this line to avoid double-submission:
-      // chatForm.addEventListener('submit', sendChatMessage);
+      const profileForm = document.getElementById('profile-form');
+      if (profileForm) {
+        profileForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const nameInput = document.getElementById('profile-display-name').value.trim();
+          if (nameInput && currentUserEmail) {
+            TEAM_MEMBERS_MAP[currentUserEmail] = nameInput;
+            initSessionUI();
+            alert("Profile updated successfully!");
+          }
+        });
+      }
 
       switchPrepCategory('bugout');
       updateBirthdayCountdown();
@@ -1539,58 +1549,168 @@
       `).join('');
     }
 
+    // ----------------------------------------------------
+    // HARDWARE FLASHLIGHT & MORSE SIGNALING SYSTEM
+    // ----------------------------------------------------
     let isTorchOn = false;
-    async function toggleTorch() {
-      const btn = document.getElementById('torch-toggle-btn');
-      const strobeScreen = document.getElementById('strobe-screen');
-      const statusText = document.getElementById('signal-status-text');
+    let isTransmitting = false;
+    let currentStream = null;
+    let currentTrack = null;
 
-      if (!isTorchOn) {
-        isTorchOn = true;
-        strobeScreen.className = "bg-white border-2 border-amber-200 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 text-black transition-all duration-75 shadow-[0_0_50px_rgba(255,255,255,1)] min-h-[220px]";
-        statusText.textContent = "⚡ SIGNAL ACTIVE";
-        statusText.className = "text-sm font-mono text-black font-bold uppercase tracking-wider";
-        btn.textContent = "Turn OFF";
-        btn.className = "bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-lg text-xs transition";
-      } else {
-        isTorchOn = false;
-        strobeScreen.className = "bg-brand-black/90 border border-brand-gold/30 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all duration-75 min-h-[220px]";
-        statusText.textContent = "Signal Beacon Standby";
-        statusText.className = "text-sm font-mono text-brand-gold font-bold uppercase tracking-wider";
-        btn.textContent = "Turn ON";
-        btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition";
+    async function getTorchTrack() {
+      if (currentTrack && currentTrack.readyState === 'live') return currentTrack;
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return null;
+        currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        currentTrack = currentStream.getVideoTracks()[0];
+        return currentTrack;
+      } catch (err) {
+        console.warn("Camera/Flashlight access denied or not available on device:", err);
+        return null;
       }
     }
 
-    let morseTimeout = null;
-    function transmitMorse() {
-      const input = document.getElementById('morse-input').value.toUpperCase();
-      const output = document.getElementById('morse-output');
-      if (!input) return;
+    async function setPhysicalTorch(state) {
+      const track = await getTorchTrack();
+      if (track) {
+        try {
+          await track.applyConstraints({ advanced: [{ torch: state }] });
+        } catch (e) {
+          console.warn("Torch constraints not supported:", e);
+        }
+      }
+    }
 
-      const map = {
-        'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
-        'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
-        'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
-        'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
-        'Y': '-.--', 'Z': '--..', ' ': '/'
+    function stopTorchTrack() {
+      if (currentTrack) {
+        currentTrack.stop();
+        currentTrack = null;
+        currentStream = null;
+      }
+    }
+
+    function setScreenBeacon(on) {
+      const strobeScreen = document.getElementById('strobe-screen');
+      const statusText = document.getElementById('signal-status-text');
+      if (!strobeScreen || !statusText) return;
+
+      if (on) {
+        strobeScreen.className = "bg-white border-2 border-amber-200 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 text-black transition-all duration-75 shadow-[0_0_50px_rgba(255,255,255,1)] min-h-[220px]";
+        statusText.textContent = "⚡ SIGNAL ACTIVE";
+        statusText.className = "text-sm font-mono text-black font-bold uppercase tracking-wider";
+      } else {
+        strobeScreen.className = "bg-brand-black/90 border border-brand-gold/30 p-12 rounded-2xl flex flex-col items-center justify-center space-y-3 transition-all duration-75 min-h-[220px]";
+        statusText.textContent = "Signal Beacon Standby";
+        statusText.className = "text-sm font-mono text-brand-gold font-bold uppercase tracking-wider";
+      }
+    }
+
+    async function toggleTorch() {
+      const btn = document.getElementById('torch-toggle-btn');
+      if (!isTorchOn) {
+        isTorchOn = true;
+        setScreenBeacon(true);
+        await setPhysicalTorch(true);
+        if (btn) {
+          btn.textContent = "Turn OFF";
+          btn.className = "bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-lg text-xs transition";
+        }
+      } else {
+        isTorchOn = false;
+        setScreenBeacon(false);
+        await setPhysicalTorch(false);
+        stopTorchTrack();
+        if (btn) {
+          btn.textContent = "Turn ON";
+          btn.className = "bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold px-5 py-2.5 rounded-lg text-xs transition";
+        }
+      }
+    }
+
+    async function transmitMorse() {
+      if (isTransmitting) return;
+      const text = document.getElementById('morse-input').value.toUpperCase().trim();
+      const output = document.getElementById('morse-output');
+      if (!text) return;
+
+      const MORSE_MAP = {
+        'A': '.-',    'B': '-...',  'C': '-.-.',  'D': '-..',   'E': '.',
+        'F': '..-.',  'G': '--.',   'H': '....',  'I': '..',    'J': '.---',
+        'K': '-.-',   'L': '.-..',  'M': '--',    'N': '-.',    'O': '---',
+        'P': '.--.',  'Q': '--.-',  'R': '.-.',   'S': '...',   'T': '-',
+        'U': '..-',   'V': '...-',  'W': '.--',   'X': '-..-',  'Y': '-.--',
+        'Z': '--..',  '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+        '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+        '0': '-----', ' ': ' '
       };
 
-      const res = input.split('').map(c => map[c] || '').join(' ');
-      output.textContent = res || '--';
-      if (!isTorchOn) toggleTorch();
-      morseTimeout = setTimeout(() => {
-        if (isTorchOn) toggleTorch();
-      }, 2500);
+      const UNIT_MS = 200;
+      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+      const displaySeq = text.split('').map(c => MORSE_MAP[c] || '').join(' ');
+      output.textContent = displaySeq || '--';
+
+      isTransmitting = true;
+      const sendBtn = document.getElementById('morse-send-btn');
+      if (sendBtn) sendBtn.disabled = true;
+
+      try {
+        const track = await getTorchTrack();
+
+        for (let char of text) {
+          if (!isTransmitting) break;
+          const code = MORSE_MAP[char];
+          if (!code) continue;
+
+          if (char === ' ') {
+            await sleep(UNIT_MS * 7);
+            continue;
+          }
+
+          for (let symbol of code) {
+            if (!isTransmitting) break;
+
+            setScreenBeacon(true);
+            if (track) {
+              try { await track.applyConstraints({ advanced: [{ torch: true }] }); } catch (e) {}
+            }
+
+            if (symbol === '.') {
+              await sleep(UNIT_MS);
+            } else if (symbol === '-') {
+              await sleep(UNIT_MS * 3);
+            }
+
+            setScreenBeacon(false);
+            if (track) {
+              try { await track.applyConstraints({ advanced: [{ torch: false }] }); } catch (e) {}
+            }
+
+            await sleep(UNIT_MS);
+          }
+          await sleep(UNIT_MS * 3);
+        }
+      } catch (err) {
+        console.error("Morse transmission error:", err);
+      } finally {
+        setScreenBeacon(false);
+        stopTorchTrack();
+        isTransmitting = false;
+        if (sendBtn) sendBtn.disabled = false;
+      }
     }
 
     function stopTransmission() {
-      if (morseTimeout) clearTimeout(morseTimeout);
-      if (isTorchOn) toggleTorch();
+      isTransmitting = false;
+      setScreenBeacon(false);
+      stopTorchTrack();
       const output = document.getElementById('morse-output');
       if (output) output.textContent = "-- --- --";
     }
 
+    // ----------------------------------------------------
+    // COMPASS & WEATHER & BIRTHDAY LOGIC
+    // ----------------------------------------------------
     function startCompass() {
       if (window.DeviceOrientationEvent) {
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -1717,139 +1837,100 @@
       if (secsElem) secsElem.textContent = String(secs).padStart(2, '0');
       if (subtextElem) {
         const formattedDate = nextBday.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        subtextElem.textContent = `${nextBday.name}'s birthday on ${formattedDate}`;
+        subtextElem.textContent = `${nextBday.name}'s Birthday (${formattedDate})`;
       }
     }
 
-    // 2. Updated Chat Functions
+    // ----------------------------------------------------
+    // LIVE CHAT SYSTEM
+    // ----------------------------------------------------
     async function loadChatMessages() {
-      const container = document.getElementById('chat-messages');
-      if (!container) return;
-
       try {
-        const { data, error } = await supabaseClient
-          .from('chat_messages')
-          .select('*')
-          .order('created_at', { ascending: true })
-          .limit(50);
-
-        if (error) {
-          console.warn("Supabase chat fetch error:", error);
-          renderChatList(localChatMessages);
-          return;
-        }
-
-        if (data && data.length > 0) {
-          // Merge remote messages with local memory to prevent disappearing messages
-          const combined = [...data];
-          localChatMessages.forEach(localMsg => {
-            if (!combined.some(m => m.created_at === localMsg.created_at && m.message === localMsg.message)) {
-              combined.push(localMsg);
-            }
-          });
-          renderChatList(combined);
-        } else {
-          renderChatList(localChatMessages);
+        const { data, error } = await supabaseClient.from('chat_messages').select('*').order('created_at', { ascending: true }).limit(50);
+        if (!error && data) {
+          localChatMessages = data;
         }
       } catch (err) {
-        console.warn("Error loading chat messages:", err);
-        renderChatList(localChatMessages);
+        console.warn("Chat load notice:", err);
       }
+      renderChatMessages();
     }
 
-    function renderChatList(messages) {
-      const container = document.getElementById('chat-messages');
-      if (!container) return;
-
-      if (!messages || messages.length === 0) {
-        container.innerHTML = `<p class="text-amber-200/50 text-center py-4 text-xs">No messages yet. Send a message to start!</p>`;
+    function renderChatMessages() {
+      if (!chatMessages) return;
+      if (localChatMessages.length === 0) {
+        chatMessages.innerHTML = `<p class="text-amber-200/50 text-center py-8 text-xs">No messages yet. Start the conversation!</p>`;
         return;
       }
-
-      container.innerHTML = messages.map(msg => {
+      chatMessages.innerHTML = localChatMessages.map(msg => {
         const isMe = msg.user_email === currentUserEmail;
+        const sender = msg.sender_name || (msg.user_email ? msg.user_email.split('@')[0] : 'Explorer');
         const time = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-        const senderName = msg.sender_name || msg.user_email?.split('@')[0] || 'Member';
 
         return `
           <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-            <div class="flex items-center gap-1.5 mb-1">
-              <span class="text-[10px] font-bold ${isMe ? 'text-brand-gold' : 'text-amber-200/80'}">${escapeHtml(senderName)}</span>
-              <span class="text-[9px] text-amber-200/40">${time}</span>
+            <div class="max-w-[80%] rounded-2xl px-4 py-2 text-xs ${isMe ? 'bg-brand-gold text-brand-black font-medium' : 'bg-brand-black/80 text-amber-100 border border-brand-gold/20'}">
+              <div class="flex items-center gap-2 mb-1 opacity-75 text-[10px]">
+                <span class="font-bold">${escapeHtml(sender)}</span>
+                <span>${time}</span>
+              </div>
+              <p class="break-words">${escapeHtml(msg.message)}</p>
             </div>
-            <div class="max-w-[80%] rounded-xl px-3.5 py-2 text-xs ${isMe ? 'bg-brand-gold text-brand-black font-medium' : 'bg-brand-black/80 border border-brand-gold/20 text-amber-100'}">
-              ${escapeHtml(msg.message)}
-            </div>
-          </div>`;
+          </div>
+        `;
       }).join('');
-
       scrollToBottomChat();
-    }
-
-    async function sendChatMessage(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-
-      const input = document.getElementById('chat-input');
-      if (!input) return false;
-
-      const text = input.value.trim();
-      if (!text) return false;
-
-      input.value = '';
-      const name = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
-
-      const newMsg = {
-        user_email: currentUserEmail || 'explorer@get.org',
-        sender_name: name,
-        message: text,
-        created_at: new Date().toISOString()
-      };
-
-      // Optimistic UI update
-      localChatMessages.push(newMsg);
-      renderChatList(localChatMessages);
-
-      try {
-        const { error } = await supabaseClient.from('chat_messages').insert(newMsg);
-        if (error) {
-          console.error("Database insert blocked or failed:", error.message);
-        } else {
-          await loadChatMessages();
-        }
-      } catch (err) {
-        console.warn("Failed to persist chat message:", err);
-      }
-
-      return false;
-    }
-
-    function subscribeToChat() {
-      if (!window.chatPollTimer) {
-        window.chatPollTimer = setInterval(loadChatMessages, 4000);
-      }
-
-      try {
-        supabaseClient
-          .channel('public:chat_messages_channel')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, () => {
-            loadChatMessages();
-          })
-          .subscribe((status) => {
-            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-              console.warn("Realtime chat channel unavailable; relying on polling fallback.");
-            }
-          });
-      } catch (err) {
-        console.warn("WebSocket chat subscription not supported in this frame environment:", err);
-      }
     }
 
     function scrollToBottomChat() {
       if (chatMessages) {
         chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }
+
+    async function sendChatMessage(event) {
+      if (event) event.preventDefault();
+      if (!chatInput) return;
+      const messageText = chatInput.value.trim();
+      if (!messageText) return;
+
+      const senderName = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
+      const nowIso = new Date().toISOString();
+
+      const newMsg = {
+        sender_name: senderName,
+        message: messageText,
+        user_email: currentUserEmail,
+        created_at: nowIso
+      };
+
+      localChatMessages.push(newMsg);
+      renderChatMessages();
+      chatInput.value = '';
+
+      try {
+        await supabaseClient.from('chat_messages').insert([newMsg]);
+      } catch (err) {
+        console.warn("Failed to send chat message to Supabase:", err);
+      }
+    }
+
+    function subscribeToChat() {
+      if (!window.chatPollTimer) {
+        window.chatPollTimer = setInterval(loadChatMessages, 5000);
+      }
+      try {
+        supabaseClient
+          .channel('public:chat_messages')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
+            if (payload.new && payload.new.user_email !== currentUserEmail) {
+              localChatMessages.push(payload.new);
+              renderChatMessages();
+            }
+          })
+          .subscribe();
+      } catch (err) {
+        console.warn("WebSocket chat channel unavailable:", err);
       }
     }
   </script>

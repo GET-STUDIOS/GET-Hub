@@ -105,9 +105,6 @@
           <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             Team Chat
           </button>
-          <button id="tab-resources-btn" onclick="switchTab('resources')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
-            Resources
-          </button>
         </div>
       </div>
 
@@ -846,6 +843,18 @@
             <p class="text-amber-200/50 text-center py-4 text-xs">Loading team profiles...</p>
           </div>
         </section>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4 max-w-2xl mx-auto">
+          <div class="border-b border-brand-gold/20 pb-3">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2">
+              <span>🏥</span> Family & Medical Info
+            </h3>
+            <p class="text-xs text-amber-200/60 mt-1">Critical info for emergency responders or each other — visible to all logged-in family members.</p>
+          </div>
+          <div id="family-medical-list" class="space-y-4">
+            <p class="text-amber-200/50 text-center py-4 text-xs">Loading family medical info...</p>
+          </div>
+        </section>
       </div>
 
       <div id="view-prepping" class="hidden space-y-6">
@@ -999,24 +1008,6 @@
         </section>
       </div>
 
-      <div id="view-resources" class="hidden space-y-6">
-        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg">
-          <h3 class="text-lg font-bold text-brand-gold mb-4 flex items-center gap-2 border-b border-brand-gold/20 pb-3">
-            <span>🛠️</span> Team Resources & Guidelines
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl">
-              <h4 class="font-bold text-brand-gold mb-1">Standard Procedures</h4>
-              <p class="text-xs text-amber-100/80">Checklists and essential guidelines for team expeditions and readiness.</p>
-            </div>
-            <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl">
-              <h4 class="font-bold text-brand-gold mb-1">Emergency Contacts</h4>
-              <p class="text-xs text-amber-100/80">Primary and secondary communication channels for all GET members.</p>
-            </div>
-          </div>
-        </section>
-      </div>
-
     </div>
 
   </main>
@@ -1142,6 +1133,15 @@
       "hailey-jade@outlook.com": "Hailey-Jade"
     };
 
+    // Household roster for the Family & Medical Info card. Only non-sensitive identity
+    // fields live here in code — blood type, conditions, medications, and notes are
+    // stored exclusively in Supabase and filled in through the UI, not hardcoded here.
+    const FAMILY_MEMBERS = [
+      { id: 'kevin', name: 'Kevin', relationship: 'Self', age: 41 },
+      { id: 'nikita', name: 'Nikita', relationship: 'Wife', age: 30 },
+      { id: 'hailey-jade', name: 'Hailey-Jade', relationship: 'Daughter', age: 10 }
+    ];
+
     let teamStatuses = {
       "Kevin": { status: "safe", updated_at: new Date().toISOString() },
       "Nikita": { status: "safe", updated_at: new Date().toISOString() },
@@ -1213,7 +1213,6 @@
       const preppingView = document.getElementById('view-prepping');
       const signalView = document.getElementById('view-signal');
       const chatView = document.getElementById('view-chat');
-      const resourcesView = document.getElementById('view-resources');
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
@@ -1223,7 +1222,6 @@
       const preppingBtn = document.getElementById('tab-prepping-btn');
       const signalBtn = document.getElementById('tab-signal-btn');
       const chatBtn = document.getElementById('tab-chat-btn');
-      const resourcesBtn = document.getElementById('tab-resources-btn');
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
@@ -1233,7 +1231,6 @@
       preppingView.classList.add('hidden');
       if (signalView) signalView.classList.add('hidden');
       chatView.classList.add('hidden');
-      resourcesView.classList.add('hidden');
 
       const inactiveStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap";
       const activeStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition whitespace-nowrap";
@@ -1246,7 +1243,6 @@
       preppingBtn.className = inactiveStyle;
       if (signalBtn) signalBtn.className = inactiveStyle;
       chatBtn.className = inactiveStyle;
-      resourcesBtn.className = inactiveStyle;
 
       if (tabName === 'dashboard') {
         dashboardView.classList.remove('hidden');
@@ -1276,9 +1272,6 @@
         chatBtn.className = activeStyle;
         loadChatMessages();
         scrollToBottomChat();
-      } else {
-        resourcesView.classList.remove('hidden');
-        resourcesBtn.className = activeStyle;
       }
     }
 
@@ -1733,6 +1726,7 @@
       subscribeToChat();
       loadMyProfile();
       loadTeamRoster();
+      loadFamilyMedicalInfo();
       switchTab('dashboard');
     }
 
@@ -1890,6 +1884,113 @@
       } catch (err) {
         console.warn('Error loading team roster:', err);
         container.innerHTML = `<p class="text-amber-200/50 text-center py-4 text-xs">Unable to load team roster.</p>`;
+      }
+    }
+
+    const BLOOD_TYPE_OPTIONS = ['Unknown', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+    function renderFamilyMedicalCards() {
+      const container = document.getElementById('family-medical-list');
+      if (!container) return;
+
+      container.innerHTML = FAMILY_MEMBERS.map(member => `
+        <div class="bg-brand-black/60 border border-brand-gold/20 p-4 rounded-xl space-y-3" id="family-card-${member.id}">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-bold text-amber-100 text-sm">${escapeHtml(member.name)}</p>
+              <p class="text-[10px] text-amber-200/60">${escapeHtml(member.relationship)} · Age ${member.age}</p>
+            </div>
+            <span id="family-save-feedback-${member.id}" class="text-[10px] text-emerald-400 font-semibold hidden">✓ Saved</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Blood Type</label>
+              <select id="family-blood-${member.id}" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 focus:outline-none focus:border-brand-gold">
+                ${BLOOD_TYPE_OPTIONS.map(bt => `<option value="${bt}">${bt}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Medications / Devices</label>
+              <input type="text" id="family-meds-${member.id}" placeholder="e.g. Rescue inhaler x2" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Medical Conditions / Allergies</label>
+            <input type="text" id="family-conditions-${member.id}" placeholder="e.g. Asthma" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Emergency Notes (for a first responder)</label>
+            <textarea id="family-notes-${member.id}" rows="2" placeholder="Anything a paramedic or team member would need to know fast..." class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 focus:outline-none focus:border-brand-gold resize-none"></textarea>
+          </div>
+
+          <button type="button" onclick="saveFamilyMember('${member.id}')" id="family-save-btn-${member.id}" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition disabled:opacity-50">
+            Save ${escapeHtml(member.name)}'s Info
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function loadFamilyMedicalInfo() {
+      renderFamilyMedicalCards();
+
+      try {
+        const { data, error } = await supabaseClient.from('family_members').select('*');
+        if (error) {
+          console.warn('Family medical load error:', error);
+          return;
+        }
+
+        const byId = {};
+        (data || []).forEach(row => { byId[row.id] = row; });
+
+        FAMILY_MEMBERS.forEach(member => {
+          const row = byId[member.id];
+          if (!row) return;
+          const bloodEl = document.getElementById(`family-blood-${member.id}`);
+          const medsEl = document.getElementById(`family-meds-${member.id}`);
+          const condEl = document.getElementById(`family-conditions-${member.id}`);
+          const notesEl = document.getElementById(`family-notes-${member.id}`);
+          if (bloodEl) bloodEl.value = row.blood_type || 'Unknown';
+          if (medsEl) medsEl.value = row.medications || '';
+          if (condEl) condEl.value = row.medical_conditions || '';
+          if (notesEl) notesEl.value = row.emergency_notes || '';
+        });
+      } catch (err) {
+        console.warn('Error loading family medical info:', err);
+      }
+    }
+
+    async function saveFamilyMember(id) {
+      const member = FAMILY_MEMBERS.find(m => m.id === id);
+      if (!member) return;
+
+      const btn = document.getElementById(`family-save-btn-${id}`);
+      const feedback = document.getElementById(`family-save-feedback-${id}`);
+      if (btn) btn.disabled = true;
+
+      const updates = {
+        id: member.id,
+        name: member.name,
+        relationship: member.relationship,
+        age: member.age,
+        blood_type: document.getElementById(`family-blood-${id}`).value,
+        medications: document.getElementById(`family-meds-${id}`).value.trim(),
+        medical_conditions: document.getElementById(`family-conditions-${id}`).value.trim(),
+        emergency_notes: document.getElementById(`family-notes-${id}`).value.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabaseClient.from('family_members').upsert(updates);
+      if (btn) btn.disabled = false;
+
+      if (error) {
+        console.error('Family member save error:', error);
+      } else if (feedback) {
+        feedback.classList.remove('hidden');
+        setTimeout(() => feedback.classList.add('hidden'), 2000);
       }
     }
 

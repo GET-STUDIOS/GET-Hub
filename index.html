@@ -694,6 +694,18 @@
           </div>
 
           <form id="profile-form" class="space-y-4">
+            <div class="flex flex-col items-center gap-3 pb-2">
+              <div id="profile-avatar-preview-container" class="w-24 h-24 rounded-full bg-brand-black/60 border-2 border-brand-gold/40 flex items-center justify-center overflow-hidden">
+                <span id="profile-avatar-initials" class="text-3xl font-bold text-brand-gold">?</span>
+                <img id="profile-avatar-img" src="" alt="Profile photo" class="hidden w-full h-full object-cover" />
+              </div>
+              <input type="file" id="profile-avatar-input" accept="image/*" class="hidden" onchange="handleAvatarSelect(event)" />
+              <button type="button" id="profile-avatar-btn" onclick="document.getElementById('profile-avatar-input').click()" class="text-xs bg-brand-black/60 hover:bg-brand-black text-brand-gold border border-brand-gold/40 font-semibold py-1.5 px-4 rounded-lg transition">
+                Upload Photo
+              </button>
+              <p id="avatar-upload-status" class="text-[10px] text-amber-200/50 hidden"></p>
+            </div>
+
             <div>
               <label class="block text-xs font-semibold text-amber-100 mb-1">Display Name / Call Sign</label>
               <input type="text" id="profile-display-name" placeholder="e.g. Kevin" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
@@ -704,10 +716,31 @@
               <input type="text" id="profile-phone" placeholder="e.g. +34 600 000 000" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
             </div>
 
-            <button type="submit" id="save-profile-btn" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-xs shadow-lg">
+            <div>
+              <label class="block text-xs font-semibold text-amber-100 mb-1">Skills & Specialties</label>
+              <input type="text" id="profile-skills" placeholder="e.g. First Aid, Ham Radio, Land Navigation" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
+              <p class="text-[10px] text-amber-200/50 mt-1">Separate each skill with a comma.</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-amber-100 mb-1">Bio / Notes</label>
+              <textarea id="profile-bio" rows="3" placeholder="Anything the team should know about you..." class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold resize-none"></textarea>
+            </div>
+
+            <button type="submit" id="save-profile-btn" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-xs shadow-lg disabled:opacity-50">
               Save Profile Changes
             </button>
+            <p id="profile-save-feedback" class="text-[11px] text-emerald-400 font-semibold hidden text-center">✓ Profile saved!</p>
           </form>
+        </section>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4 max-w-2xl mx-auto">
+          <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+            <span>🧑‍🤝‍🧑</span> Team Roster
+          </h3>
+          <div id="team-roster-list" class="space-y-3">
+            <p class="text-amber-200/50 text-center py-4 text-xs">Loading team profiles...</p>
+          </div>
         </section>
       </div>
 
@@ -1127,6 +1160,7 @@
       } else if (tabName === 'profile') {
         profileView.classList.remove('hidden');
         profileBtn.className = activeStyle;
+        loadTeamRoster();
       } else if (tabName === 'prepping') {
         preppingView.classList.remove('hidden');
         preppingBtn.className = activeStyle;
@@ -1522,6 +1556,53 @@
         });
       }
 
+      const profileForm = document.getElementById('profile-form');
+      if (profileForm) {
+        profileForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const saveBtn = document.getElementById('save-profile-btn');
+          const feedback = document.getElementById('profile-save-feedback');
+          const status = document.getElementById('avatar-upload-status');
+          saveBtn.disabled = true;
+          feedback.classList.add('hidden');
+
+          let avatarUrl = (userProfiles[currentUserEmail] && userProfiles[currentUserEmail].avatar_url) || null;
+
+          if (pendingAvatarFile) {
+            if (status) { status.textContent = 'Uploading photo...'; status.classList.remove('hidden'); }
+            const uploadedUrl = await uploadPendingAvatar();
+            if (uploadedUrl) avatarUrl = uploadedUrl;
+          }
+
+          const updates = {
+            id: currentUser.id,
+            email: currentUserEmail,
+            display_name: document.getElementById('profile-display-name').value.trim(),
+            phone: document.getElementById('profile-phone').value.trim(),
+            skills: document.getElementById('profile-skills').value.trim(),
+            bio: document.getElementById('profile-bio').value.trim(),
+            avatar_url: avatarUrl,
+            updated_at: new Date().toISOString()
+          };
+
+          const { error } = await supabaseClient.from('profiles').upsert(updates);
+          saveBtn.disabled = false;
+
+          if (error) {
+            console.error('Profile save error:', error);
+            if (status) { status.textContent = 'Save failed — please try again.'; status.classList.remove('hidden'); }
+          } else {
+            pendingAvatarFile = null;
+            if (status) status.classList.add('hidden');
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 2500);
+            if (avatarUrl) updateHeaderAvatar(avatarUrl);
+            userProfiles[currentUserEmail] = updates;
+            loadTeamRoster();
+          }
+        });
+      }
+
       // 1. In DOMContentLoaded, REMOVE or COMMENT OUT this line to avoid double-submission:
       // chatForm.addEventListener('submit', sendChatMessage);
 
@@ -1546,7 +1627,166 @@
       loadInventory();
       loadChatMessages();
       subscribeToChat();
+      loadMyProfile();
+      loadTeamRoster();
       switchTab('dashboard');
+    }
+
+    let pendingAvatarFile = null;
+
+    function handleAvatarSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        event.target.value = '';
+        return;
+      }
+      if (file.size > 3 * 1024 * 1024) {
+        alert('Please choose an image under 3MB.');
+        event.target.value = '';
+        return;
+      }
+
+      pendingAvatarFile = file;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.getElementById('profile-avatar-img');
+        const initials = document.getElementById('profile-avatar-initials');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        initials.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+
+      document.getElementById('profile-avatar-btn').textContent = 'Change Photo';
+      const status = document.getElementById('avatar-upload-status');
+      status.textContent = 'New photo selected — click Save to upload.';
+      status.classList.remove('hidden');
+    }
+
+    async function uploadPendingAvatar() {
+      if (!pendingAvatarFile || !currentUser) return null;
+
+      const ext = (pendingAvatarFile.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${currentUser.id}/avatar.${ext}`;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from('avatars')
+        .upload(path, pendingAvatarFile, { upsert: true, cacheControl: '3600' });
+
+      if (uploadError) {
+        console.error('Avatar upload error:', uploadError);
+        return null;
+      }
+
+      const { data } = supabaseClient.storage.from('avatars').getPublicUrl(path);
+      // Cache-bust so a replaced photo shows immediately instead of a stale cached version
+      return data && data.publicUrl ? `${data.publicUrl}?t=${Date.now()}` : null;
+    }
+
+    function updateHeaderAvatar(url) {
+      const container = document.getElementById('header-avatar-container');
+      if (!container) return;
+      container.innerHTML = `<img src="${url}" alt="avatar" class="w-full h-full object-cover" />`;
+    }
+
+    async function loadMyProfile() {
+      if (!currentUserEmail || !currentUser) return;
+
+      const fallbackName = TEAM_MEMBERS_MAP[currentUserEmail] || currentUserEmail.split('@')[0];
+      const nameInput = document.getElementById('profile-display-name');
+      const phoneInput = document.getElementById('profile-phone');
+      const skillsInput = document.getElementById('profile-skills');
+      const bioInput = document.getElementById('profile-bio');
+      const img = document.getElementById('profile-avatar-img');
+      const initials = document.getElementById('profile-avatar-initials');
+      const btn = document.getElementById('profile-avatar-btn');
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .maybeSingle();
+
+        if (error) {
+          console.warn('Profile load error:', error);
+          nameInput.value = fallbackName;
+          initials.textContent = fallbackName.charAt(0).toUpperCase();
+          return;
+        }
+
+        if (data) {
+          nameInput.value = data.display_name || fallbackName;
+          phoneInput.value = data.phone || '';
+          skillsInput.value = data.skills || '';
+          bioInput.value = data.bio || '';
+
+          if (data.avatar_url) {
+            img.src = data.avatar_url;
+            img.classList.remove('hidden');
+            initials.classList.add('hidden');
+            btn.textContent = 'Change Photo';
+            updateHeaderAvatar(data.avatar_url);
+          } else {
+            img.classList.add('hidden');
+            initials.classList.remove('hidden');
+            initials.textContent = fallbackName.charAt(0).toUpperCase();
+          }
+          userProfiles[currentUserEmail] = data;
+        } else {
+          nameInput.value = fallbackName;
+          initials.textContent = fallbackName.charAt(0).toUpperCase();
+        }
+      } catch (err) {
+        console.warn('Error loading profile:', err);
+      }
+    }
+
+    async function loadTeamRoster() {
+      const container = document.getElementById('team-roster-list');
+      if (!container) return;
+
+      try {
+        const { data, error } = await supabaseClient.from('profiles').select('*');
+        if (error) console.warn('Roster load error:', error);
+
+        const profilesByEmail = {};
+        (data || []).forEach(p => { profilesByEmail[p.email] = p; });
+
+        const emails = Object.keys(TEAM_MEMBERS_MAP);
+        container.innerHTML = emails.map(email => {
+          const p = profilesByEmail[email];
+          const name = (p && p.display_name) || TEAM_MEMBERS_MAP[email];
+          const skills = (p && p.skills) ? p.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+          const bio = (p && p.bio) || '';
+          const avatarUrl = p && p.avatar_url;
+
+          const avatarHtml = avatarUrl
+            ? `<img src="${avatarUrl}" alt="${escapeHtml(name)}" class="w-12 h-12 rounded-full object-cover border border-brand-gold/40 flex-shrink-0" />`
+            : `<div class="w-12 h-12 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center font-bold text-brand-gold flex-shrink-0">${escapeHtml(name.charAt(0).toUpperCase())}</div>`;
+
+          const skillsHtml = skills.length
+            ? `<div class="flex flex-wrap gap-1 mt-1.5">${skills.map(s => `<span class="text-[10px] bg-brand-gold/15 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded-full">${escapeHtml(s)}</span>`).join('')}</div>`
+            : `<p class="text-[10px] text-amber-200/40 mt-1.5">No skills listed yet</p>`;
+
+          return `
+            <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl flex gap-3">
+              ${avatarHtml}
+              <div class="flex-grow min-w-0">
+                <p class="font-bold text-amber-100 text-sm">${escapeHtml(name)}</p>
+                ${bio ? `<p class="text-[11px] text-amber-200/70 mt-0.5">${escapeHtml(bio)}</p>` : ''}
+                ${skillsHtml}
+              </div>
+            </div>`;
+        }).join('');
+      } catch (err) {
+        console.warn('Error loading team roster:', err);
+        container.innerHTML = `<p class="text-amber-200/50 text-center py-4 text-xs">Unable to load team roster.</p>`;
+      }
     }
 
     function setReadinessLevel(lvl) {

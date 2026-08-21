@@ -987,6 +987,186 @@
             </div>
           </section>
         </div>
+
+        <div class="pt-2 border-t border-brand-gold/20">
+          <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 mb-1">
+            <span>📡</span> GET Signaling & Communication
+          </h3>
+          <p class="text-xs text-amber-200/60 mb-4">Non-verbal and low-tech ways for the family to communicate when radios, phones, or speech aren't an option.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+              <span>🏷️</span> Call Signs
+            </h3>
+            <p class="text-[11px] text-amber-200/70">Call signs keep radio traffic short, clear, and identifiable — useful when names might not carry well over static, or when you want a quick way to know exactly who or what is being referred to.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Family Call Sign</label>
+                <input type="text" id="call-sign-family" placeholder="e.g. GET-FAMILY" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 font-mono uppercase focus:outline-none focus:border-brand-gold" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Vehicle Call Sign</label>
+                <input type="text" id="call-sign-vehicle" placeholder="e.g. GET-MOBILE" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 font-mono uppercase focus:outline-none focus:border-brand-gold" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Base / Home Call Sign</label>
+                <input type="text" id="call-sign-base" placeholder="e.g. GET-BASE" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 font-mono uppercase focus:outline-none focus:border-brand-gold" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-amber-200/70 mb-1">Rally Point Call Sign</label>
+                <input type="text" id="call-sign-rally" placeholder="e.g. GET-RALLY" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 font-mono uppercase focus:outline-none focus:border-brand-gold" />
+              </div>
+            </div>
+
+            <div class="border-t border-brand-gold/20 pt-3">
+              <p class="text-[10px] font-semibold text-amber-200/70 uppercase mb-2">Individual Call Signs</p>
+              <div id="call-sign-individual-rows" class="space-y-2"></div>
+            </div>
+
+            <button type="button" onclick="saveCallSigns()" id="call-sign-save-btn" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition disabled:opacity-50">
+              Save Call Signs
+            </button>
+            <p id="call-sign-save-feedback" class="text-[11px] text-emerald-400 font-semibold hidden text-center">✓ Call signs saved!</p>
+          </section>
+
+          <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+              <span>🪞</span> Signal Mirror Reference
+            </h3>
+
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 flex justify-center">
+              <svg viewBox="0 0 220 140" class="w-full max-w-[260px]" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="30" cy="25" r="14" fill="#D4AF37" opacity="0.9" />
+                <line x1="30" y1="25" x2="95" y2="70" stroke="#D4AF37" stroke-width="2" stroke-dasharray="4 3" />
+                <rect x="90" y="60" width="26" height="18" rx="2" fill="#F3E5AB" stroke="#2C1A0E" stroke-width="1.5" transform="rotate(25 103 69)" />
+                <line x1="105" y1="68" x2="200" y2="30" stroke="#F3E5AB" stroke-width="2.5" />
+                <polygon points="200,30 190,32 194,22" fill="#F3E5AB" />
+                <circle cx="205" cy="35" r="8" fill="none" stroke="#D4AF37" stroke-width="1.5" />
+                <text x="18" y="15" fill="#D4AF37" font-size="9" font-family="monospace">SUN</text>
+                <text x="80" y="95" fill="#F3E5AB" font-size="9" font-family="monospace">MIRROR</text>
+                <text x="175" y="50" fill="#F3E5AB" font-size="9" font-family="monospace">TARGET</text>
+              </svg>
+            </div>
+
+            <div class="space-y-2 text-[11px] text-amber-100/90">
+              <p><strong class="text-brand-gold">What it is:</strong> A small reflective surface (dedicated signal mirror, phone screen, CD, or polished metal) used to flash sunlight toward a distant rescuer.</p>
+              <p><strong class="text-brand-gold">When to use it:</strong> Clear daylight with direct or reflected sunlight, when you can see an aircraft, boat, vehicle, or search party — even a tiny distant speck. Mirror flashes are visible from miles further away than shouting or waving.</p>
+              <p><strong class="text-brand-gold">How to aim it:</strong> Hold the mirror near your eye. Extend your other hand and form a "V" with two fingers, framing the target between them. Angle the mirror so the sun's reflection lands on your fingers, then slowly adjust until the flash passes directly over the target.</p>
+              <p><strong class="text-brand-gold">Signaling aircraft/distant people:</strong> Sweep the flash slowly back and forth across the target rather than holding it still — a moving flash is far more likely to catch attention than a static glint.</p>
+              <p><strong class="text-brand-gold">Safety:</strong> Never flash a mirror directly and repeatedly into your own or anyone else's eyes at close range. Never aim at low-flying aircraft cockpits at close distance — the goal is a brief attention-getting flash, not a sustained beam.</p>
+              <p><strong class="text-brand-gold">Also useful for:</strong> Signaling between family members across a valley or open field in daylight, marking your position for a search party, or as a backup when whistles/radios are out of range.</p>
+            </div>
+          </section>
+        </div>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+            <span>📯</span> Whistle Signals
+          </h3>
+          <p class="text-[11px] text-amber-200/70">A whistle carries far further than shouting and costs no energy. Agree on these meanings as a family and use them consistently every time.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-4 text-center">
+              <p class="text-2xl text-brand-gold font-black tracking-widest mb-1">●</p>
+              <p class="font-bold text-amber-100 text-xs">1 Whistle</p>
+              <p class="text-[10px] text-amber-200/70 mt-1"><strong>Meaning:</strong> Attention / Locate me</p>
+              <p class="text-[10px] text-amber-200/50 mt-1"><strong>Response:</strong> Reply with 1 whistle and move toward the sound</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-4 text-center">
+              <p class="text-2xl text-brand-gold font-black tracking-widest mb-1">● ●</p>
+              <p class="font-bold text-amber-100 text-xs">2 Whistles</p>
+              <p class="text-[10px] text-amber-200/70 mt-1"><strong>Meaning:</strong> Response / Acknowledged</p>
+              <p class="text-[10px] text-amber-200/50 mt-1"><strong>Response:</strong> Confirms you were heard — no action needed beyond replying</p>
+            </div>
+            <div class="bg-brand-black/60 border border-red-500/40 rounded-xl p-4 text-center">
+              <p class="text-2xl text-red-400 font-black tracking-widest mb-1">● ● ●</p>
+              <p class="font-bold text-amber-100 text-xs">3 Whistles</p>
+              <p class="text-[10px] text-amber-200/70 mt-1"><strong>Meaning:</strong> Emergency / Distress</p>
+              <p class="text-[10px] text-amber-200/50 mt-1"><strong>Response:</strong> Drop what you're doing and move toward the sound immediately</p>
+            </div>
+          </div>
+
+          <div class="bg-brand-black/60 p-2.5 rounded-lg border border-brand-gold/20 text-[11px] text-amber-200/70">
+            💡 <strong>Pro Tip:</strong> The international distress standard is any signal repeated 3 times, then a pause, then repeated — this applies to whistles, mirror flashes, and shouts alike.
+          </div>
+        </section>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+            <span>✋</span> Hand Signals
+          </h3>
+          <p class="text-[11px] text-amber-200/70">For when you need to stay silent or you're out of earshot — hiking, evacuation, or bushcraft situations where speaking could draw unwanted attention or simply isn't heard.</p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">✋</p>
+              <p class="font-bold text-amber-100 text-[11px]">STOP</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Flat palm held up, facing outward</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">👋</p>
+              <p class="font-bold text-amber-100 text-[11px]">COME HERE</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Beckon with a downward waving motion</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">👉</p>
+              <p class="font-bold text-amber-100 text-[11px]">GO / MOVE</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Point firmly in the direction to move</p>
+            </div>
+            <div class="bg-brand-black/60 border border-red-500/40 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">⚠️</p>
+              <p class="font-bold text-amber-100 text-[11px]">DANGER</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Fist raised, held still overhead</p>
+            </div>
+            <div class="bg-brand-black/60 border border-red-500/40 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">🆘</p>
+              <p class="font-bold text-amber-100 text-[11px]">HELP / NEED HELP</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Both arms raised in a wide "V"</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">👍</p>
+              <p class="font-bold text-amber-100 text-[11px]">YES / OK</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Thumbs up, held steady</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">👎</p>
+              <p class="font-bold text-amber-100 text-[11px]">NO</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Thumbs down, or a flat side-to-side hand wave</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">🤫</p>
+              <p class="font-bold text-amber-100 text-[11px]">QUIET / SILENCE</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Index finger vertical against lips</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">🖐️</p>
+              <p class="font-bold text-amber-100 text-[11px]">WAIT</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Open palm held steady, chest height</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">👆</p>
+              <p class="font-bold text-amber-100 text-[11px]">FOLLOW ME</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Point to self, then wave forward in direction of travel</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">👁️</p>
+              <p class="font-bold text-amber-100 text-[11px]">I SEE SOMETHING</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Two fingers to own eyes, then point outward</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">🙌</p>
+              <p class="font-bold text-amber-100 text-[11px]">ACKNOWLEDGE</p>
+              <p class="text-[9px] text-amber-200/60 mt-0.5">Both hands raised briefly, then lowered</p>
+            </div>
+          </div>
+
+          <div class="bg-brand-black/60 p-2.5 rounded-lg border border-brand-gold/20 text-[11px] text-amber-200/70">
+            💡 <strong>Pro Tip:</strong> Practice these as a family before you need them — under stress, signals only work if they're already muscle memory.
+          </div>
+        </section>
       </div>
 
       <div id="view-chat" class="hidden space-y-6">
@@ -1343,33 +1523,51 @@
     async function saveMyStatus() {
       const statusSelect = document.getElementById('user-status-select');
       const feedback = document.getElementById('status-save-feedback');
+      const saveBtn = document.getElementById('save-status-btn');
       if (!statusSelect) return;
 
       const statusVal = statusSelect.value;
       const currentMemberName = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
 
       const nowIso = new Date().toISOString();
+      const previousStatus = teamStatuses[currentMemberName];
+
+      // Optimistic update so the UI feels instant, but we roll this back below if the
+      // remote save actually fails — otherwise a failed save silently looks successful.
       teamStatuses[currentMemberName] = {
         status: statusVal,
         updated_at: nowIso
       };
-
       renderRollCallList();
+
+      if (saveBtn) saveBtn.disabled = true;
 
       try {
         const { error } = await supabaseClient.from('team_status').upsert({
           user_email: currentUserEmail,
-          member_name: currentMemberName,
+          name: currentMemberName,
           status: statusVal,
           updated_at: nowIso
-        }, { onConflict: 'member_name' });
+        }, { onConflict: 'name' });
 
         if (error) {
-          console.warn("Supabase team_status notice:", error.message);
+          console.error("Supabase team_status save FAILED:", error.message, error);
+          teamStatuses[currentMemberName] = previousStatus; // roll back
+          renderRollCallList();
+          if (saveBtn) saveBtn.disabled = false;
+          alert("Status did not save to the server — it will not show on other devices.\n\nError: " + error.message);
+          return;
         }
       } catch (err) {
-        console.warn("Supabase save error:", err);
+        console.error("Supabase save exception:", err);
+        teamStatuses[currentMemberName] = previousStatus; // roll back
+        renderRollCallList();
+        if (saveBtn) saveBtn.disabled = false;
+        alert("Status did not save to the server — it will not show on other devices.\n\nError: " + (err && err.message ? err.message : err));
+        return;
       }
+
+      if (saveBtn) saveBtn.disabled = false;
 
       if (feedback) {
         feedback.classList.remove('hidden');
@@ -1384,8 +1582,9 @@
         const { data, error } = await supabaseClient.from('team_status').select('*');
         if (!error && data && data.length > 0) {
           data.forEach(row => {
-            if (row.member_name) {
-              teamStatuses[row.member_name] = {
+            const rowName = row.name || row.member_name;
+            if (rowName) {
+              teamStatuses[rowName] = {
                 status: row.status || 'safe',
                 updated_at: row.updated_at || new Date().toISOString()
               };
@@ -1407,8 +1606,9 @@
         supabaseClient
           .channel('public:team_status_channel')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'team_status' }, payload => {
-            if (payload.new && payload.new.member_name) {
-              teamStatuses[payload.new.member_name] = {
+            const rowName = payload.new && (payload.new.name || payload.new.member_name);
+            if (rowName) {
+              teamStatuses[rowName] = {
                 status: payload.new.status || 'safe',
                 updated_at: payload.new.updated_at || new Date().toISOString()
               };

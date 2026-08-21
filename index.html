@@ -1461,21 +1461,6 @@
 
       const currentMemberName = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer');
 
-      const statusMapConfig = {
-        'safe': {
-          label: '🟢 Safe at Base',
-          badgeClass: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-        },
-        'enroute': {
-          label: '🟡 En Route',
-          badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-        },
-        'alert': {
-          label: '🔴 Needs Assistance',
-          badgeClass: 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse font-bold'
-        }
-      };
-
       const members = Object.keys(teamStatuses);
       
       if (members.length === 0) {
@@ -1485,7 +1470,7 @@
 
       container.innerHTML = members.map(memberName => {
         const item = teamStatuses[memberName] || { status: 'safe', updated_at: new Date().toISOString() };
-        const conf = statusMapConfig[item.status] || statusMapConfig['safe'];
+        const conf = STATUS_CONFIG[item.status] || STATUS_CONFIG['safe'];
         const isYou = memberName.toLowerCase() === currentMemberName.toLowerCase();
         
         let timeAgo = 'Recently';
@@ -1543,10 +1528,12 @@
       if (saveBtn) saveBtn.disabled = true;
 
       try {
+        const conf = STATUS_CONFIG[statusVal] || STATUS_CONFIG['safe'];
         const { error } = await supabaseClient.from('team_status').upsert({
-          user_email: currentUserEmail,
           name: currentMemberName,
           status: statusVal,
+          label: conf.label,
+          color: conf.color,
           updated_at: nowIso
         }, { onConflict: 'name' });
 
@@ -2193,6 +2180,26 @@
         setTimeout(() => feedback.classList.add('hidden'), 2000);
       }
     }
+
+    // Shared status config used both when saving to Supabase (label/color columns)
+    // and when rendering the roll-call list (badgeClass for styling).
+    const STATUS_CONFIG = {
+      'safe': {
+        label: '🟢 Safe at Base',
+        color: 'green',
+        badgeClass: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+      },
+      'enroute': {
+        label: '🟡 En Route',
+        color: 'amber',
+        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+      },
+      'alert': {
+        label: '🔴 Needs Assistance',
+        color: 'red',
+        badgeClass: 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse font-bold'
+      }
+    };
 
     function setReadinessLevel(lvl) {
       const label = document.getElementById('readiness-label');

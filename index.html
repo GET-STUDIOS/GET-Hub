@@ -8,6 +8,8 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
     tailwind.config = {
@@ -147,6 +149,9 @@
           </button>
           <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             Team Chat
+          </button>
+          <button id="tab-maps-btn" onclick="switchTab('maps')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+            🗺️ Maps
           </button>
         </div>
       </div>
@@ -1235,6 +1240,197 @@
         </section>
       </div>
 
+      <div id="view-maps" class="hidden space-y-4">
+
+        <!-- Current Location -->
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 rounded-2xl shadow-lg">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2">
+                <span>📍</span> Current Location
+              </h3>
+              <p id="gps-status-text" class="text-xs text-amber-200/60 mt-1">Location not yet requested.</p>
+            </div>
+            <button onclick="locateMe()" id="locate-me-btn" class="w-full sm:w-auto bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 px-5 rounded-lg transition text-sm shadow-lg whitespace-nowrap">
+              📍 LOCATE ME
+            </button>
+          </div>
+          <div id="gps-coords-display" class="hidden grid grid-cols-3 gap-2 mt-3 text-center">
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Latitude</p>
+              <p id="gps-lat" class="text-xs font-mono font-bold text-brand-gold">--</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Longitude</p>
+              <p id="gps-lon" class="text-xs font-mono font-bold text-brand-gold">--</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Accuracy</p>
+              <p id="gps-accuracy" class="text-xs font-mono font-bold text-brand-gold">--</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Emergency Navigation Quick Access -->
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 rounded-2xl shadow-lg">
+          <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2 mb-3">
+            <span>🚨</span> Emergency Navigation
+          </h3>
+          <div id="emergency-nav-buttons" class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+            <!-- populated by JS -->
+          </div>
+        </section>
+
+        <!-- Map -->
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-3 rounded-2xl shadow-lg">
+          <div id="leaflet-map" class="w-full h-[350px] sm:h-[450px] rounded-xl border border-brand-gold/20"></div>
+          <p class="text-[10px] text-amber-200/40 mt-2 text-center">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" class="underline hover:text-brand-gold">OpenStreetMap</a> contributors</p>
+        </section>
+
+        <!-- Drop Waypoint / Go Home -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button onclick="openWaypointForm()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-3 rounded-xl transition text-sm shadow-lg flex items-center justify-center gap-2">
+            <span>＋</span> DROP WAYPOINT
+          </button>
+          <button onclick="goHome()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
+            <span>🏠</span> GO HOME
+          </button>
+        </div>
+
+        <!-- Waypoint Creation / Edit Form -->
+        <section id="waypoint-form-section" class="hidden bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <div class="flex justify-between items-center border-b border-brand-gold/20 pb-3">
+            <h3 id="waypoint-form-title" class="text-lg font-bold text-brand-gold flex items-center gap-2">
+              <span>📍</span> New Waypoint
+            </h3>
+            <button onclick="closeWaypointForm()" class="text-amber-200/60 hover:text-brand-gold text-xl leading-none">✕</button>
+          </div>
+
+          <input type="hidden" id="waypoint-form-id" value="" />
+
+          <div>
+            <label class="block text-xs font-semibold text-amber-100 mb-1">Name</label>
+            <input type="text" id="waypoint-name" placeholder="e.g. Water Source" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-brand-gold" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-amber-100 mb-1">Category</label>
+            <select id="waypoint-category" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-brand-gold">
+              <!-- populated by JS -->
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-amber-100 mb-1">Latitude</label>
+              <input type="text" id="waypoint-lat" placeholder="36.xxxxxx" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-brand-gold" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-amber-100 mb-1">Longitude</label>
+              <input type="text" id="waypoint-lon" placeholder="-6.xxxxxx" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-brand-gold" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" onclick="useMyLocationForWaypoint()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-semibold py-2 rounded-lg text-xs transition">
+              📍 Use My Location
+            </button>
+            <button type="button" onclick="togglePickOnMap()" id="pick-on-map-btn" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-semibold py-2 rounded-lg text-xs transition">
+              🗺️ Pick on Map
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-amber-100 mb-1">Notes</label>
+            <textarea id="waypoint-notes" rows="2" placeholder="Anything the family should know..." class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-brand-gold resize-none"></textarea>
+          </div>
+
+          <button onclick="saveWaypoint()" id="save-waypoint-btn" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm shadow-lg disabled:opacity-50">
+            SAVE WAYPOINT
+          </button>
+          <p id="waypoint-form-error" class="text-[11px] text-red-400 font-semibold hidden text-center"></p>
+        </section>
+
+        <!-- Selected Waypoint Details -->
+        <section id="waypoint-details-section" class="hidden bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-3">
+          <div class="flex justify-between items-start border-b border-brand-gold/20 pb-3">
+            <div>
+              <h3 id="details-name" class="text-lg font-bold text-brand-gold">--</h3>
+              <p id="details-category" class="text-xs text-amber-200/60">--</p>
+            </div>
+            <button onclick="closeWaypointDetails()" class="text-amber-200/60 hover:text-brand-gold text-xl leading-none">✕</button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Distance</p>
+              <p id="details-distance" class="text-xs font-mono font-bold text-brand-gold">--</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Bearing</p>
+              <p id="details-bearing" class="text-xs font-mono font-bold text-brand-gold">--</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Direction</p>
+              <p id="details-direction" class="text-xs font-mono font-bold text-brand-gold">--</p>
+            </div>
+            <div id="details-compass-needle-wrap" class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2 flex flex-col items-center justify-center">
+              <p class="text-[9px] text-amber-200/50 uppercase mb-1">Heading</p>
+              <span id="details-compass-needle" class="inline-block text-brand-gold text-lg transition-transform duration-150">⬆️</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-amber-100/80">
+            <p><span class="text-amber-200/50">Coordinates:</span> <span id="details-coords" class="font-mono">--</span></p>
+            <p id="details-notes-wrap" class="mt-1"><span class="text-amber-200/50">Notes:</span> <span id="details-notes">--</span></p>
+            <p class="mt-1 text-[10px] text-amber-200/40"><span id="details-created-by">--</span> · <span id="details-created-date">--</span></p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <button onclick="navigateToSelected()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition">🧭 NAVIGATE</button>
+            <button onclick="editSelectedWaypoint()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2 rounded-lg text-xs transition">✏️ EDIT</button>
+            <button onclick="deleteSelectedWaypoint()" class="bg-red-950/60 hover:bg-red-900 border border-red-800/50 text-red-300 font-bold py-2 rounded-lg text-xs transition">🗑️ DELETE</button>
+          </div>
+        </section>
+
+        <!-- Exploration Tracking -->
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 rounded-2xl shadow-lg">
+          <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2 mb-3">
+            <span>🚶</span> Exploration Tracking
+          </h3>
+          <div class="grid grid-cols-3 gap-2 text-center mb-3">
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Time</p>
+              <p id="track-time" class="text-xs font-mono font-bold text-brand-gold">00:00:00</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Distance</p>
+              <p id="track-distance" class="text-xs font-mono font-bold text-brand-gold">0 m</p>
+            </div>
+            <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg py-2">
+              <p class="text-[9px] text-amber-200/50 uppercase">Position</p>
+              <p id="track-position" class="text-[10px] font-mono font-bold text-brand-gold truncate">--</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="startTracking()" id="track-start-btn" class="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold py-2 rounded-lg text-xs transition">START</button>
+            <button onclick="pauseTracking()" id="track-pause-btn" class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold py-2 rounded-lg text-xs transition disabled:opacity-40" disabled>PAUSE</button>
+            <button onclick="stopTracking()" id="track-stop-btn" class="bg-red-950/60 hover:bg-red-900 border border-red-800/50 text-red-300 font-bold py-2 rounded-lg text-xs transition disabled:opacity-40" disabled>STOP</button>
+          </div>
+        </section>
+
+        <!-- Waypoint List -->
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-3">
+          <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2 border-b border-brand-gold/20 pb-3">
+            <span>🗃️</span> GET Waypoints
+          </h3>
+          <div id="waypoint-list" class="space-y-2">
+            <p class="text-amber-200/50 text-center py-4 text-xs">Loading waypoints...</p>
+          </div>
+        </section>
+
+      </div>
+
     </div>
 
   </main>
@@ -1440,6 +1636,7 @@
       const preppingView = document.getElementById('view-prepping');
       const signalView = document.getElementById('view-signal');
       const chatView = document.getElementById('view-chat');
+      const mapsView = document.getElementById('view-maps');
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
@@ -1449,6 +1646,7 @@
       const preppingBtn = document.getElementById('tab-prepping-btn');
       const signalBtn = document.getElementById('tab-signal-btn');
       const chatBtn = document.getElementById('tab-chat-btn');
+      const mapsBtn = document.getElementById('tab-maps-btn');
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
@@ -1458,6 +1656,7 @@
       preppingView.classList.add('hidden');
       if (signalView) signalView.classList.add('hidden');
       chatView.classList.add('hidden');
+      mapsView.classList.add('hidden');
 
       const inactiveStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap";
       const activeStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition whitespace-nowrap";
@@ -1470,6 +1669,7 @@
       preppingBtn.className = inactiveStyle;
       if (signalBtn) signalBtn.className = inactiveStyle;
       chatBtn.className = inactiveStyle;
+      mapsBtn.className = inactiveStyle;
 
       if (tabName === 'dashboard') {
         dashboardView.classList.remove('hidden');
@@ -1499,6 +1699,10 @@
         chatBtn.className = activeStyle;
         loadChatMessages();
         scrollToBottomChat();
+      } else if (tabName === 'maps') {
+        mapsView.classList.remove('hidden');
+        mapsBtn.className = activeStyle;
+        initMapsModule();
       }
     }
 
@@ -2404,29 +2608,679 @@
       if (output) output.textContent = "-- --- --";
     }
 
+    let compassListenerActive = false;
+
     function startCompass() {
+      if (compassListenerActive) return;
       if (window.DeviceOrientationEvent) {
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
           DeviceOrientationEvent.requestPermission().then(permissionState => {
             if (permissionState === 'granted') {
               window.addEventListener('deviceorientation', handleOrientation);
+              compassListenerActive = true;
             }
-          });
+          }).catch(() => { /* permission dialog dismissed or unsupported — numeric bearing still works */ });
         } else {
           window.addEventListener('deviceorientation', handleOrientation);
+          compassListenerActive = true;
         }
       }
     }
+
+    let lastKnownDeviceHeading = null; // shared by the Dashboard compass widget and the Maps bearing needle
 
     function handleOrientation(event) {
       let alpha = event.alpha;
       if (alpha !== null) {
         const heading = Math.round(360 - alpha);
+        lastKnownDeviceHeading = heading;
         const dial = document.getElementById('compass-dial');
         const text = document.getElementById('compass-heading');
         if (dial) dial.style.transform = `rotate(${-heading}deg)`;
         if (text) text.textContent = `Heading: ${heading}°`;
+        updateWaypointCompassNeedle();
       }
+    }
+
+    // ============================================================
+    // GET MAPS & WAYPOINTS MODULE
+    // ============================================================
+
+    const WAYPOINT_CATEGORIES = [
+      { key: 'HOME', label: 'Home', icon: '🏠' },
+      { key: 'PRIMARY', label: 'Primary Meeting Point', icon: '🟢' },
+      { key: 'SECONDARY', label: 'Secondary Meeting Point', icon: '🟡' },
+      { key: 'VEHICLE', label: 'Vehicle', icon: '🚗' },
+      { key: 'WATER', label: 'Water', icon: '💧' },
+      { key: 'CAMP', label: 'Camp', icon: '⛺' },
+      { key: 'CACHE', label: 'Cache', icon: '📦' },
+      { key: 'MEDICAL', label: 'Medical', icon: '🏥' },
+      { key: 'FUEL', label: 'Fuel', icon: '⛽' },
+      { key: 'SUPPLIES', label: 'Supplies', icon: '🛒' },
+      { key: 'DANGER', label: 'Danger', icon: '⚠️' },
+      { key: 'COMMUNICATION', label: 'Communication', icon: '📡' },
+      { key: 'CUSTOM', label: 'Custom', icon: '📍' }
+    ];
+    const EMERGENCY_NAV_CATEGORIES = ['HOME', 'PRIMARY', 'SECONDARY', 'MEDICAL', 'FUEL'];
+    const HOME_WAYPOINT_ID = '00000000-0000-0000-0000-000000000001'; // fixed id so "Home" is always a single row
+
+    function categoryInfo(key) {
+      return WAYPOINT_CATEGORIES.find(c => c.key === key) || WAYPOINT_CATEGORIES[WAYPOINT_CATEGORIES.length - 1];
+    }
+
+    // --- Geo math ---
+    function toRad(deg) { return deg * Math.PI / 180; }
+    function toDeg(rad) { return rad * 180 / Math.PI; }
+
+    function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+      const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
+      const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
+      return (toDeg(Math.atan2(y, x)) + 360) % 360;
+    }
+
+    function bearingToCompass(bearing) {
+      const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+      return dirs[Math.round(bearing / 22.5) % 16];
+    }
+
+    function formatDistance(meters) {
+      if (meters < 1000) return Math.round(meters) + ' m';
+      return (meters / 1000).toFixed(1) + ' km';
+    }
+
+    // --- State ---
+    let waypointMap = null;
+    let waypointMarkersLayerGroup = null;
+    let currentPositionMarker = null;
+    let currentPosition = null; // { lat, lon, accuracy }
+    let waypointsList = [];
+    let selectedWaypointId = null;
+    let pickOnMapActive = false;
+
+    function waypointDivIcon(emoji) {
+      return L.divIcon({
+        className: '',
+        html: `<div style="font-size:22px; line-height:1; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.7));">${emoji}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+    }
+
+    function currentPositionDivIcon() {
+      return L.divIcon({
+        className: '',
+        html: `<div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:2px solid white;box-shadow:0 0 0 4px rgba(59,130,246,0.35);"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+    }
+
+    function renderCategoryOptions() {
+      const sel = document.getElementById('waypoint-category');
+      if (!sel || sel.options.length > 0) return;
+      sel.innerHTML = WAYPOINT_CATEGORIES.map(c => `<option value="${c.key}">${c.icon} ${c.label}</option>`).join('');
+    }
+
+    function renderEmergencyNavButtons() {
+      const container = document.getElementById('emergency-nav-buttons');
+      if (!container) return;
+      container.innerHTML = EMERGENCY_NAV_CATEGORIES.map(key => {
+        const c = categoryInfo(key);
+        return `<button onclick="jumpToEmergencyCategory('${key}')" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/30 text-amber-100 font-semibold py-2.5 rounded-lg text-xs transition flex flex-col items-center gap-1">
+          <span class="text-lg">${c.icon}</span>${c.label}
+        </button>`;
+      }).join('');
+    }
+
+    function jumpToEmergencyCategory(key) {
+      if (key === 'HOME') { goHome(); return; }
+      const wp = waypointsList.find(w => w.category === key);
+      if (!wp) {
+        alert(`No ${categoryInfo(key).label} waypoint has been set yet. Drop one with the "${categoryInfo(key).label}" category first.`);
+        return;
+      }
+      selectWaypoint(wp.id);
+    }
+
+    // --- Map init (lazy — only after the tab/container is actually visible) ---
+    function initMapsModule() {
+      renderCategoryOptions();
+      if (!waypointMap) {
+        setTimeout(() => {
+          waypointMap = L.map('leaflet-map', { zoomControl: true }).setView([CHICLANA_LAT, CHICLANA_LON], 12);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(waypointMap);
+          waypointMarkersLayerGroup = L.layerGroup().addTo(waypointMap);
+
+          waypointMap.on('click', (e) => {
+            if (pickOnMapActive) {
+              document.getElementById('waypoint-lat').value = e.latlng.lat.toFixed(6);
+              document.getElementById('waypoint-lon').value = e.latlng.lng.toFixed(6);
+              pickOnMapActive = false;
+              const btn = document.getElementById('pick-on-map-btn');
+              if (btn) btn.textContent = '🗺️ Pick on Map';
+            }
+          });
+
+          renderEmergencyNavButtons();
+          loadWaypoints();
+        }, 50);
+      } else {
+        setTimeout(() => waypointMap.invalidateSize(), 50);
+      }
+    }
+
+    // --- GPS ---
+    function locateMe() {
+      const statusText = document.getElementById('gps-status-text');
+      const coordsDisplay = document.getElementById('gps-coords-display');
+      const btn = document.getElementById('locate-me-btn');
+
+      if (!navigator.geolocation) {
+        if (statusText) statusText.textContent = 'GPS is not available on this browser/device.';
+        return Promise.resolve(null);
+      }
+
+      if (statusText) statusText.textContent = 'Requesting location...';
+      if (btn) btn.disabled = true;
+
+      return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            currentPosition = {
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              accuracy: pos.coords.accuracy
+            };
+            if (statusText) statusText.textContent = 'Location acquired.';
+            if (coordsDisplay) coordsDisplay.classList.remove('hidden');
+            const latEl = document.getElementById('gps-lat');
+            const lonEl = document.getElementById('gps-lon');
+            const accEl = document.getElementById('gps-accuracy');
+            if (latEl) latEl.textContent = currentPosition.lat.toFixed(6);
+            if (lonEl) lonEl.textContent = currentPosition.lon.toFixed(6);
+            if (accEl) accEl.textContent = (currentPosition.accuracy != null) ? `±${Math.round(currentPosition.accuracy)} m` : 'Unavailable';
+
+            updateCurrentPositionMarker(true);
+            if (selectedWaypointId) renderWaypointDetails(selectedWaypointId);
+            renderWaypointList();
+
+            if (btn) btn.disabled = false;
+            resolve(currentPosition);
+          },
+          (err) => {
+            let msg = 'Could not get your location.';
+            if (err.code === err.PERMISSION_DENIED) msg = 'Location permission denied. Enable it in your browser/device settings to use GPS features.';
+            else if (err.code === err.POSITION_UNAVAILABLE) msg = 'GPS position unavailable right now.';
+            else if (err.code === err.TIMEOUT) msg = 'Location request timed out. Try again.';
+            if (statusText) statusText.textContent = msg;
+            if (btn) btn.disabled = false;
+            resolve(null);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+        );
+      });
+    }
+
+    function updateCurrentPositionMarker(recenter) {
+      if (!waypointMap || !currentPosition) return;
+      const latlng = [currentPosition.lat, currentPosition.lon];
+      if (!currentPositionMarker) {
+        currentPositionMarker = L.marker(latlng, { icon: currentPositionDivIcon(), zIndexOffset: 1000 }).addTo(waypointMap);
+        currentPositionMarker.bindPopup('You are here');
+      } else {
+        currentPositionMarker.setLatLng(latlng);
+      }
+      if (recenter) waypointMap.setView(latlng, Math.max(waypointMap.getZoom(), 14));
+    }
+
+    // --- Waypoints CRUD ---
+    async function loadWaypoints() {
+      try {
+        const { data, error } = await supabaseClient.from('waypoints').select('*').order('created_at', { ascending: true });
+        if (error) {
+          console.error('Waypoints load error:', error);
+          const listEl = document.getElementById('waypoint-list');
+          if (listEl) listEl.innerHTML = `<p class="text-red-400 text-center py-4 text-xs">Could not load waypoints: ${escapeHtml(error.message)}</p>`;
+          return;
+        }
+        waypointsList = data || [];
+        renderWaypointMarkers();
+        renderWaypointList();
+      } catch (err) {
+        console.error('Error loading waypoints:', err);
+      }
+    }
+
+    function renderWaypointMarkers() {
+      if (!waypointMap || !waypointMarkersLayerGroup) return;
+      waypointMarkersLayerGroup.clearLayers();
+      waypointsList.forEach(wp => {
+        const c = categoryInfo(wp.category);
+        const marker = L.marker([wp.latitude, wp.longitude], { icon: waypointDivIcon(c.icon) });
+        marker.on('click', () => selectWaypoint(wp.id));
+        marker.bindTooltip(wp.name, { direction: 'top', offset: [0, -14] });
+        marker.addTo(waypointMarkersLayerGroup);
+      });
+    }
+
+    function renderWaypointList() {
+      const container = document.getElementById('waypoint-list');
+      if (!container) return;
+
+      if (waypointsList.length === 0) {
+        container.innerHTML = `<p class="text-amber-200/50 text-center py-4 text-xs">No waypoints yet — drop your first one above.</p>`;
+        return;
+      }
+
+      const withDistance = waypointsList.map(wp => ({
+        wp,
+        distanceMeters: currentPosition ? haversineDistanceMeters(currentPosition.lat, currentPosition.lon, wp.latitude, wp.longitude) : null
+      }));
+
+      withDistance.sort((a, b) => {
+        if (a.distanceMeters == null && b.distanceMeters == null) return 0;
+        if (a.distanceMeters == null) return 1;
+        if (b.distanceMeters == null) return -1;
+        return a.distanceMeters - b.distanceMeters;
+      });
+
+      container.innerHTML = withDistance.map(({ wp, distanceMeters }) => {
+        const c = categoryInfo(wp.category);
+        const isSelected = wp.id === selectedWaypointId;
+        return `
+          <button onclick="selectWaypoint('${wp.id}')" class="w-full text-left bg-brand-black/60 hover:bg-brand-black border ${isSelected ? 'border-brand-gold' : 'border-brand-gold/20'} p-3 rounded-xl flex justify-between items-center transition">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-lg flex-shrink-0">${c.icon}</span>
+              <div class="min-w-0">
+                <p class="font-bold text-amber-100 text-sm truncate">${escapeHtml(wp.name)}</p>
+                <p class="text-[10px] text-amber-200/50">${escapeHtml(c.label)}</p>
+              </div>
+            </div>
+            <span class="text-xs font-mono text-brand-gold flex-shrink-0 ml-2">${distanceMeters != null ? formatDistance(distanceMeters) : '--'}</span>
+          </button>`;
+      }).join('');
+    }
+
+    function selectWaypoint(id) {
+      selectedWaypointId = id;
+      closeWaypointForm();
+      renderWaypointDetails(id);
+      renderWaypointList();
+
+      const wp = waypointsList.find(w => w.id === id);
+      if (wp && waypointMap) {
+        waypointMap.setView([wp.latitude, wp.longitude], Math.max(waypointMap.getZoom(), 14));
+      }
+    }
+
+    function renderWaypointDetails(id) {
+      const wp = waypointsList.find(w => w.id === id);
+      const section = document.getElementById('waypoint-details-section');
+      if (!wp || !section) return;
+
+      const c = categoryInfo(wp.category);
+      section.classList.remove('hidden');
+
+      document.getElementById('details-name').textContent = wp.name;
+      document.getElementById('details-category').textContent = `${c.icon} ${c.label}`;
+      document.getElementById('details-coords').textContent = `${Number(wp.latitude).toFixed(6)}, ${Number(wp.longitude).toFixed(6)}`;
+
+      const notesWrap = document.getElementById('details-notes-wrap');
+      if (wp.notes) {
+        document.getElementById('details-notes').textContent = wp.notes;
+        notesWrap.classList.remove('hidden');
+      } else {
+        notesWrap.classList.add('hidden');
+      }
+
+      document.getElementById('details-created-by').textContent = wp.created_by ? `Added by ${wp.created_by}` : 'Creator unknown';
+      document.getElementById('details-created-date').textContent = wp.created_at ? new Date(wp.created_at).toLocaleDateString() : '';
+
+      if (currentPosition) {
+        const dist = haversineDistanceMeters(currentPosition.lat, currentPosition.lon, wp.latitude, wp.longitude);
+        const bearing = calculateBearing(currentPosition.lat, currentPosition.lon, wp.latitude, wp.longitude);
+        document.getElementById('details-distance').textContent = formatDistance(dist);
+        document.getElementById('details-bearing').textContent = `${Math.round(bearing)}°`;
+        document.getElementById('details-direction').textContent = bearingToCompass(bearing);
+      } else {
+        document.getElementById('details-distance').textContent = 'Need GPS';
+        document.getElementById('details-bearing').textContent = '--';
+        document.getElementById('details-direction').textContent = '--';
+      }
+
+      updateWaypointCompassNeedle();
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeWaypointDetails() {
+      selectedWaypointId = null;
+      const section = document.getElementById('waypoint-details-section');
+      if (section) section.classList.add('hidden');
+      renderWaypointList();
+    }
+
+    function updateWaypointCompassNeedle() {
+      const needle = document.getElementById('details-compass-needle');
+      if (!needle) return;
+
+      if (!selectedWaypointId || !currentPosition) {
+        needle.style.transform = 'rotate(0deg)';
+        return;
+      }
+      const wp = waypointsList.find(w => w.id === selectedWaypointId);
+      if (!wp) return;
+
+      const targetBearing = calculateBearing(currentPosition.lat, currentPosition.lon, wp.latitude, wp.longitude);
+
+      if (lastKnownDeviceHeading != null) {
+        // Live device compass available — needle rotates relative to which way you're facing.
+        const relative = (targetBearing - lastKnownDeviceHeading + 360) % 360;
+        needle.style.transform = `rotate(${relative}deg)`;
+        needle.title = 'Live compass — rotates as you turn';
+      } else {
+        // No orientation sensor available on this device/browser — fall back to the raw
+        // bearing. The numeric Bearing/Direction fields above remain the reliable source.
+        needle.style.transform = `rotate(${targetBearing}deg)`;
+        needle.title = 'Device compass unavailable — showing numerical bearing only';
+      }
+    }
+
+    function navigateToSelected() {
+      startCompass(); // explicit user action — safe point to request device orientation permission
+      if (!currentPosition) {
+        locateMe().then(() => { if (selectedWaypointId) renderWaypointDetails(selectedWaypointId); });
+        return;
+      }
+      if (selectedWaypointId) renderWaypointDetails(selectedWaypointId);
+    }
+
+    function editSelectedWaypoint() {
+      const wp = waypointsList.find(w => w.id === selectedWaypointId);
+      if (wp) openWaypointForm(wp);
+    }
+
+    async function deleteSelectedWaypoint() {
+      const wp = waypointsList.find(w => w.id === selectedWaypointId);
+      if (!wp) return;
+      if (!confirm(`Delete "${wp.name}"? This cannot be undone.`)) return;
+
+      const { error } = await supabaseClient.from('waypoints').delete().eq('id', wp.id);
+      if (error) {
+        console.error('Delete waypoint error:', error);
+        alert('Could not delete waypoint: ' + error.message);
+        return;
+      }
+      closeWaypointDetails();
+      await loadWaypoints();
+    }
+
+    // --- Waypoint form ---
+    function openWaypointForm(existing) {
+      closeWaypointDetails();
+      renderCategoryOptions();
+
+      const section = document.getElementById('waypoint-form-section');
+      const title = document.getElementById('waypoint-form-title');
+
+      document.getElementById('waypoint-form-id').value = existing ? existing.id : '';
+      document.getElementById('waypoint-name').value = existing ? existing.name : '';
+      document.getElementById('waypoint-category').value = existing ? existing.category : 'CUSTOM';
+      document.getElementById('waypoint-notes').value = existing ? (existing.notes || '') : '';
+
+      if (existing) {
+        document.getElementById('waypoint-lat').value = existing.latitude;
+        document.getElementById('waypoint-lon').value = existing.longitude;
+        title.textContent = '✏️ Edit Waypoint';
+      } else {
+        title.textContent = '📍 New Waypoint';
+        if (currentPosition) {
+          document.getElementById('waypoint-lat').value = currentPosition.lat.toFixed(6);
+          document.getElementById('waypoint-lon').value = currentPosition.lon.toFixed(6);
+        } else {
+          document.getElementById('waypoint-lat').value = '';
+          document.getElementById('waypoint-lon').value = '';
+        }
+        // Kick off a fresh GPS fix in the background per the "Drop Waypoint" flow —
+        // if the form is still open and still new when it resolves, refresh the fields.
+        locateMe().then(() => {
+          const idField = document.getElementById('waypoint-form-id');
+          const sectionNow = document.getElementById('waypoint-form-section');
+          if (idField && !idField.value && sectionNow && !sectionNow.classList.contains('hidden') && currentPosition) {
+            document.getElementById('waypoint-lat').value = currentPosition.lat.toFixed(6);
+            document.getElementById('waypoint-lon').value = currentPosition.lon.toFixed(6);
+          }
+        }).catch(() => {});
+      }
+
+      document.getElementById('waypoint-form-error').classList.add('hidden');
+      section.classList.remove('hidden');
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeWaypointForm() {
+      const section = document.getElementById('waypoint-form-section');
+      if (section) section.classList.add('hidden');
+      pickOnMapActive = false;
+      const btn = document.getElementById('pick-on-map-btn');
+      if (btn) btn.textContent = '🗺️ Pick on Map';
+    }
+
+    function useMyLocationForWaypoint() {
+      locateMe().then(() => {
+        if (currentPosition) {
+          document.getElementById('waypoint-lat').value = currentPosition.lat.toFixed(6);
+          document.getElementById('waypoint-lon').value = currentPosition.lon.toFixed(6);
+        }
+      });
+    }
+
+    function togglePickOnMap() {
+      pickOnMapActive = !pickOnMapActive;
+      const btn = document.getElementById('pick-on-map-btn');
+      if (btn) btn.textContent = pickOnMapActive ? '🗺️ Click the map...' : '🗺️ Pick on Map';
+      if (pickOnMapActive) {
+        const mapEl = document.getElementById('leaflet-map');
+        if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function showWaypointFormError(msg) {
+      const el = document.getElementById('waypoint-form-error');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    async function saveWaypoint() {
+      const idField = document.getElementById('waypoint-form-id').value;
+      const name = document.getElementById('waypoint-name').value.trim();
+      const category = document.getElementById('waypoint-category').value;
+      const latStr = document.getElementById('waypoint-lat').value.trim();
+      const lonStr = document.getElementById('waypoint-lon').value.trim();
+      const notes = document.getElementById('waypoint-notes').value.trim();
+      const saveBtn = document.getElementById('save-waypoint-btn');
+
+      document.getElementById('waypoint-form-error').classList.add('hidden');
+
+      if (!name) { showWaypointFormError('Please enter a name.'); return; }
+
+      const lat = parseFloat(latStr);
+      const lon = parseFloat(lonStr);
+      if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        showWaypointFormError('Please enter valid coordinates (or use Locate Me / Pick on Map).');
+        return;
+      }
+
+      let id = idField || null;
+      if (category === 'HOME') id = HOME_WAYPOINT_ID; // keep a single Home record
+      if (!id) id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('wp-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+
+      const payload = {
+        id,
+        name,
+        category,
+        latitude: lat,
+        longitude: lon,
+        notes,
+        updated_at: new Date().toISOString()
+      };
+      if (!idField) {
+        payload.created_by = TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Unknown');
+      }
+
+      if (saveBtn) saveBtn.disabled = true;
+      const { error } = await supabaseClient.from('waypoints').upsert(payload);
+      if (saveBtn) saveBtn.disabled = false;
+
+      if (error) {
+        console.error('Waypoint save error:', error);
+        showWaypointFormError('Save failed: ' + error.message);
+        return;
+      }
+
+      closeWaypointForm();
+      await loadWaypoints();
+      selectWaypoint(id);
+    }
+
+    // --- Home ---
+    async function goHome() {
+      const home = waypointsList.find(w => w.id === HOME_WAYPOINT_ID);
+      if (!home) {
+        if (confirm('No Home location has been set yet. Set your current GPS position as Home now?')) {
+          await setHomeToCurrentLocation();
+        }
+        return;
+      }
+      selectWaypoint(HOME_WAYPOINT_ID);
+    }
+
+    async function setHomeToCurrentLocation() {
+      if (!currentPosition) {
+        await locateMe();
+        if (!currentPosition) {
+          alert('Could not get your GPS position to save as Home. Try Locate Me first.');
+          return;
+        }
+      }
+      const { error } = await supabaseClient.from('waypoints').upsert({
+        id: HOME_WAYPOINT_ID,
+        name: 'Home',
+        category: 'HOME',
+        latitude: currentPosition.lat,
+        longitude: currentPosition.lon,
+        notes: '',
+        created_by: TEAM_MEMBERS_MAP[currentUserEmail] || currentUserEmail,
+        updated_at: new Date().toISOString()
+      });
+      if (error) {
+        console.error('Home save error:', error);
+        alert('Could not save Home location: ' + error.message);
+        return;
+      }
+      await loadWaypoints();
+      selectWaypoint(HOME_WAYPOINT_ID);
+    }
+
+    // --- Exploration tracking (client-side only, no backend persistence) ---
+    let trackingState = 'stopped'; // 'stopped' | 'running' | 'paused'
+    let trackWatchId = null;
+    let trackStartTimestamp = null;
+    let trackElapsedMsBeforePause = 0;
+    let trackTimerHandle = null;
+    let trackDistanceMeters = 0;
+    let trackLastPoint = null;
+
+    function startTracking() {
+      if (!navigator.geolocation) {
+        alert('GPS is not available on this browser/device — cannot track.');
+        return;
+      }
+      if (trackingState !== 'paused') {
+        trackDistanceMeters = 0;
+        trackLastPoint = null;
+        trackElapsedMsBeforePause = 0;
+      }
+      trackStartTimestamp = Date.now();
+      trackingState = 'running';
+
+      trackWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude, lon = pos.coords.longitude;
+          if (trackLastPoint) trackDistanceMeters += haversineDistanceMeters(trackLastPoint.lat, trackLastPoint.lon, lat, lon);
+          trackLastPoint = { lat, lon };
+          currentPosition = { lat, lon, accuracy: pos.coords.accuracy };
+          updateCurrentPositionMarker(false);
+          const posEl = document.getElementById('track-position');
+          if (posEl) posEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+          const distEl = document.getElementById('track-distance');
+          if (distEl) distEl.textContent = formatDistance(trackDistanceMeters);
+        },
+        (err) => { console.warn('Tracking GPS error:', err); },
+        { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+      );
+
+      if (trackTimerHandle) clearInterval(trackTimerHandle);
+      trackTimerHandle = setInterval(updateTrackTimeDisplay, 1000);
+
+      document.getElementById('track-start-btn').disabled = true;
+      document.getElementById('track-pause-btn').disabled = false;
+      document.getElementById('track-stop-btn').disabled = false;
+    }
+
+    function updateTrackTimeDisplay() {
+      const el = document.getElementById('track-time');
+      if (!el) return;
+      const elapsedMs = trackElapsedMsBeforePause + (trackStartTimestamp ? (Date.now() - trackStartTimestamp) : 0);
+      const totalSeconds = Math.floor(elapsedMs / 1000);
+      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(totalSeconds % 60).padStart(2, '0');
+      el.textContent = `${h}:${m}:${s}`;
+    }
+
+    function pauseTracking() {
+      if (trackingState !== 'running') return;
+      trackingState = 'paused';
+      trackElapsedMsBeforePause += (Date.now() - trackStartTimestamp);
+      trackStartTimestamp = null;
+
+      if (trackWatchId != null) { navigator.geolocation.clearWatch(trackWatchId); trackWatchId = null; }
+      if (trackTimerHandle) { clearInterval(trackTimerHandle); trackTimerHandle = null; }
+
+      document.getElementById('track-start-btn').disabled = false;
+      document.getElementById('track-start-btn').textContent = 'RESUME';
+      document.getElementById('track-pause-btn').disabled = true;
+    }
+
+    function stopTracking() {
+      trackingState = 'stopped';
+      if (trackWatchId != null) { navigator.geolocation.clearWatch(trackWatchId); trackWatchId = null; }
+      if (trackTimerHandle) { clearInterval(trackTimerHandle); trackTimerHandle = null; }
+      trackStartTimestamp = null;
+      trackElapsedMsBeforePause = 0;
+      trackDistanceMeters = 0;
+      trackLastPoint = null;
+
+      document.getElementById('track-time').textContent = '00:00:00';
+      document.getElementById('track-distance').textContent = '0 m';
+      document.getElementById('track-position').textContent = '--';
+      document.getElementById('track-start-btn').disabled = false;
+      document.getElementById('track-start-btn').textContent = 'START';
+      document.getElementById('track-pause-btn').disabled = true;
+      document.getElementById('track-stop-btn').disabled = true;
     }
 
     function toggleLocation() {

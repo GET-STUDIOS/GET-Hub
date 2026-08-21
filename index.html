@@ -8,23 +8,60 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
             brand: {
-              gold: '#D4AF37',     // Accent gold
-              goldLight: '#F3E5AB',// Hover gold
-              brownDark: '#2C1A0E',// Deep brown
-              brownCard: '#3A2415',// Card background brown
-              black: '#121212'     // Dark background
+              gold: 'rgb(var(--brand-gold) / <alpha-value>)',
+              goldLight: 'rgb(var(--brand-goldLight) / <alpha-value>)',
+              brownDark: 'rgb(var(--brand-brownDark) / <alpha-value>)',
+              brownCard: 'rgb(var(--brand-brownCard) / <alpha-value>)',
+              black: 'rgb(var(--brand-black) / <alpha-value>)'
             }
           }
         }
       }
     }
+  </script>
+
+  <style>
+    :root {
+      --brand-gold: 212 175 55;       /* #D4AF37 */
+      --brand-goldLight: 243 229 171; /* #F3E5AB */
+      --brand-brownDark: 44 26 14;    /* #2C1A0E */
+      --brand-brownCard: 58 36 21;    /* #3A2415 */
+      --brand-black: 18 18 18;        /* #121212 */
+    }
+
+    /* Low Power Mode: true black backgrounds (saves real battery on OLED screens)
+       plus dropped blur/shadow/animation effects to cut down on GPU work. */
+    html.low-power {
+      --brand-brownDark: 0 0 0;
+      --brand-brownCard: 8 8 8;
+      --brand-black: 0 0 0;
+    }
+    html.low-power .backdrop-blur { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    html.low-power .animate-pulse { animation: none !important; }
+    html.low-power .animate-spin { animation: none !important; }
+    html.low-power .shadow-lg,
+    html.low-power .shadow-2xl,
+    html.low-power .shadow-inner,
+    html.low-power .shadow-\[0_0_50px_rgba\(255\,255\,255\,1\)\] { box-shadow: none !important; }
+    html.low-power .drop-shadow-md,
+    html.low-power .drop-shadow-lg { filter: none !important; }
+    html.low-power * { transition-duration: 0s !important; }
+  </style>
+
+  <script>
+    // Applied in <head>, before body paints, so there's no flash of the wrong theme.
+    try {
+      if (localStorage.getItem('lowPowerMode') === 'true') {
+        document.documentElement.classList.add('low-power');
+      }
+    } catch (e) { /* localStorage unavailable — default theme is fine */ }
   </script>
 </head>
 <body class="bg-brand-black text-amber-100 min-h-screen font-sans flex flex-col">
@@ -35,9 +72,15 @@
         <img src="./Logo.png.png" alt="GET Logo" class="h-10 w-10 object-contain rounded-md" onError="this.onerror=null; this.src='https://placehold.co/64x64/3A2415/D4AF37?text=GET';" />
         <h1 class="text-xl font-bold tracking-tight text-brand-gold">Ready Together</h1>
       </div>
-      <button id="logout-btn" class="hidden text-sm bg-brand-brownCard hover:bg-brand-brownDark text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-4 rounded-lg transition">
-        Sign Out
-      </button>
+      <div class="flex items-center gap-2">
+        <button id="low-power-toggle-btn" onclick="toggleLowPowerMode()" class="text-sm bg-brand-brownCard hover:bg-brand-brownDark text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5" title="Toggle Low Power Mode">
+          <span id="low-power-icon">🔋</span>
+          <span id="low-power-label" class="hidden sm:inline">Low Power</span>
+        </button>
+        <button id="logout-btn" class="hidden text-sm bg-brand-brownCard hover:bg-brand-brownDark text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-4 rounded-lg transition">
+          Sign Out
+        </button>
+      </div>
     </div>
   </header>
 
@@ -109,7 +152,11 @@
       </div>
 
       <div id="view-dashboard" class="space-y-6">
-        
+
+        <div class="flex flex-col items-center justify-center py-4">
+          <img src="./Logo.png.png" alt="GET Logo" class="h-32 sm:h-40 object-contain drop-shadow-lg" onError="this.onerror=null; this.src='https://placehold.co/256x256/3A2415/D4AF37?text=GET';" />
+        </div>
+
         <section class="bg-brand-brownCard border border-brand-gold/30 p-4 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div class="flex items-center space-x-3">
             <span class="text-2xl">🛡️</span>
@@ -2200,6 +2247,25 @@
         badgeClass: 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse font-bold'
       }
     };
+
+    function updateLowPowerButton() {
+      const icon = document.getElementById('low-power-icon');
+      const label = document.getElementById('low-power-label');
+      const isOn = document.documentElement.classList.contains('low-power');
+      if (icon) icon.textContent = isOn ? '⚡' : '🔋';
+      if (label) label.textContent = isOn ? 'Low Power: ON' : 'Low Power';
+    }
+
+    function toggleLowPowerMode() {
+      const html = document.documentElement;
+      const isOn = html.classList.toggle('low-power');
+      try {
+        localStorage.setItem('lowPowerMode', isOn ? 'true' : 'false');
+      } catch (e) { /* localStorage unavailable — preference just won't persist */ }
+      updateLowPowerButton();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateLowPowerButton);
 
     function setReadinessLevel(lvl) {
       const label = document.getElementById('readiness-label');

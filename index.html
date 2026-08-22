@@ -125,33 +125,36 @@
           </div>
         </div>
 
-        <div class="flex bg-brand-black/60 p-1 rounded-xl border border-brand-gold/20 text-xs w-full md:w-auto overflow-x-auto">
-          <button id="tab-dashboard-btn" onclick="switchTab('dashboard')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition whitespace-nowrap">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-1 bg-brand-black/60 p-1.5 rounded-xl border border-brand-gold/20 text-xs w-full md:w-auto">
+          <button id="tab-dashboard-btn" onclick="switchTab('dashboard')" class="px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition text-center">
             Dashboard
           </button>
-          <button id="tab-inventory-btn" onclick="switchTab('inventory')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+          <button id="tab-inventory-btn" onclick="switchTab('inventory')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             📦 Stockpile Tracker
           </button>
-          <button id="tab-knowledge-btn" onclick="switchTab('knowledge')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+          <button id="tab-knowledge-btn" onclick="switchTab('knowledge')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             📖 Field Manual
           </button>
-          <button id="tab-news-btn" onclick="switchTab('news')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+          <button id="tab-news-btn" onclick="switchTab('news')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             📰 News Feed
           </button>
-          <button id="tab-profile-btn" onclick="switchTab('profile')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+          <button id="tab-profile-btn" onclick="switchTab('profile')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             👤 My Profile
           </button>
-          <button id="tab-prepping-btn" onclick="switchTab('prepping')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+          <button id="tab-prepping-btn" onclick="switchTab('prepping')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             🎒 Prepping
           </button>
-          <button id="tab-signal-btn" onclick="switchTab('signal')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
-            flashlight Signal & Morse
+          <button id="tab-signal-btn" onclick="switchTab('signal')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
+            🔦 Signal & Morse
           </button>
-          <button id="tab-chat-btn" onclick="switchTab('chat')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+          <button id="tab-chat-btn" onclick="switchTab('chat')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             Team Chat
           </button>
-          <button id="tab-maps-btn" onclick="switchTab('maps')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+          <button id="tab-maps-btn" onclick="switchTab('maps')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             🗺️ Maps
+          </button>
+          <button id="tab-quiz-btn" onclick="switchTab('quiz')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
+            ❓ Quick Quiz
           </button>
         </div>
       </div>
@@ -1431,6 +1434,14 @@
 
       </div>
 
+      <div id="view-quiz" class="hidden space-y-4">
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg max-w-xl mx-auto">
+          <div id="quiz-container">
+            <!-- populated by JS -->
+          </div>
+        </section>
+      </div>
+
     </div>
 
   </main>
@@ -1637,6 +1648,7 @@
       const signalView = document.getElementById('view-signal');
       const chatView = document.getElementById('view-chat');
       const mapsView = document.getElementById('view-maps');
+      const quizView = document.getElementById('view-quiz');
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
@@ -1647,6 +1659,7 @@
       const signalBtn = document.getElementById('tab-signal-btn');
       const chatBtn = document.getElementById('tab-chat-btn');
       const mapsBtn = document.getElementById('tab-maps-btn');
+      const quizBtn = document.getElementById('tab-quiz-btn');
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
@@ -1657,9 +1670,10 @@
       if (signalView) signalView.classList.add('hidden');
       chatView.classList.add('hidden');
       mapsView.classList.add('hidden');
+      quizView.classList.add('hidden');
 
-      const inactiveStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap";
-      const activeStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition whitespace-nowrap";
+      const inactiveStyle = "px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center";
+      const activeStyle = "px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition text-center";
 
       dashboardBtn.className = inactiveStyle;
       inventoryBtn.className = inactiveStyle;
@@ -1670,6 +1684,7 @@
       if (signalBtn) signalBtn.className = inactiveStyle;
       chatBtn.className = inactiveStyle;
       mapsBtn.className = inactiveStyle;
+      quizBtn.className = inactiveStyle;
 
       if (tabName === 'dashboard') {
         dashboardView.classList.remove('hidden');
@@ -1703,6 +1718,10 @@
         mapsView.classList.remove('hidden');
         mapsBtn.className = activeStyle;
         initMapsModule();
+      } else if (tabName === 'quiz') {
+        quizView.classList.remove('hidden');
+        quizBtn.className = activeStyle;
+        initQuiz();
       }
     }
 
@@ -3281,6 +3300,161 @@
       document.getElementById('track-start-btn').textContent = 'START';
       document.getElementById('track-pause-btn').disabled = true;
       document.getElementById('track-stop-btn').disabled = true;
+    }
+
+    // ============================================================
+    // QUICK QUIZ MODULE (self-contained, no Supabase — instant to use)
+    // ============================================================
+
+    const QUICK_QUIZ_POOL = [
+      { q: "What is the first priority in most survival situations?", options: ["Finding food", "Protecting yourself from the elements (shelter)", "Building a signal fire", "Searching for other people"], correct: 1, explain: "You can survive weeks without food, but only hours in severe exposure. Shelter and protecting your core body temperature comes first." },
+      { q: "How long should you generally boil water to make it safe to drink?", options: ["A few seconds", "At least 1 minute", "10 minutes", "Boiling never makes water safe"], correct: 1, explain: "A rolling boil for at least one minute (three minutes at high altitude) kills the vast majority of disease-causing organisms." },
+      { q: "What does SOS represent in Morse code?", options: ["Three dots, three dashes, three dots", "Three dashes, three dots, three dashes", "One long dash repeated", "It is not a Morse code pattern"], correct: 0, explain: "SOS is dot-dot-dot, dash-dash-dash, dot-dot-dot — chosen because it's simple and easy to recognize under poor conditions." },
+      { q: "What are the three components of the fire triangle?", options: ["Heat, fuel, oxygen", "Tinder, kindling, fuel wood", "Spark, flame, smoke", "Wood, wind, water"], correct: 0, explain: "Fire needs heat, fuel, and oxygen at the same time — remove any one and the fire goes out." },
+      { q: "Which star can reliably be used to find true north in the Northern Hemisphere?", options: ["Sirius", "Polaris", "Venus", "Betelgeuse"], correct: 1, explain: "Polaris sits almost directly above the North Celestial Pole, so it stays nearly fixed while other stars rotate around it." },
+      { q: "What does the STOP principle stand for?", options: ["Stop, Think, Observe, Plan", "Search, Track, Orient, Proceed", "Stay, Talk, Organize, Prepare", "Signal, Trace, Outline, Position"], correct: 0, explain: "STOP helps interrupt panic — stopping, thinking, observing your surroundings, and making a plan before acting." },
+      { q: "What is generally the correct first response to severe bleeding?", options: ["Apply a tourniquet immediately", "Apply firm direct pressure with a clean cloth", "Apply ice directly to the wound", "Elevate the wound only, no pressure"], correct: 1, explain: "Direct pressure is the standard first step for most bleeding. Tourniquets are reserved for severe limb bleeding that pressure alone can't control." },
+      { q: "You're caught in a rip current while swimming. What should you do?", options: ["Swim straight back to shore against the current", "Swim parallel to the shore until you escape it", "Float and wait for it to reverse", "Dive underwater and swim along the seabed"], correct: 1, explain: "Rip currents are narrow. Swimming parallel to shore is generally the fastest way to escape one, then you can swim back at an angle." },
+      { q: "Which knot forms a reliable loop that will not tighten under load?", options: ["The bowline", "The reef knot", "The clove hitch", "The taut-line hitch"], correct: 0, explain: "The bowline forms a secure loop that won't tighten under load and is relatively easy to untie afterward." },
+      { q: "During a power outage, where is it safe to run a fuel-powered generator?", options: ["Indoors with a window cracked open", "Never indoors, even in a garage", "In the basement for noise reduction", "Anywhere, as long as it's off during the day"], correct: 1, explain: "Never run a fuel-powered generator inside a home, garage, or other enclosed space — it risks fatal carbon monoxide poisoning." },
+      { q: "What is generally the safest source of drinking water if stranded at sea?", options: ["Seawater in small sips", "Collected rainwater", "Diluted seawater", "Water squeezed from raw fish as your main source"], correct: 1, explain: "Seawater is never safe to drink — its salt content worsens dehydration. Rainwater collection is the standard safe source at sea." },
+      { q: "Tall, dark cumulonimbus clouds with a flattened anvil top usually mean what?", options: ["Clear weather ahead", "A likely thunderstorm", "Fog forming soon", "A guaranteed tornado"], correct: 1, explain: "Cumulonimbus clouds are the classic signature of a developing thunderstorm." },
+      { q: "What should you generally prioritize when choosing a campsite?", options: ["Under a large dead tree for shade", "Slightly elevated, flat ground away from dead trees and gullies", "In a dry creek bed for wind shelter", "On an exposed ridge for visibility"], correct: 1, explain: "Dead trees (\"widowmakers\"), dry gullies (flash flood risk), and exposed ridges (wind/lightning) are all hazards worth avoiding." },
+      { q: "What is the safest way to get drinking water from snow in cold weather?", options: ["Eat it directly in large amounts", "Melt it first using an external heat source", "Avoid using snow entirely", "Pack it against your skin as your only method"], correct: 1, explain: "Eating large amounts of unmelted snow can lower your core body temperature. Melt it with heat first." },
+      { q: "What does declination refer to in navigation?", options: ["The distance to a location", "The angular difference between true north and magnetic north", "The elevation change on a map", "The map's scale ratio"], correct: 1, explain: "Declination is the angle between true north (on your map) and magnetic north (where your compass points), and it varies by location." },
+      { q: "A person shows pale clammy skin, a rapid weak pulse, and confusion after an injury. This suggests what?", options: ["Normal pain response", "Shock", "Mild hunger", "A typical reaction needing no attention"], correct: 1, explain: "These are classic warning signs of shock, a life-threatening drop in blood flow to the body's organs, and need prompt attention." },
+      { q: "Which tinder source is generally most reliable in damp conditions?", options: ["Green leaves", "Dry inner bark or fatwood shavings", "Wet moss", "The damp outer surface of deadfall branches"], correct: 1, explain: "Dry inner materials protected from rain, like inner bark or fatwood, resist the moisture that ruins exposed surface materials." },
+      { q: "In a shelter-in-place order for a hazardous material release, what should you do?", options: ["Evacuate immediately in any direction", "Move indoors, seal windows/doors, shut off outside-air ventilation", "Open windows for ventilation", "Continue normal outdoor activities"], correct: 1, explain: "Shelter-in-place orders exist to keep you indoors with outside air excluded — evacuating on your own can move you through contaminated areas." },
+      { q: "What is generally the recommended approach to managing limited water in an extended emergency?", options: ["Cut your water intake sharply regardless of activity", "Manage sweat loss and activity rather than drastically cutting intake", "Drink all of it immediately since it won't last anyway", "Avoid all activity and all water until resupply"], correct: 1, explain: "It's generally safer to manage sweat loss (shade, rest, limiting exertion) than to simply reduce how much water you drink, since dehydration compounds problems quickly." },
+      { q: "What is the recommended approach to a suspected broken limb before evacuation?", options: ["Realign it to look normal before splinting", "Splint it in the position found, without forcing realignment", "Have them walk on it to test severity", "Wait for evacuation without splinting at all"], correct: 1, explain: "Splinting a suspected fracture in the position found stabilizes it and reduces further damage, without the risks of forced realignment." }
+    ];
+
+    const QUICK_QUIZ_LENGTH = 5;
+    let quizState = { screen: 'start', questions: [], index: 0, score: 0, answered: false, selectedIndex: null };
+
+    function shuffleArray(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function initQuiz() {
+      renderQuiz();
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+      if (quizState.screen === 'start') container.innerHTML = renderQuizStartHtml();
+      else if (quizState.screen === 'question') container.innerHTML = renderQuizQuestionHtml();
+      else if (quizState.screen === 'results') container.innerHTML = renderQuizResultsHtml();
+    }
+
+    function renderQuizStartHtml() {
+      return `
+        <div class="text-center space-y-4">
+          <div class="text-3xl">❓</div>
+          <h3 class="text-lg font-bold text-brand-gold">Quick Survival Quiz</h3>
+          <p class="text-xs text-amber-200/60">${QUICK_QUIZ_LENGTH} random questions on survival basics, with a short explanation after each answer.</p>
+          <button onclick="startQuickQuiz()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm shadow-lg">
+            START QUIZ
+          </button>
+        </div>`;
+    }
+
+    function startQuickQuiz() {
+      const shuffled = shuffleArray(QUICK_QUIZ_POOL).slice(0, QUICK_QUIZ_LENGTH);
+      const prepared = shuffled.map(item => {
+        const optionOrder = shuffleArray(item.options.map((text, i) => ({ text, isCorrect: i === item.correct })));
+        return { q: item.q, explain: item.explain, options: optionOrder };
+      });
+
+      quizState = { screen: 'question', questions: prepared, index: 0, score: 0, answered: false, selectedIndex: null };
+      renderQuiz();
+    }
+
+    function renderQuizQuestionHtml() {
+      const item = quizState.questions[quizState.index];
+      const num = quizState.index + 1;
+      const total = quizState.questions.length;
+
+      const optionsHtml = item.options.map((opt, i) => {
+        let extraClass = 'border-brand-gold/30 hover:border-brand-gold bg-brand-black/60';
+        let icon = '';
+        if (quizState.answered) {
+          if (i === quizState.selectedIndex && opt.isCorrect) { extraClass = 'border-emerald-500 bg-emerald-500/10'; icon = '✅ '; }
+          else if (i === quizState.selectedIndex && !opt.isCorrect) { extraClass = 'border-red-500 bg-red-500/10'; icon = '❌ '; }
+          else if (opt.isCorrect) { extraClass = 'border-emerald-500/60 bg-emerald-500/5'; icon = '✅ '; }
+          else { extraClass = 'border-brand-gold/10 bg-brand-black/30 opacity-60'; }
+        }
+        return `<button ${quizState.answered ? 'disabled' : ''} onclick="selectQuizAnswer(${i})" class="w-full text-left border ${extraClass} rounded-xl px-4 py-3 text-sm text-amber-100 transition disabled:cursor-default focus:outline-none focus:ring-2 focus:ring-brand-gold">
+          ${icon}${escapeHtml(opt.text)}
+        </button>`;
+      }).join('');
+
+      let feedbackHtml = '';
+      if (quizState.answered) {
+        const correct = item.options[quizState.selectedIndex].isCorrect;
+        feedbackHtml = `
+          <div class="mt-4 p-4 rounded-xl border ${correct ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-red-500/40 bg-red-500/10'} space-y-1.5">
+            <p class="font-bold ${correct ? 'text-emerald-400' : 'text-red-400'} text-sm">${correct ? '✅ CORRECT' : '❌ INCORRECT'}</p>
+            <p class="text-xs text-amber-100/90">${escapeHtml(item.explain)}</p>
+          </div>
+          <button onclick="nextQuizQuestion()" class="w-full mt-4 bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">
+            ${num === total ? 'SEE RESULTS' : 'NEXT QUESTION'}
+          </button>`;
+      }
+
+      return `
+        <div class="space-y-4">
+          <div class="flex justify-between items-center text-xs text-amber-200/60">
+            <span>QUESTION ${num} / ${total}</span>
+            <span>SCORE: ${quizState.score}</span>
+          </div>
+          <div class="w-full bg-brand-black/60 rounded-full h-1.5">
+            <div class="bg-brand-gold h-1.5 rounded-full transition-all" style="width:${(num / total) * 100}%"></div>
+          </div>
+          <h3 class="text-base font-bold text-amber-100">${escapeHtml(item.q)}</h3>
+          <div class="space-y-2">${optionsHtml}</div>
+          ${feedbackHtml}
+        </div>`;
+    }
+
+    function selectQuizAnswer(idx) {
+      if (quizState.answered) return;
+      quizState.answered = true;
+      quizState.selectedIndex = idx;
+      if (quizState.questions[quizState.index].options[idx].isCorrect) quizState.score++;
+      renderQuiz();
+    }
+
+    function nextQuizQuestion() {
+      if (quizState.index < quizState.questions.length - 1) {
+        quizState.index++;
+        quizState.answered = false;
+        quizState.selectedIndex = null;
+        renderQuiz();
+      } else {
+        quizState.screen = 'results';
+        renderQuiz();
+      }
+    }
+
+    function renderQuizResultsHtml() {
+      const total = quizState.questions.length;
+      const pct = Math.round((quizState.score / total) * 100);
+      return `
+        <div class="text-center space-y-3">
+          <h3 class="text-lg font-bold text-brand-gold">QUIZ COMPLETE</h3>
+          <p class="text-3xl font-black text-amber-100">${quizState.score} / ${total}</p>
+          <p class="text-sm font-bold ${pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-300' : 'text-red-400'}">${pct}% CORRECT</p>
+          <button onclick="startQuickQuiz()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm shadow-lg">
+            PLAY AGAIN
+          </button>
+        </div>`;
     }
 
     function toggleLocation() {

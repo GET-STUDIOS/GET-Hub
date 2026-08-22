@@ -153,6 +153,9 @@
           <button id="tab-maps-btn" onclick="switchTab('maps')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
             🗺️ Maps
           </button>
+          <button id="tab-academy-btn" onclick="switchTab('academy')" class="flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap">
+            🎓 Academy
+          </button>
         </div>
       </div>
 
@@ -1431,6 +1434,10 @@
 
       </div>
 
+      <div id="view-academy" class="hidden space-y-4">
+        <div id="academy-root"><p class="text-amber-200/50 text-center py-8 text-xs">Loading Survival Academy...</p></div>
+      </div>
+
     </div>
 
   </main>
@@ -1637,6 +1644,7 @@
       const signalView = document.getElementById('view-signal');
       const chatView = document.getElementById('view-chat');
       const mapsView = document.getElementById('view-maps');
+      const academyView = document.getElementById('view-academy');
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
@@ -1647,6 +1655,7 @@
       const signalBtn = document.getElementById('tab-signal-btn');
       const chatBtn = document.getElementById('tab-chat-btn');
       const mapsBtn = document.getElementById('tab-maps-btn');
+      const academyBtn = document.getElementById('tab-academy-btn');
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
@@ -1657,6 +1666,7 @@
       if (signalView) signalView.classList.add('hidden');
       chatView.classList.add('hidden');
       mapsView.classList.add('hidden');
+      academyView.classList.add('hidden');
 
       const inactiveStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition whitespace-nowrap";
       const activeStyle = "flex-1 md:flex-none px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition whitespace-nowrap";
@@ -1670,6 +1680,7 @@
       if (signalBtn) signalBtn.className = inactiveStyle;
       chatBtn.className = inactiveStyle;
       mapsBtn.className = inactiveStyle;
+      academyBtn.className = inactiveStyle;
 
       if (tabName === 'dashboard') {
         dashboardView.classList.remove('hidden');
@@ -1703,6 +1714,10 @@
         mapsView.classList.remove('hidden');
         mapsBtn.className = activeStyle;
         initMapsModule();
+      } else if (tabName === 'academy') {
+        academyView.classList.remove('hidden');
+        academyBtn.className = activeStyle;
+        initAcademyModule();
       }
     }
 
@@ -2470,6 +2485,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', updateLowPowerButton);
+    document.addEventListener('DOMContentLoaded', injectKnowledgeCheckButtons);
 
     function setReadinessLevel(lvl) {
       const label = document.getElementById('readiness-label');
@@ -3281,6 +3297,753 @@
       document.getElementById('track-start-btn').textContent = 'START';
       document.getElementById('track-pause-btn').disabled = true;
       document.getElementById('track-stop-btn').disabled = true;
+    }
+
+    // ============================================================
+    // GET SURVIVAL ACADEMY MODULE
+    // ============================================================
+
+    // --- Category metadata (read model for UI; category_id also exists as a row in
+    // the quiz_categories table for referential integrity with quiz_questions) ---
+    const ACADEMY_CATEGORIES = [
+      { id: 'wilderness', name: 'Wilderness Survival', icon: '🌲', manualTopic: 'manual-shelter-advanced' },
+      { id: 'navigation', name: 'Navigation', icon: '🧭', manualTopic: 'manual-nav' },
+      { id: 'astronomy', name: 'Astronomy & Celestial Navigation', icon: '🌌', manualTopic: null },
+      { id: 'water', name: 'Water Survival', icon: '💧', manualTopic: 'manual-water' },
+      { id: 'firecraft', name: 'Firecraft', icon: '🔥', manualTopic: 'manual-fire' },
+      { id: 'weather', name: 'Weather & Environment', icon: '🌦️', manualTopic: null },
+      { id: 'sea', name: 'Sea & Coastal Survival', icon: '🌊', manualTopic: null },
+      { id: 'comms', name: 'Communications & Signaling', icon: '📡', manualTopic: 'manual-radio' },
+      { id: 'firstaid', name: 'First Aid & Emergency', icon: '🩹', manualTopic: 'manual-firstaid' },
+      { id: 'tracking', name: 'Tracking & Observation', icon: '🐾', manualTopic: 'manual-tracking' },
+      { id: 'plants', name: 'Plants & Natural Resources', icon: '🌿', manualTopic: 'manual-foraging' },
+      { id: 'knots', name: 'Knots & Cordage', icon: '🪢', manualTopic: 'manual-knots' },
+      { id: 'desert', name: 'Desert Survival', icon: '🏜️', manualTopic: null },
+      { id: 'cold_mountain', name: 'Cold & Mountain Survival', icon: '❄️', manualTopic: null },
+      { id: 'forest_jungle', name: 'Forest / Jungle Survival', icon: '🌴', manualTopic: null },
+      { id: 'vehicle', name: 'Vehicle Survival', icon: '🚗', manualTopic: null },
+      { id: 'urban', name: 'Urban Survival', icon: '🏙️', manualTopic: 'manual-urban' },
+      { id: 'shtf', name: 'SHTF & Disaster Preparedness', icon: '☢️', manualTopic: 'manual-disaster' },
+      { id: 'psychology', name: 'Survival Psychology', icon: '🧠', manualTopic: null },
+      { id: 'get_family', name: 'GET Family Procedures', icon: '👨‍👩‍👧', manualTopic: null }
+    ];
+
+    const ACADEMY_LEVELS = [
+      { name: 'Recruit', minXp: 0 },
+      { name: 'Scout', minXp: 100 },
+      { name: 'Explorer', minXp: 300 },
+      { name: 'Pathfinder', minXp: 600 },
+      { name: 'Bushcrafter', minXp: 1000 },
+      { name: 'Survivalist', minXp: 1500 },
+      { name: 'Field Operator', minXp: 2200 },
+      { name: 'Expedition Leader', minXp: 3000 }
+    ];
+
+    const ACADEMY_XP_PER_DIFFICULTY = { recruit: 10, explorer: 20, survivalist: 30 };
+    const ACADEMY_QUIZ_COMPLETE_XP = 25;
+    const ACADEMY_CATEGORY_COMPLETE_XP = 100;
+    const ACADEMY_SCENARIO_PASS_XP = 100;
+
+    const ACADEMY_QUIZ_LENGTHS = [
+      { key: 'quick', label: 'Quick Quiz', count: 5 },
+      { key: 'standard', label: 'Standard', count: 10 },
+      { key: 'deep', label: 'Deep Training', count: 20 },
+      { key: 'master', label: 'Category Master', count: 25 }
+    ];
+
+    function levelForXp(xp) {
+      let lvl = ACADEMY_LEVELS[0].name;
+      for (const l of ACADEMY_LEVELS) { if (xp >= l.minXp) lvl = l.name; }
+      return lvl;
+    }
+
+    function getNextLevelInfo(xp) {
+      for (const l of ACADEMY_LEVELS) {
+        if (xp < l.minXp) return `${l.minXp - xp} XP to reach ${l.name}`;
+      }
+      return 'Max level reached — Expedition Leader';
+    }
+
+    function shuffleArray(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function getManualTopicForCategory(categoryId) {
+      const cat = ACADEMY_CATEGORIES.find(c => c.id === categoryId);
+      return cat ? cat.manualTopic : null;
+    }
+
+    function jumpToFieldManual(manualSectionId) {
+      switchTab('knowledge');
+      setTimeout(() => {
+        const el = document.getElementById(manualSectionId);
+        if (el) {
+          el.open = true;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+
+    function injectKnowledgeCheckButtons() {
+      ACADEMY_CATEGORIES.forEach(cat => {
+        if (!cat.manualTopic) return;
+        const section = document.getElementById(cat.manualTopic);
+        if (!section) return;
+        const content = section.querySelector('.manual-content');
+        if (!content || content.querySelector('.knowledge-check-btn')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'knowledge-check-btn bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold text-xs py-2 px-4 rounded-lg mb-3 transition';
+        btn.textContent = `🎯 Knowledge Check: Test yourself on ${cat.name}`;
+        btn.onclick = () => { switchTab('academy'); openAcademySetup(cat.id); };
+        content.insertBefore(btn, content.firstChild);
+      });
+    }
+
+    // --- State ---
+    let academyState = {
+      screen: 'dashboard', // dashboard | setup | quiz | results | review | family
+      currentCategoryId: null,
+      currentMode: 'learning', // learning | exam | scenario
+      quizPool: [],
+      quizIndex: 0,
+      quizAnswers: [],
+      currentAttemptId: null,
+      answering: false,
+      lastResultsBreakdown: null,
+      stats: null,
+      familyData: [],
+      familyLoading: false
+    };
+    let academySetupMode = 'learning';
+    let academySetupLength = 10;
+    let academyInitialized = false;
+
+    async function initAcademyModule() {
+      if (!academyInitialized) {
+        academyInitialized = true;
+        const root = document.getElementById('academy-root');
+        if (root) root.innerHTML = `<p class="text-amber-200/50 text-center py-8 text-xs">Loading Survival Academy...</p>`;
+        await loadAcademyStats();
+      }
+      renderAcademy();
+    }
+
+    async function loadAcademyStats() {
+      if (!currentUser) return;
+      try {
+        const { data, error } = await supabaseClient.from('user_training_stats').select('*').eq('user_id', currentUser.id).maybeSingle();
+        if (error) { console.error('Academy stats load error:', error); return; }
+
+        if (data) {
+          academyState.stats = data;
+        } else {
+          const initial = {
+            user_id: currentUser.id,
+            display_name: TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Explorer'),
+            total_xp: 0,
+            level: 'Recruit',
+            questions_attempted: 0,
+            questions_correct: 0,
+            overall_accuracy: 0,
+            category_stats: {},
+            categories_completed: [],
+            updated_at: new Date().toISOString()
+          };
+          const { error: insertError } = await supabaseClient.from('user_training_stats').upsert(initial);
+          if (insertError) console.error('Academy stats init error:', insertError);
+          academyState.stats = initial;
+        }
+      } catch (err) {
+        console.error('Error loading academy stats:', err);
+      }
+    }
+
+    // --- Render dispatcher ---
+    function renderAcademy() {
+      const root = document.getElementById('academy-root');
+      if (!root) return;
+      if (academyState.screen === 'dashboard') root.innerHTML = renderAcademyDashboardHtml();
+      else if (academyState.screen === 'setup') root.innerHTML = renderAcademySetupHtml();
+      else if (academyState.screen === 'quiz') root.innerHTML = renderAcademyQuizHtml();
+      else if (academyState.screen === 'results') root.innerHTML = renderAcademyResultsHtml();
+      else if (academyState.screen === 'review') root.innerHTML = renderAcademyReviewHtml();
+      else if (academyState.screen === 'family') root.innerHTML = renderAcademyFamilyHtml();
+    }
+
+    // --- Dashboard ---
+    function renderAcademyDashboardHtml() {
+      const stats = academyState.stats || { total_xp: 0, level: 'Recruit', questions_attempted: 0, questions_correct: 0, overall_accuracy: 0, category_stats: {} };
+
+      const categoryEntries = Object.entries(stats.category_stats || {}).map(([cId, b]) => {
+        const cat = ACADEMY_CATEGORIES.find(c => c.id === cId);
+        const pct = b.attempted > 0 ? Math.round((b.correct / b.attempted) * 100) : 0;
+        return { id: cId, name: cat ? cat.name : cId, pct, attempted: b.attempted };
+      }).filter(e => e.attempted > 0);
+
+      let recommendation = null;
+      if (categoryEntries.length >= 2) {
+        recommendation = categoryEntries.reduce((a, b) => (b.pct < a.pct ? b : a));
+      }
+
+      const categoryStatsHtml = categoryEntries.length > 0
+        ? categoryEntries.map(e => `
+            <div class="flex justify-between text-xs text-amber-100/90 py-1 border-b border-brand-gold/10 last:border-0">
+              <span>${escapeHtml(e.name)}</span>
+              <span class="font-mono font-bold ${e.pct >= 80 ? 'text-emerald-400' : e.pct >= 50 ? 'text-amber-300' : 'text-red-400'}">${e.pct}%</span>
+            </div>`).join('')
+        : `<p class="text-xs text-amber-200/50 text-center py-2">Complete a quiz to see your category performance here.</p>`;
+
+      const categoryCardsHtml = ACADEMY_CATEGORIES.map(cat => {
+        const catStat = (stats.category_stats || {})[cat.id];
+        const pct = catStat && catStat.attempted > 0 ? Math.round((catStat.correct / catStat.attempted) * 100) : null;
+        return `
+          <button onclick="openAcademySetup('${cat.id}')" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/20 hover:border-brand-gold/50 rounded-xl p-3 text-left transition">
+            <div class="text-xl mb-1">${cat.icon}</div>
+            <p class="text-xs font-bold text-amber-100 leading-tight">${escapeHtml(cat.name)}</p>
+            ${pct !== null ? `<p class="text-[10px] mt-1 font-mono ${pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-300' : 'text-red-400'}">${pct}% accuracy</p>` : `<p class="text-[10px] mt-1 text-amber-200/40">Not started</p>`}
+          </button>`;
+      }).join('');
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg text-center space-y-1">
+          <h2 class="text-xl font-black text-brand-gold tracking-wide">🎓 GET SURVIVAL ACADEMY</h2>
+          <p class="text-xs text-amber-200/60 uppercase tracking-widest">Learn. Practice. Prepare.</p>
+        </section>
+
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div class="bg-brand-brownCard border border-brand-gold/30 rounded-xl p-3 text-center">
+            <p class="text-[9px] text-amber-200/50 uppercase">Level</p>
+            <p class="text-sm font-bold text-brand-gold">${escapeHtml(stats.level || 'Recruit')}</p>
+          </div>
+          <div class="bg-brand-brownCard border border-brand-gold/30 rounded-xl p-3 text-center">
+            <p class="text-[9px] text-amber-200/50 uppercase">Total XP</p>
+            <p class="text-sm font-bold text-brand-gold">${stats.total_xp || 0}</p>
+          </div>
+          <div class="bg-brand-brownCard border border-brand-gold/30 rounded-xl p-3 text-center">
+            <p class="text-[9px] text-amber-200/50 uppercase">Questions</p>
+            <p class="text-sm font-bold text-brand-gold">${stats.questions_attempted || 0}</p>
+          </div>
+          <div class="bg-brand-brownCard border border-brand-gold/30 rounded-xl p-3 text-center">
+            <p class="text-[9px] text-amber-200/50 uppercase">Accuracy</p>
+            <p class="text-sm font-bold text-brand-gold">${stats.overall_accuracy || 0}%</p>
+          </div>
+        </section>
+
+        <p class="text-center text-[11px] text-amber-200/50">${getNextLevelInfo(stats.total_xp || 0)}</p>
+
+        <section class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button onclick="openAcademyFamilyScreen()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg text-xs transition">👨‍👩‍👧 GET TEAM TRAINING</button>
+          <button onclick="startScenarioMode()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg text-xs transition">🎯 SURVIVAL SCENARIOS</button>
+        </section>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg space-y-2">
+          <h3 class="text-sm font-bold text-brand-gold border-b border-brand-gold/20 pb-2">🎯 YOUR TRAINING</h3>
+          ${categoryStatsHtml}
+          ${recommendation ? `
+            <div class="bg-brand-black/60 border border-amber-500/30 rounded-lg p-3 mt-2">
+              <p class="text-[10px] text-amber-200/60 uppercase font-bold">Recommended Training</p>
+              <p class="text-sm font-bold text-amber-300">${escapeHtml(recommendation.name)}</p>
+              <p class="text-[11px] text-amber-200/60 mt-0.5">Your accuracy here (${recommendation.pct}%) is lower than your other completed categories.</p>
+              <button onclick="openAcademySetup('${recommendation.id}')" class="text-[11px] underline text-brand-gold mt-1">Start Training →</button>
+            </div>` : ''}
+        </section>
+
+        <section class="space-y-2">
+          <h3 class="text-sm font-bold text-brand-gold px-1">TRAINING CATEGORIES</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${categoryCardsHtml}</div>
+        </section>
+      `;
+    }
+
+    function openAcademySetup(categoryId) {
+      academyState.currentCategoryId = categoryId;
+      academyState.screen = 'setup';
+      renderAcademy();
+    }
+
+    function renderAcademySetupHtml() {
+      const cat = ACADEMY_CATEGORIES.find(c => c.id === academyState.currentCategoryId);
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <div class="text-center">
+            <div class="text-3xl mb-1">${cat ? cat.icon : '📘'}</div>
+            <h3 class="text-lg font-bold text-brand-gold">${cat ? escapeHtml(cat.name) : 'Training'}</h3>
+          </div>
+
+          <div>
+            <p class="text-xs font-bold text-amber-200/60 uppercase mb-2">Mode</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="academySetupMode='learning'; renderAcademy();" class="py-2.5 rounded-lg text-xs font-bold transition border ${academySetupMode === 'learning' ? 'bg-brand-gold text-brand-black border-brand-gold' : 'bg-brand-black/60 text-amber-100 border-brand-gold/30'}">📚 LEARNING MODE</button>
+              <button onclick="academySetupMode='exam'; renderAcademy();" class="py-2.5 rounded-lg text-xs font-bold transition border ${academySetupMode === 'exam' ? 'bg-brand-gold text-brand-black border-brand-gold' : 'bg-brand-black/60 text-amber-100 border-brand-gold/30'}">📝 EXAM MODE</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-bold text-amber-200/60 uppercase mb-2">Length</p>
+            <div class="grid grid-cols-2 gap-2">
+              ${ACADEMY_QUIZ_LENGTHS.map(l => `
+                <button onclick="academySetupLength=${l.count}; renderAcademy();" class="py-2.5 rounded-lg text-xs font-bold transition border ${academySetupLength === l.count ? 'bg-brand-gold text-brand-black border-brand-gold' : 'bg-brand-black/60 text-amber-100 border-brand-gold/30'}">${l.label}<br><span class="text-[10px] font-normal opacity-70">${l.count} questions</span></button>
+              `).join('')}
+            </div>
+          </div>
+
+          <button onclick="startAcademyQuiz('${academyState.currentCategoryId}', academySetupMode, academySetupLength)" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-3 rounded-lg transition text-sm shadow-lg">
+            START TRAINING
+          </button>
+          <button onclick="academyState.screen='dashboard'; renderAcademy();" class="w-full text-xs text-amber-200/50 hover:text-brand-gold underline">← Back to Academy</button>
+        </section>
+      `;
+    }
+
+    // --- Quiz engine ---
+    async function fetchQuestionPool(categoryId, questionType) {
+      try {
+        let query = supabaseClient.from('quiz_questions').select('*, quiz_options(*)').eq('question_type', questionType);
+        if (categoryId) query = query.eq('category_id', categoryId);
+        const { data, error } = await query;
+        if (error) { console.error('Question fetch error:', error); return []; }
+        return data || [];
+      } catch (err) {
+        console.error('Error fetching questions:', err);
+        return [];
+      }
+    }
+
+    async function startAcademyQuiz(categoryId, mode, count) {
+      const root = document.getElementById('academy-root');
+      if (root) root.innerHTML = `<p class="text-amber-200/50 text-center py-8 text-xs">Preparing your training session...</p>`;
+
+      const qType = mode === 'scenario' ? 'scenario' : 'standard';
+      const pool = await fetchQuestionPool(categoryId, qType);
+
+      if (pool.length === 0) {
+        academyState.screen = 'dashboard';
+        renderAcademy();
+        alert('No questions are available for this yet — check back after more are added, or try another category.');
+        return;
+      }
+
+      const shuffled = shuffleArray(pool).slice(0, count || pool.length).map(q => ({
+        ...q,
+        quiz_options: shuffleArray(q.quiz_options || [])
+      }));
+
+      academyState.currentCategoryId = categoryId;
+      academyState.currentMode = mode;
+      academyState.quizPool = shuffled;
+      academyState.quizIndex = 0;
+      academyState.quizAnswers = [];
+      academyState.answering = false;
+
+      let attemptId = null;
+      try {
+        const { data: attempt, error } = await supabaseClient.from('quiz_attempts').insert({
+          user_id: currentUser.id,
+          category_id: categoryId,
+          mode,
+          total_questions: shuffled.length
+        }).select().single();
+        if (error) console.error('Attempt create error:', error);
+        attemptId = attempt ? attempt.id : null;
+      } catch (err) {
+        console.error('Error creating attempt:', err);
+      }
+      academyState.currentAttemptId = attemptId;
+
+      academyState.screen = 'quiz';
+      renderAcademy();
+    }
+
+    function startScenarioMode() {
+      startAcademyQuiz(null, 'scenario', 10);
+    }
+
+    function renderScenarioContextBox(ctx) {
+      const rows = [
+        ['⏰ Time', ctx.time], ['🌦️ Weather', ctx.weather], ['🌡️ Temp', ctx.temperature],
+        ['💧 Water', ctx.water], ['🌒 Daylight', ctx.daylight], ['📡 GPS', ctx.gps],
+        ['🧭 Compass', ctx.compass], ['⛺ Shelter', ctx.shelter]
+      ].filter(([, v]) => v !== undefined && v !== null && v !== '');
+      if (rows.length === 0) return '';
+      return `
+        <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
+          ${rows.map(([label, val]) => `<div><p class="text-amber-200/50">${label}</p><p class="text-amber-100 font-semibold">${escapeHtml(String(val))}</p></div>`).join('')}
+        </div>`;
+    }
+
+    function renderAcademyQuizHtml() {
+      const q = academyState.quizPool[academyState.quizIndex];
+      if (!q) return `<p class="text-amber-200/50 text-center py-8 text-xs">No question to show.</p>`;
+
+      const total = academyState.quizPool.length;
+      const num = academyState.quizIndex + 1;
+      const diffBadgeMap = {
+        recruit: ['🟢 RECRUIT', 'text-emerald-400'],
+        explorer: ['🟡 EXPLORER', 'text-amber-300'],
+        survivalist: ['🔴 SURVIVALIST', 'text-red-400']
+      };
+      const diffBadge = diffBadgeMap[q.difficulty] || ['', ''];
+
+      const scenarioBox = (q.question_type === 'scenario' && q.scenario_context) ? renderScenarioContextBox(q.scenario_context) : '';
+      const answered = academyState.quizAnswers[academyState.quizIndex];
+      const showFeedback = answered && academyState.currentMode !== 'exam';
+
+      const optionsHtml = (q.quiz_options || []).map(opt => {
+        let extraClass = 'border-brand-gold/30 hover:border-brand-gold bg-brand-black/60';
+        let icon = '';
+        if (answered) {
+          if (opt.id === answered.selectedOptionId && opt.is_correct) { extraClass = 'border-emerald-500 bg-emerald-500/10'; icon = '✅ '; }
+          else if (opt.id === answered.selectedOptionId && !opt.is_correct) { extraClass = 'border-red-500 bg-red-500/10'; icon = '❌ '; }
+          else if (opt.is_correct && showFeedback) { extraClass = 'border-emerald-500/60 bg-emerald-500/5'; icon = '✅ '; }
+          else { extraClass = 'border-brand-gold/10 bg-brand-black/30 opacity-60'; }
+        }
+        return `<button ${answered ? 'disabled' : ''} aria-pressed="${opt.id === (answered && answered.selectedOptionId)}" onclick="selectAcademyAnswer('${opt.id}')" class="w-full text-left border ${extraClass} rounded-xl px-4 py-3 text-sm text-amber-100 transition disabled:cursor-default focus:outline-none focus:ring-2 focus:ring-brand-gold">
+          ${icon}${escapeHtml(opt.option_text)}
+        </button>`;
+      }).join('');
+
+      let feedbackHtml = '';
+      if (showFeedback) {
+        const chosenOpt = (q.quiz_options || []).find(o => o.id === answered.selectedOptionId);
+        const manualTopic = getManualTopicForCategory(q.category_id);
+        feedbackHtml = `
+          <div class="mt-4 p-4 rounded-xl border ${answered.correct ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-red-500/40 bg-red-500/10'} space-y-2">
+            <p class="font-bold ${answered.correct ? 'text-emerald-400' : 'text-red-400'} text-sm">${answered.correct ? '✅ CORRECT' : '❌ INCORRECT'}</p>
+            <p class="text-xs text-amber-100/90">${escapeHtml(chosenOpt && chosenOpt.explanation ? chosenOpt.explanation : (q.explanation || ''))}</p>
+            ${q.field_tip ? `<p class="text-xs text-brand-gold/90"><strong>💡 FIELD TIP:</strong> ${escapeHtml(q.field_tip)}</p>` : ''}
+            ${(!answered.correct && manualTopic) ? `<button onclick="jumpToFieldManual('${manualTopic}')" class="text-xs underline text-brand-gold mt-1">📖 REVIEW FIELD MANUAL</button>` : ''}
+          </div>
+          <button onclick="nextAcademyQuestion()" class="w-full mt-4 bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">
+            ${num === total ? 'FINISH TRAINING' : 'NEXT QUESTION'}
+          </button>`;
+      }
+
+      return `
+        <div class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <div class="flex justify-between items-center text-xs text-amber-200/60">
+            <span>QUESTION ${num} / ${total}</span>
+            <span class="font-bold ${diffBadge[1]}">${diffBadge[0]}</span>
+          </div>
+          <div class="w-full bg-brand-black/60 rounded-full h-1.5">
+            <div class="bg-brand-gold h-1.5 rounded-full transition-all" style="width:${(num / total) * 100}%"></div>
+          </div>
+          ${scenarioBox}
+          <h3 class="text-base font-bold text-amber-100">${escapeHtml(q.question)}</h3>
+          <div class="space-y-2" role="group" aria-label="Answer options">${optionsHtml}</div>
+          ${feedbackHtml}
+        </div>
+        <button onclick="exitAcademyQuiz()" class="text-xs text-amber-200/50 hover:text-brand-gold mt-3 underline">Exit to Academy</button>
+      `;
+    }
+
+    async function selectAcademyAnswer(optionId) {
+      const idx = academyState.quizIndex;
+      if (academyState.answering || academyState.quizAnswers[idx]) return;
+      academyState.answering = true;
+
+      const q = academyState.quizPool[idx];
+      const opt = (q.quiz_options || []).find(o => o.id === optionId);
+      const correct = !!(opt && opt.is_correct);
+
+      academyState.quizAnswers[idx] = { questionId: q.id, selectedOptionId: optionId, correct };
+
+      if (academyState.currentAttemptId) {
+        supabaseClient.from('quiz_answers').insert({
+          attempt_id: academyState.currentAttemptId,
+          question_id: q.id,
+          selected_option_id: optionId,
+          correct
+        }).then(({ error }) => { if (error) console.error('Answer save error:', error); });
+      }
+
+      renderAcademy();
+      academyState.answering = false;
+
+      if (academyState.currentMode === 'exam') {
+        setTimeout(() => { nextAcademyQuestion(); }, 450);
+      }
+    }
+
+    function nextAcademyQuestion() {
+      if (academyState.quizIndex < academyState.quizPool.length - 1) {
+        academyState.quizIndex++;
+        renderAcademy();
+      } else {
+        finishAcademyQuiz();
+      }
+    }
+
+    function exitAcademyQuiz() {
+      if (!confirm('Exit this training session? Progress on this attempt will be lost.')) return;
+      academyState.screen = 'dashboard';
+      renderAcademy();
+    }
+
+    async function finishAcademyQuiz() {
+      const answers = academyState.quizAnswers;
+      const pool = academyState.quizPool;
+      const correctCount = answers.filter(a => a && a.correct).length;
+      const total = pool.length;
+
+      let xpEarned = 0;
+      answers.forEach((a, i) => {
+        if (a && a.correct) xpEarned += ACADEMY_XP_PER_DIFFICULTY[pool[i].difficulty] || 10;
+      });
+      xpEarned += ACADEMY_QUIZ_COMPLETE_XP;
+
+      const breakdown = {};
+      pool.forEach((q, i) => {
+        const cId = q.category_id;
+        if (!breakdown[cId]) breakdown[cId] = { attempted: 0, correct: 0 };
+        breakdown[cId].attempted++;
+        if (answers[i] && answers[i].correct) breakdown[cId].correct++;
+      });
+
+      const stats = academyState.stats || { total_xp: 0, questions_attempted: 0, questions_correct: 0, category_stats: {}, categories_completed: [] };
+      const categoriesCompleted = new Set(stats.categories_completed || []);
+      Object.keys(breakdown).forEach(cId => {
+        if (!categoriesCompleted.has(cId)) {
+          categoriesCompleted.add(cId);
+          xpEarned += ACADEMY_CATEGORY_COMPLETE_XP;
+        }
+      });
+
+      const scorePct = total > 0 ? correctCount / total : 0;
+      if (academyState.currentMode === 'scenario' && scorePct >= 0.7) xpEarned += ACADEMY_SCENARIO_PASS_XP;
+
+      const mergedCategoryStats = { ...(stats.category_stats || {}) };
+      Object.keys(breakdown).forEach(cId => {
+        const prev = mergedCategoryStats[cId] || { attempted: 0, correct: 0 };
+        mergedCategoryStats[cId] = { attempted: prev.attempted + breakdown[cId].attempted, correct: prev.correct + breakdown[cId].correct };
+      });
+
+      const newQuestionsAttempted = (stats.questions_attempted || 0) + total;
+      const newQuestionsCorrect = (stats.questions_correct || 0) + correctCount;
+      const newTotalXp = (stats.total_xp || 0) + xpEarned;
+      const newAccuracy = newQuestionsAttempted > 0 ? Math.round((newQuestionsCorrect / newQuestionsAttempted) * 100) : 0;
+
+      const updatedStats = {
+        user_id: currentUser.id,
+        display_name: TEAM_MEMBERS_MAP[currentUserEmail] || currentUserEmail,
+        total_xp: newTotalXp,
+        level: levelForXp(newTotalXp),
+        questions_attempted: newQuestionsAttempted,
+        questions_correct: newQuestionsCorrect,
+        overall_accuracy: newAccuracy,
+        category_stats: mergedCategoryStats,
+        categories_completed: Array.from(categoriesCompleted),
+        updated_at: new Date().toISOString()
+      };
+
+      try {
+        const { error: statsError } = await supabaseClient.from('user_training_stats').upsert(updatedStats);
+        if (statsError) console.error('Stats update error:', statsError);
+      } catch (err) { console.error('Error saving stats:', err); }
+      academyState.stats = updatedStats;
+
+      if (academyState.currentAttemptId) {
+        try {
+          const { error: attemptError } = await supabaseClient.from('quiz_attempts').update({
+            score: correctCount,
+            total_questions: total,
+            xp_earned: xpEarned,
+            completed_at: new Date().toISOString()
+          }).eq('id', academyState.currentAttemptId);
+          if (attemptError) console.error('Attempt update error:', attemptError);
+        } catch (err) { console.error('Error updating attempt:', err); }
+      }
+
+      academyState.lastResultsBreakdown = { correctCount, total, xpEarned, breakdown, scorePct };
+      academyState.screen = 'results';
+      renderAcademy();
+    }
+
+    function renderAcademyResultsHtml() {
+      const r = academyState.lastResultsBreakdown;
+      if (!r) return `<p class="text-amber-200/50 text-center py-8 text-xs">No results to show.</p>`;
+
+      const pct = Math.round(r.scorePct * 100);
+      const breakdownEntries = Object.entries(r.breakdown).map(([cId, b]) => {
+        const cat = ACADEMY_CATEGORIES.find(c => c.id === cId);
+        const catPct = b.attempted > 0 ? Math.round((b.correct / b.attempted) * 100) : 0;
+        return { id: cId, name: cat ? cat.name : cId, pct: catPct };
+      });
+
+      let strong = null, weak = null;
+      if (breakdownEntries.length > 1) {
+        strong = breakdownEntries.reduce((a, b) => (b.pct > a.pct ? b : a));
+        weak = breakdownEntries.reduce((a, b) => (b.pct < a.pct ? b : a));
+        if (strong.id === weak.id) { strong = null; weak = null; }
+      }
+
+      const breakdownHtml = breakdownEntries.map(b => `
+        <div class="flex justify-between text-xs text-amber-100/90 py-1">
+          <span>${escapeHtml(b.name)}</span>
+          <span class="font-mono font-bold ${b.pct >= 80 ? 'text-emerald-400' : b.pct >= 50 ? 'text-amber-300' : 'text-red-400'}">${b.pct}%</span>
+        </div>`).join('');
+
+      return `
+        <div class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg text-center space-y-3">
+          <h3 class="text-lg font-bold text-brand-gold">TRAINING COMPLETE</h3>
+          <p class="text-3xl font-black text-amber-100">${r.correctCount} / ${r.total}</p>
+          <p class="text-sm font-bold ${pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-300' : 'text-red-400'}">${pct}% ACCURACY</p>
+          <p class="text-brand-gold font-bold">+${r.xpEarned} XP</p>
+
+          <div class="text-left border-t border-brand-gold/20 pt-3 mt-2">
+            <p class="text-xs font-bold text-amber-200/60 uppercase mb-1">Performance</p>
+            ${breakdownHtml}
+          </div>
+
+          ${strong ? `<p class="text-xs text-emerald-400 mt-2">🏆 Strong Area: <strong>${escapeHtml(strong.name)}</strong></p>` : ''}
+          ${weak ? `<p class="text-xs text-amber-300">📚 Needs Practice: <strong>${escapeHtml(weak.name)}</strong></p>` : ''}
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3">
+            ${r.correctCount < r.total ? `<button onclick="academyState.screen='review'; renderAcademy();" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg text-xs transition">REVIEW MISTAKES</button>` : ''}
+            <button onclick="practiceWeakAreas()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg text-xs transition">PRACTICE WEAK AREAS</button>
+            <button onclick="retryLastQuiz()" class="bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg text-xs transition">RETRY QUIZ</button>
+            <button onclick="academyState.screen='dashboard'; renderAcademy();" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg text-xs transition">RETURN TO ACADEMY</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAcademyReviewHtml() {
+      const pool = academyState.quizPool;
+      const answers = academyState.quizAnswers;
+      const items = pool.map((q, i) => ({ q, a: answers[i] })).filter(x => x.a && !x.a.correct);
+
+      if (items.length === 0) {
+        return `<div class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl text-center text-xs text-amber-200/60">No mistakes to review — great work!
+          <button onclick="academyState.screen='results'; renderAcademy();" class="block mx-auto mt-4 bg-brand-gold text-brand-black font-bold py-2 px-4 rounded-lg text-xs">BACK TO RESULTS</button>
+        </div>`;
+      }
+
+      const itemsHtml = items.map(({ q, a }) => {
+        const chosen = (q.quiz_options || []).find(o => o.id === a.selectedOptionId);
+        const correctOpt = (q.quiz_options || []).find(o => o.is_correct);
+        const manualTopic = getManualTopicForCategory(q.category_id);
+        return `
+          <div class="bg-brand-black/60 border border-brand-gold/20 rounded-xl p-4 space-y-1.5">
+            <p class="font-bold text-amber-100 text-sm">${escapeHtml(q.question)}</p>
+            <p class="text-xs text-red-400">Your answer: ${escapeHtml(chosen ? chosen.option_text : '—')}</p>
+            <p class="text-xs text-emerald-400">Correct answer: ${escapeHtml(correctOpt ? correctOpt.option_text : '—')}</p>
+            <p class="text-xs text-amber-100/80">${escapeHtml(q.explanation || '')}</p>
+            ${q.field_tip ? `<p class="text-xs text-brand-gold/90"><strong>💡 TIP:</strong> ${escapeHtml(q.field_tip)}</p>` : ''}
+            ${manualTopic ? `<button onclick="jumpToFieldManual('${manualTopic}')" class="text-[11px] underline text-brand-gold">📖 Review Field Manual</button>` : ''}
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="space-y-3">
+          <h3 class="text-lg font-bold text-brand-gold">REVIEW MISTAKES</h3>
+          ${itemsHtml}
+          <button onclick="academyState.screen='results'; renderAcademy();" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg text-xs transition">BACK TO RESULTS</button>
+        </div>`;
+    }
+
+    function retryLastQuiz() {
+      startAcademyQuiz(academyState.currentCategoryId, academyState.currentMode, academyState.quizPool.length);
+    }
+
+    async function practiceWeakAreas() {
+      if (!currentUser) return;
+      const root = document.getElementById('academy-root');
+      if (root) root.innerHTML = `<p class="text-amber-200/50 text-center py-8 text-xs">Gathering questions you've missed before...</p>`;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('quiz_answers')
+          .select('question_id, quiz_questions(*, quiz_options(*))')
+          .eq('correct', false);
+
+        if (error) {
+          console.error('Weak-area fetch error:', error);
+          academyState.screen = 'dashboard';
+          renderAcademy();
+          alert('Could not load your missed questions right now.');
+          return;
+        }
+
+        const uniqueMap = {};
+        (data || []).forEach(row => { if (row.quiz_questions) uniqueMap[row.question_id] = row.quiz_questions; });
+        const pool = Object.values(uniqueMap);
+
+        if (pool.length === 0) {
+          academyState.screen = 'dashboard';
+          renderAcademy();
+          alert("You don't have any missed questions on record yet — nice work! Try a new category instead.");
+          return;
+        }
+
+        const shuffled = shuffleArray(pool).slice(0, Math.min(15, pool.length)).map(q => ({ ...q, quiz_options: shuffleArray(q.quiz_options || []) }));
+
+        academyState.currentCategoryId = null;
+        academyState.currentMode = 'learning';
+        academyState.quizPool = shuffled;
+        academyState.quizIndex = 0;
+        academyState.quizAnswers = [];
+
+        const { data: attempt, error: attemptErr } = await supabaseClient.from('quiz_attempts').insert({
+          user_id: currentUser.id,
+          category_id: null,
+          mode: 'learning',
+          total_questions: shuffled.length
+        }).select().single();
+        if (attemptErr) console.error('Attempt create error:', attemptErr);
+        academyState.currentAttemptId = attempt ? attempt.id : null;
+
+        academyState.screen = 'quiz';
+        renderAcademy();
+      } catch (err) {
+        console.error('Error building weak-area quiz:', err);
+      }
+    }
+
+    async function openAcademyFamilyScreen() {
+      academyState.screen = 'family';
+      academyState.familyLoading = true;
+      renderAcademy();
+
+      try {
+        const { data, error } = await supabaseClient.from('family_training_leaderboard').select('*');
+        academyState.familyData = error ? [] : (data || []);
+        if (error) console.error('Family leaderboard error:', error);
+      } catch (err) {
+        console.error('Error loading family leaderboard:', err);
+        academyState.familyData = [];
+      }
+      academyState.familyLoading = false;
+      renderAcademy();
+    }
+
+    function renderAcademyFamilyHtml() {
+      if (academyState.familyLoading) {
+        return `<p class="text-amber-200/50 text-center py-8 text-xs">Loading team training...</p>`;
+      }
+      const familyData = academyState.familyData || [];
+      const known = Object.values(TEAM_MEMBERS_MAP);
+
+      const itemsHtml = known.map(name => {
+        const row = familyData.find(r => (r.display_name || '').toLowerCase() === name.toLowerCase());
+        return `
+          <div class="flex justify-between items-center bg-brand-black/60 border border-brand-gold/20 rounded-xl p-3">
+            <span class="font-bold text-amber-100 text-sm">${escapeHtml(name)}</span>
+            ${row ? `<span class="text-xs font-mono text-brand-gold">${escapeHtml(row.level)} · ${row.total_xp} XP</span>` : `<span class="text-xs text-amber-200/40">Not started yet</span>`}
+          </div>`;
+      }).join('');
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-3">
+          <h3 class="text-lg font-bold text-brand-gold border-b border-brand-gold/20 pb-3">👨‍👩‍👧 GET TEAM TRAINING</h3>
+          <div class="space-y-2">${itemsHtml}</div>
+          <button onclick="academyState.screen='dashboard'; renderAcademy();" class="w-full text-xs text-amber-200/50 hover:text-brand-gold underline mt-2">← Back to Academy</button>
+        </section>`;
     }
 
     function toggleLocation() {

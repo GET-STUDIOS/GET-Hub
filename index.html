@@ -39,7 +39,7 @@
     }
 
     /* Alternate color themes — same variable set as the original (default) theme,
-       so every existing bg-brand-*/border-brand-*/text-brand-* class picks these up
+       so every existing bg-brand, border-brand, and text-brand class picks these up
        automatically. Only accent + card/background hues change; --brand-black stays
        constant across themes since it's used for small neutral UI elements. */
     html.theme-pink {
@@ -59,6 +59,18 @@
       --brand-goldLight: 229 231 235; /* #E5E7EB */
       --brand-brownDark: 31 31 34;    /* #1F1F22 */
       --brand-brownCard: 44 44 48;    /* #2C2C30 */
+    }
+    html.theme-red {
+      --brand-gold: 248 113 113;      /* #F87171 */
+      --brand-goldLight: 252 165 165; /* #FCA5A5 */
+      --brand-brownDark: 40 12 12;    /* #280C0C */
+      --brand-brownCard: 56 18 18;    /* #381212 */
+    }
+    html.theme-blue {
+      --brand-gold: 96 165 250;       /* #60A5FA */
+      --brand-goldLight: 147 197 253; /* #93C5FD */
+      --brand-brownDark: 12 22 40;    /* #0C1628 */
+      --brand-brownCard: 18 32 56;    /* #122038 */
     }
 
     /* Low Power Mode: true black backgrounds (saves real battery on OLED screens)
@@ -122,6 +134,12 @@
             </button>
             <button onclick="setColorTheme('grey')" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-amber-100 hover:bg-brand-brownCard transition">
               <span class="w-4 h-4 rounded-full flex-shrink-0" style="background:#D1D5DB;"></span> Grey
+            </button>
+            <button onclick="setColorTheme('red')" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-amber-100 hover:bg-brand-brownCard transition">
+              <span class="w-4 h-4 rounded-full flex-shrink-0" style="background:#F87171;"></span> Red
+            </button>
+            <button onclick="setColorTheme('blue')" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-amber-100 hover:bg-brand-brownCard transition">
+              <span class="w-4 h-4 rounded-full flex-shrink-0" style="background:#60A5FA;"></span> Blue
             </button>
           </div>
         </div>
@@ -2804,7 +2822,7 @@
       }
     };
 
-    const COLOR_THEMES = ['pink', 'green', 'grey']; // 'original' means no theme-* class
+    const COLOR_THEMES = ['pink', 'green', 'grey', 'red', 'blue']; // 'original' means no theme-* class
 
     function toggleThemeDropdown() {
       const dropdown = document.getElementById('theme-dropdown');

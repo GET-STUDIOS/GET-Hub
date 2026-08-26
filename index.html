@@ -224,6 +224,9 @@
           <button id="tab-quiz-btn" onclick="switchTab('quiz')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             ❓ Quick Quiz
           </button>
+          <button id="tab-achievements-btn" onclick="switchTab('achievements')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
+            🏅 Achievements
+          </button>
         </div>
       </div>
 
@@ -232,6 +235,23 @@
         <div class="flex flex-col items-center justify-center py-4">
           <img src="./Logo.png.png" alt="GET Logo" class="h-32 sm:h-40 object-contain drop-shadow-lg" onError="this.onerror=null; this.src='https://placehold.co/256x256/3A2415/D4AF37?text=GET';" />
         </div>
+
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg space-y-3">
+          <div class="flex justify-between items-center border-b border-brand-gold/20 pb-2">
+            <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2"><span>📢</span> GET Hub Updates</h3>
+            <button onclick="toggleUpdateForm()" class="text-xs bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-1.5 px-3 rounded-lg transition">+ Post Update</button>
+          </div>
+
+          <div id="update-form-section" class="hidden space-y-2 bg-brand-black/60 p-3 rounded-xl border border-brand-gold/20">
+            <input type="text" id="update-title-input" placeholder="Update title" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold" />
+            <textarea id="update-message-input" rows="2" placeholder="What changed?" class="w-full bg-brand-black border border-brand-gold/40 rounded-lg px-3 py-2 text-xs text-amber-100 focus:outline-none focus:border-brand-gold resize-none"></textarea>
+            <button onclick="postHubUpdate()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition">Post Update</button>
+          </div>
+
+          <div id="hub-updates-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+            <p class="text-amber-200/50 text-center py-3 text-xs">Loading updates...</p>
+          </div>
+        </section>
 
         <section class="bg-brand-brownCard border border-brand-gold/30 p-4 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div class="flex items-center space-x-3">
@@ -1860,6 +1880,10 @@
         </section>
       </div>
 
+      <div id="view-achievements" class="hidden space-y-4">
+        <div id="achievements-root"><p class="text-amber-200/50 text-center py-8 text-xs">Loading achievements...</p></div>
+      </div>
+
     </div>
 
   </main>
@@ -2067,6 +2091,7 @@
       const chatView = document.getElementById('view-chat');
       const mapsView = document.getElementById('view-maps');
       const quizView = document.getElementById('view-quiz');
+      const achievementsView = document.getElementById('view-achievements');
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
@@ -2078,6 +2103,7 @@
       const chatBtn = document.getElementById('tab-chat-btn');
       const mapsBtn = document.getElementById('tab-maps-btn');
       const quizBtn = document.getElementById('tab-quiz-btn');
+      const achievementsBtn = document.getElementById('tab-achievements-btn');
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
@@ -2089,6 +2115,7 @@
       chatView.classList.add('hidden');
       mapsView.classList.add('hidden');
       quizView.classList.add('hidden');
+      achievementsView.classList.add('hidden');
 
       const inactiveStyle = "px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center";
       const activeStyle = "px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition text-center";
@@ -2103,10 +2130,12 @@
       chatBtn.className = inactiveStyle;
       mapsBtn.className = inactiveStyle;
       quizBtn.className = inactiveStyle;
+      achievementsBtn.className = inactiveStyle;
 
       if (tabName === 'dashboard') {
         dashboardView.classList.remove('hidden');
         dashboardBtn.className = activeStyle;
+        loadHubUpdates();
       } else if (tabName === 'inventory') {
         inventoryView.classList.remove('hidden');
         inventoryBtn.className = activeStyle;
@@ -2140,6 +2169,10 @@
         quizView.classList.remove('hidden');
         quizBtn.className = activeStyle;
         initQuiz();
+      } else if (tabName === 'achievements') {
+        achievementsView.classList.remove('hidden');
+        achievementsBtn.className = activeStyle;
+        initAchievementsModule();
       }
     }
 
@@ -3901,6 +3934,226 @@
             PLAY AGAIN
           </button>
         </div>`;
+    }
+
+    // ============================================================
+    // HUB UPDATES (Dashboard widget)
+    // ============================================================
+
+    async function loadHubUpdates() {
+      const container = document.getElementById('hub-updates-list');
+      try {
+        const { data, error } = await supabaseClient.from('hub_updates').select('*').order('created_at', { ascending: false }).limit(20);
+        if (error) {
+          console.error('Hub updates load error:', error);
+          if (container) container.innerHTML = `<p class="text-red-400 text-center py-3 text-xs">Could not load updates: ${escapeHtml(error.message)}</p>`;
+          return;
+        }
+        renderHubUpdates(data || []);
+      } catch (err) {
+        console.error('Error loading hub updates:', err);
+      }
+    }
+
+    function renderHubUpdates(updates) {
+      const container = document.getElementById('hub-updates-list');
+      if (!container) return;
+      if (updates.length === 0) {
+        container.innerHTML = `<p class="text-amber-200/50 text-center py-3 text-xs">No updates posted yet — be the first to post one.</p>`;
+        return;
+      }
+      container.innerHTML = updates.map(u => `
+        <div class="bg-brand-black/60 border border-brand-gold/20 rounded-lg p-3 flex justify-between items-start gap-2">
+          <div class="min-w-0">
+            <p class="font-bold text-amber-100 text-xs">${escapeHtml(u.title)}</p>
+            <p class="text-[11px] text-amber-200/70 mt-0.5">${escapeHtml(u.message)}</p>
+            <p class="text-[9px] text-amber-200/40 mt-1">${u.posted_by ? escapeHtml(u.posted_by) + ' · ' : ''}${new Date(u.created_at).toLocaleString()}</p>
+          </div>
+          <button onclick="deleteHubUpdate('${u.id}')" class="text-amber-200/40 hover:text-red-400 text-xs flex-shrink-0" title="Delete update">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function toggleUpdateForm() {
+      const section = document.getElementById('update-form-section');
+      if (section) section.classList.toggle('hidden');
+    }
+
+    async function postHubUpdate() {
+      const titleEl = document.getElementById('update-title-input');
+      const msgEl = document.getElementById('update-message-input');
+      const title = titleEl.value.trim();
+      const message = msgEl.value.trim();
+      if (!title || !message) { alert('Please fill in both a title and a message.'); return; }
+
+      const { error } = await supabaseClient.from('hub_updates').insert({
+        title,
+        message,
+        posted_by: TEAM_MEMBERS_MAP[currentUserEmail] || (currentUserEmail ? currentUserEmail.split('@')[0] : 'Unknown')
+      });
+      if (error) {
+        console.error('Post update error:', error);
+        alert('Could not post update: ' + error.message);
+        return;
+      }
+
+      titleEl.value = '';
+      msgEl.value = '';
+      const section = document.getElementById('update-form-section');
+      if (section) section.classList.add('hidden');
+      loadHubUpdates();
+    }
+
+    async function deleteHubUpdate(id) {
+      if (!confirm('Delete this update?')) return;
+      const { error } = await supabaseClient.from('hub_updates').delete().eq('id', id);
+      if (error) {
+        console.error('Delete update error:', error);
+        alert('Could not delete update: ' + error.message);
+        return;
+      }
+      loadHubUpdates();
+    }
+
+    // ============================================================
+    // ACHIEVEMENTS / BADGES MODULE
+    // ============================================================
+
+    const ACHIEVEMENTS_LIST = [
+      { id: 'firestarter', name: 'Firestarter', icon: '🔥', category: 'Fire', description: 'Made a fire using a ferro rod or flint and steel.' },
+      { id: 'fire_keeper', name: 'Fire Keeper', icon: '🪵', category: 'Fire', description: 'Kept a fire burning through a full night.' },
+      { id: 'water_purifier', name: 'Water Purifier', icon: '💧', category: 'Water', description: 'Purified water in the field by boiling or filtering.' },
+      { id: 'water_finder', name: 'Water Finder', icon: '🏞', category: 'Water', description: 'Located a natural water source.' },
+      { id: 'shelter_builder', name: 'Shelter Builder', icon: '⛺', category: 'Shelter', description: 'Built a debris hut, lean-to, or A-frame shelter.' },
+      { id: 'woodsman', name: 'Woodsman', icon: '🪓', category: 'Shelter', description: 'Collected and prepared a full night\'s firewood supply.' },
+      { id: 'compass_reader', name: 'Compass Reader', icon: '🧭', category: 'Navigation', description: 'Successfully navigated using a map and compass.' },
+      { id: 'star_navigator', name: 'Star Navigator', icon: '🌌', category: 'Navigation', description: 'Found true north using the stars.' },
+      { id: 'knot_master', name: 'Knot Master', icon: '🪢', category: 'Knots', description: 'Tied and correctly used 5 different knots.' },
+      { id: 'rope_rigger', name: 'Rope Rigger', icon: '⛰', category: 'Knots', description: 'Set up a tarp or shelter using proper knots.' },
+      { id: 'first_responder', name: 'First Responder', icon: '🩹', category: 'First Aid', description: 'Practiced basic first aid and bandaging.' },
+      { id: 'steady_hands', name: 'Steady Hands', icon: '🧰', category: 'First Aid', description: 'Completed a full first-aid kit check.' },
+      { id: 'signal_sender', name: 'Signal Sender', icon: '📡', category: 'Signaling', description: 'Successfully sent a whistle or mirror signal.' },
+      { id: 'morse_apprentice', name: 'Morse Apprentice', icon: '📯', category: 'Signaling', description: 'Sent a message using Morse code.' },
+      { id: 'tracker', name: 'Tracker', icon: '🐾', category: 'Field Skills', description: 'Identified an animal track in the field.' },
+      { id: 'forager', name: 'Forager', icon: '🌿', category: 'Field Skills', description: 'Correctly identified 3 edible plants with an adult.' },
+      { id: 'team_player', name: 'Team Player', icon: '👪', category: 'Family', description: 'Took part in a full family readiness drill.' },
+      { id: 'quiz_whiz', name: 'Quiz Whiz', icon: '🎓', category: 'Family', description: 'Scored 100% on a Quick Quiz or Academy exam.' }
+    ];
+
+    let achievementsState = { selectedMember: null, unlockedMap: {} };
+
+    async function initAchievementsModule() {
+      if (!achievementsState.selectedMember) {
+        achievementsState.selectedMember = TEAM_MEMBERS_MAP[currentUserEmail] || Object.values(TEAM_MEMBERS_MAP)[0];
+      }
+      const root = document.getElementById('achievements-root');
+      if (root) root.innerHTML = `<p class="text-amber-200/50 text-center py-8 text-xs">Loading achievements...</p>`;
+      await loadAchievements();
+      renderAchievements();
+    }
+
+    async function loadAchievements() {
+      try {
+        const { data, error } = await supabaseClient.from('user_achievements').select('*');
+        if (error) { console.error('Achievements load error:', error); return; }
+        const map = {};
+        (data || []).forEach(row => {
+          if (!map[row.member_name]) map[row.member_name] = {};
+          map[row.member_name][row.achievement_id] = row.unlocked_at;
+        });
+        achievementsState.unlockedMap = map;
+      } catch (err) {
+        console.error('Error loading achievements:', err);
+      }
+    }
+
+    function selectAchievementMember(name) {
+      achievementsState.selectedMember = name;
+      renderAchievements();
+    }
+
+    function renderAchievements() {
+      const root = document.getElementById('achievements-root');
+      if (!root) return;
+
+      const member = achievementsState.selectedMember;
+      const unlockedForMember = (achievementsState.unlockedMap && achievementsState.unlockedMap[member]) || {};
+
+      const memberTabsHtml = Object.values(TEAM_MEMBERS_MAP).map(name => `
+        <button onclick="selectAchievementMember('${name}')" class="px-4 py-2 rounded-lg text-xs font-bold transition ${name === member ? 'bg-brand-gold text-brand-black' : 'bg-brand-black/60 text-amber-100 border border-brand-gold/30'}">${escapeHtml(name)}</button>
+      `).join('');
+
+      const totalCount = ACHIEVEMENTS_LIST.length;
+      const earnedCount = Object.keys(unlockedForMember).length;
+
+      const categories = [...new Set(ACHIEVEMENTS_LIST.map(a => a.category))];
+      const categoriesHtml = categories.map(cat => {
+        const badgesHtml = ACHIEVEMENTS_LIST.filter(a => a.category === cat).map(a => {
+          const unlockedAt = unlockedForMember[a.id];
+          return `
+            <button onclick="toggleAchievement('${a.id}')" class="flex flex-col items-center text-center p-3 rounded-xl transition ${unlockedAt ? 'bg-brand-gold/10 border border-brand-gold' : 'bg-brand-black/40 border border-brand-gold/10 opacity-50 hover:opacity-80'}">
+              <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-2 ${unlockedAt ? 'bg-gradient-to-b from-brand-gold to-brand-goldLight shadow-lg' : 'bg-brand-black/60 border border-brand-gold/20'}">
+                ${unlockedAt ? a.icon : '🔒'}
+              </div>
+              <p class="text-[11px] font-bold ${unlockedAt ? 'text-brand-gold' : 'text-amber-200/50'}">${escapeHtml(a.name)}</p>
+              <p class="text-[9px] text-amber-200/40 mt-0.5">${escapeHtml(a.description)}</p>
+              ${unlockedAt ? `<p class="text-[8px] text-emerald-400 mt-1">✓ ${new Date(unlockedAt).toLocaleDateString()}</p>` : ''}
+            </button>`;
+        }).join('');
+        return `
+          <div class="mb-4">
+            <h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2 border-b border-brand-gold/20 pb-1">${escapeHtml(cat)}</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${badgesHtml}</div>
+          </div>`;
+      }).join('');
+
+      root.innerHTML = `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg space-y-4">
+          <div class="text-center">
+            <h2 class="text-xl font-black text-brand-gold">🏅 GET ACHIEVEMENTS</h2>
+            <p class="text-xs text-amber-200/60 uppercase tracking-widest">Earn your badges in the field</p>
+          </div>
+          <div class="flex justify-center gap-2 flex-wrap">${memberTabsHtml}</div>
+          <div class="text-center">
+            <p class="text-sm text-amber-100">${escapeHtml(member)}: <span class="font-bold text-brand-gold">${earnedCount} / ${totalCount}</span> badges earned</p>
+            <div class="w-full bg-brand-black/60 rounded-full h-2 mt-2 max-w-xs mx-auto">
+              <div class="bg-brand-gold h-2 rounded-full transition-all" style="width:${(earnedCount / totalCount) * 100}%"></div>
+            </div>
+          </div>
+          ${categoriesHtml}
+          <p class="text-[10px] text-amber-200/40 text-center">Tap a badge to award or remove it for ${escapeHtml(member)}.</p>
+        </section>`;
+    }
+
+    async function toggleAchievement(achievementId) {
+      const member = achievementsState.selectedMember;
+      const unlockedForMember = (achievementsState.unlockedMap && achievementsState.unlockedMap[member]) || {};
+      const isUnlocked = !!unlockedForMember[achievementId];
+
+      if (isUnlocked) {
+        if (!confirm('Remove this badge?')) return;
+        const { error } = await supabaseClient.from('user_achievements').delete().eq('member_name', member).eq('achievement_id', achievementId);
+        if (error) {
+          console.error('Achievement remove error:', error);
+          alert('Could not remove badge: ' + error.message);
+          return;
+        }
+      } else {
+        const { error } = await supabaseClient.from('user_achievements').upsert({
+          member_name: member,
+          achievement_id: achievementId,
+          awarded_by: TEAM_MEMBERS_MAP[currentUserEmail] || currentUserEmail,
+          unlocked_at: new Date().toISOString()
+        });
+        if (error) {
+          console.error('Achievement award error:', error);
+          alert('Could not award badge: ' + error.message);
+          return;
+        }
+      }
+
+      await loadAchievements();
+      renderAchievements();
     }
 
     function toggleLocation() {

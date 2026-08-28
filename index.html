@@ -93,6 +93,13 @@
     html.low-power .drop-shadow-md,
     html.low-power .drop-shadow-lg { filter: none !important; }
     html.low-power * { transition-duration: 0s !important; }
+
+    /* Game Room: small drop-in animation for Connect Four pieces */
+    @keyframes c4-drop-in {
+      from { transform: translateY(-220%); opacity: 0.4; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .c4-piece-drop { animation: c4-drop-in 0.22s ease-in; }
   </style>
 
   <script>
@@ -226,6 +233,9 @@
           </button>
           <button id="tab-achievements-btn" onclick="switchTab('achievements')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
             🏅 Achievements
+          </button>
+          <button id="tab-gameroom-btn" onclick="switchTab('gameroom')" class="px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center">
+            🎮 Game Room
           </button>
         </div>
       </div>
@@ -1884,6 +1894,10 @@
         <div id="achievements-root"><p class="text-amber-200/50 text-center py-8 text-xs">Loading achievements...</p></div>
       </div>
 
+      <div id="view-gameroom" class="hidden space-y-4">
+        <div id="gameroom-root"></div>
+      </div>
+
     </div>
 
   </main>
@@ -2092,6 +2106,7 @@
       const mapsView = document.getElementById('view-maps');
       const quizView = document.getElementById('view-quiz');
       const achievementsView = document.getElementById('view-achievements');
+      const gameroomView = document.getElementById('view-gameroom');
       
       const dashboardBtn = document.getElementById('tab-dashboard-btn');
       const inventoryBtn = document.getElementById('tab-inventory-btn');
@@ -2104,6 +2119,7 @@
       const mapsBtn = document.getElementById('tab-maps-btn');
       const quizBtn = document.getElementById('tab-quiz-btn');
       const achievementsBtn = document.getElementById('tab-achievements-btn');
+      const gameroomBtn = document.getElementById('tab-gameroom-btn');
 
       dashboardView.classList.add('hidden');
       inventoryView.classList.add('hidden');
@@ -2116,6 +2132,7 @@
       mapsView.classList.add('hidden');
       quizView.classList.add('hidden');
       achievementsView.classList.add('hidden');
+      gameroomView.classList.add('hidden');
 
       const inactiveStyle = "px-3.5 py-2 rounded-lg font-semibold text-amber-200/70 hover:text-brand-gold transition text-center";
       const activeStyle = "px-3.5 py-2 rounded-lg font-semibold bg-brand-gold text-brand-black transition text-center";
@@ -2131,6 +2148,7 @@
       mapsBtn.className = inactiveStyle;
       quizBtn.className = inactiveStyle;
       achievementsBtn.className = inactiveStyle;
+      gameroomBtn.className = inactiveStyle;
 
       if (tabName === 'dashboard') {
         dashboardView.classList.remove('hidden');
@@ -2173,6 +2191,10 @@
         achievementsView.classList.remove('hidden');
         achievementsBtn.className = activeStyle;
         initAchievementsModule();
+      } else if (tabName === 'gameroom') {
+        gameroomView.classList.remove('hidden');
+        gameroomBtn.className = activeStyle;
+        initGameRoom();
       }
     }
 
@@ -4154,6 +4176,899 @@
 
       await loadAchievements();
       renderAchievements();
+    }
+
+    // ============================================================
+    // GAME ROOM MODULE — all games are 100% local/offline, no Supabase.
+    // Same-screen 2-player games. Each game keeps its own state object
+    // and exposes: ensureXInit(), renderXHtml(), resetX(). The landing
+    // page and dispatcher live at the top; individual games follow.
+    // ============================================================
+
+    const GAMES_LIST = [
+      { id: 'ttt', icon: '⭕', name: '3 In A Row', description: 'Classic 3-in-a-row strategy game.' },
+      { id: 'connect4', icon: '🔴', name: 'Connect Four', description: 'Drop pieces and connect four in a row.' },
+      { id: 'battleship', icon: '🚢', name: 'Battleship', description: 'Hunt down the enemy fleet before they sink yours.' },
+      { id: 'checkers', icon: '⚫', name: 'Checkers', description: 'Classic diagonal strategy with jumps and kings.' },
+      { id: 'dotsboxes', icon: '🔲', name: 'Dots & Boxes', description: 'Claim lines, complete boxes, outscore your rival.' },
+      { id: 'memory', icon: '🧠', name: 'Memory', description: 'Match GET survival gear pairs from memory.' }
+    ];
+
+    let gameRoomState = { screen: 'landing' };
+
+    function initGameRoom() {
+      renderGameRoom();
+    }
+
+    function renderGameRoom() {
+      const root = document.getElementById('gameroom-root');
+      if (!root) return;
+      const screen = gameRoomState.screen;
+      if (screen === 'landing') root.innerHTML = renderGameRoomLandingHtml();
+      else if (screen === 'ttt') root.innerHTML = renderTTTHtml();
+      else if (screen === 'connect4') root.innerHTML = renderC4Html();
+      else if (screen === 'battleship') root.innerHTML = renderBattleshipHtml();
+      else if (screen === 'checkers') root.innerHTML = renderCheckersHtml();
+      else if (screen === 'dotsboxes') root.innerHTML = renderDotsBoxesHtml();
+      else if (screen === 'memory') root.innerHTML = renderMemoryHtml();
+    }
+
+    function openGame(id) {
+      gameRoomState.screen = id;
+      renderGameRoom();
+    }
+
+    function backToGameRoom() {
+      gameRoomState.screen = 'landing';
+      renderGameRoom();
+    }
+
+    function renderGameRoomLandingHtml() {
+      const cardsHtml = GAMES_LIST.map(g => `
+        <div class="bg-brand-black/60 border border-brand-gold/20 hover:border-brand-gold/50 rounded-2xl p-5 transition flex flex-col">
+          <div class="text-4xl mb-2">${g.icon}</div>
+          <h3 class="font-bold text-brand-gold text-base">${escapeHtml(g.name)}</h3>
+          <p class="text-[11px] text-amber-200/50 mb-2">2 Players</p>
+          <p class="text-xs text-amber-100/80 flex-grow mb-3">${escapeHtml(g.description)}</p>
+          <button onclick="openGame('${g.id}')" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition">PLAY</button>
+        </div>`).join('');
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg text-center space-y-1 mb-1">
+          <h2 class="text-xl font-black text-brand-gold">🎮 GET GAME ROOM</h2>
+          <p class="text-xs text-amber-200/60 uppercase tracking-widest">Quick games for downtime at base</p>
+        </section>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">${cardsHtml}</div>`;
+    }
+
+    // ---------- GAME 1: 3 IN A ROW (Tic-Tac-Toe) ----------
+
+    let tttState = null;
+    const TTT_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+    function ensureTTTInit() {
+      if (!tttState) tttState = { board: Array(9).fill(null), current: 'X', winner: null, winLine: null, scores: { X: 0, O: 0, draws: 0 } };
+    }
+
+    function tttCheckWinner(board) {
+      for (const line of TTT_LINES) {
+        const [a,b,c] = line;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) return { winner: board[a], line };
+      }
+      return null;
+    }
+
+    function tttIsDraw() {
+      return !tttState.winner && tttState.board.every(c => c !== null);
+    }
+
+    function tttMove(i) {
+      const s = tttState;
+      if (s.board[i] || s.winner || tttIsDraw()) return;
+      s.board[i] = s.current;
+      const result = tttCheckWinner(s.board);
+      if (result) {
+        s.winner = result.winner;
+        s.winLine = result.line;
+        s.scores[result.winner]++;
+      } else if (s.board.every(c => c !== null)) {
+        s.scores.draws++;
+      } else {
+        s.current = s.current === 'X' ? 'O' : 'X';
+      }
+      renderGameRoom();
+    }
+
+    function resetTTT() {
+      const scores = tttState ? tttState.scores : { X: 0, O: 0, draws: 0 };
+      tttState = { board: Array(9).fill(null), current: 'X', winner: null, winLine: null, scores };
+      renderGameRoom();
+    }
+
+    function renderTTTHtml() {
+      ensureTTTInit();
+      const s = tttState;
+      const draw = tttIsDraw();
+
+      const cellsHtml = s.board.map((val, i) => {
+        const isWinCell = s.winLine && s.winLine.includes(i);
+        return `<button onclick="tttMove(${i})" class="aspect-square bg-brand-black/60 border ${isWinCell ? 'border-emerald-500 bg-emerald-500/20' : 'border-brand-gold/30'} rounded-xl text-4xl sm:text-5xl font-black flex items-center justify-center transition ${!val && !s.winner && !draw ? 'hover:bg-brand-black' : ''}" ${val || s.winner || draw ? 'disabled' : ''}>
+          <span class="${val === 'X' ? 'text-brand-gold' : 'text-amber-100'}">${val || ''}</span>
+        </button>`;
+      }).join('');
+
+      let statusHtml;
+      if (s.winner) statusHtml = `<p class="text-lg font-bold text-emerald-400">🎉 Player ${s.winner} Wins!</p>`;
+      else if (draw) statusHtml = `<p class="text-lg font-bold text-amber-300">🤝 It's a Draw!</p>`;
+      else statusHtml = `<p class="text-sm text-amber-100">Turn: <span class="font-bold text-brand-gold">Player ${s.current === 'X' ? '1 (X)' : '2 (O)'}</span></p>`;
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-6 rounded-2xl shadow-lg max-w-md mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">⭕ 3 In A Row</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center">${statusHtml}</div>
+          <div class="grid grid-cols-3 gap-2">${cellsHtml}</div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1 (X): <strong class="text-brand-gold">${s.scores.X}</strong></span>
+            <span>Draws: <strong class="text-amber-300">${s.scores.draws}</strong></span>
+            <span>P2 (O): <strong class="text-brand-gold">${s.scores.O}</strong></span>
+          </div>
+          <button onclick="resetTTT()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+        </section>`;
+    }
+
+    // ---------- GAME 2: CONNECT FOUR ----------
+
+    let c4State = null;
+    const C4_ROWS = 6, C4_COLS = 7;
+
+    function ensureC4Init() {
+      if (!c4State) {
+        c4State = {
+          board: Array.from({ length: C4_ROWS }, () => Array(C4_COLS).fill(null)),
+          current: 1, winner: null, winCells: null, lastDropped: null,
+          scores: { 1: 0, 2: 0, draws: 0 }
+        };
+      }
+    }
+
+    function c4IsDraw() {
+      return !c4State.winner && c4State.board[0].every(c => c !== null);
+    }
+
+    function c4CheckWinner(board) {
+      const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+      for (let r = 0; r < C4_ROWS; r++) {
+        for (let c = 0; c < C4_COLS; c++) {
+          const player = board[r][c];
+          if (!player) continue;
+          for (const [dr, dc] of dirs) {
+            const cells = [[r,c]];
+            for (let k = 1; k < 4; k++) {
+              const nr = r + dr*k, nc = c + dc*k;
+              if (nr < 0 || nr >= C4_ROWS || nc < 0 || nc >= C4_COLS || board[nr][nc] !== player) break;
+              cells.push([nr,nc]);
+            }
+            if (cells.length === 4) return { winner: player, cells };
+          }
+        }
+      }
+      return null;
+    }
+
+    function c4Drop(col) {
+      const s = c4State;
+      if (s.winner || c4IsDraw()) return;
+      let targetRow = -1;
+      for (let r = C4_ROWS - 1; r >= 0; r--) {
+        if (!s.board[r][col]) { targetRow = r; break; }
+      }
+      if (targetRow === -1) return;
+
+      s.board[targetRow][col] = s.current;
+      s.lastDropped = [targetRow, col];
+      const result = c4CheckWinner(s.board);
+      if (result) {
+        s.winner = result.winner;
+        s.winCells = result.cells;
+        s.scores[result.winner]++;
+      } else if (c4IsDraw()) {
+        s.scores.draws++;
+      } else {
+        s.current = s.current === 1 ? 2 : 1;
+      }
+      renderGameRoom();
+    }
+
+    function resetC4() {
+      const scores = c4State ? c4State.scores : { 1: 0, 2: 0, draws: 0 };
+      c4State = { board: Array.from({ length: C4_ROWS }, () => Array(C4_COLS).fill(null)), current: 1, winner: null, winCells: null, lastDropped: null, scores };
+      renderGameRoom();
+    }
+
+    function renderC4Html() {
+      ensureC4Init();
+      const s = c4State;
+      const isWinCell = (r,c) => s.winCells && s.winCells.some(([wr,wc]) => wr===r && wc===c);
+      const gameOver = !!s.winner || c4IsDraw();
+
+      let cellsHtml = '';
+      for (let r = 0; r < C4_ROWS; r++) {
+        for (let c = 0; c < C4_COLS; c++) {
+          const val = s.board[r][c];
+          const win = isWinCell(r,c);
+          const justDropped = s.lastDropped && s.lastDropped[0] === r && s.lastDropped[1] === c;
+          let inner = '<div class="w-[82%] h-[82%] rounded-full bg-brand-brownDark"></div>';
+          if (val === 1) inner = `<div class="w-[82%] h-[82%] rounded-full bg-brand-gold shadow-md ${win ? 'ring-4 ring-emerald-400' : ''} ${justDropped ? 'c4-piece-drop' : ''}"></div>`;
+          else if (val === 2) inner = `<div class="w-[82%] h-[82%] rounded-full bg-red-500 shadow-md ${win ? 'ring-4 ring-emerald-400' : ''} ${justDropped ? 'c4-piece-drop' : ''}"></div>`;
+          cellsHtml += `<button onclick="c4Drop(${c})" class="aspect-square flex items-center justify-center" ${gameOver ? 'disabled' : ''}>${inner}</button>`;
+        }
+      }
+
+      let statusHtml;
+      if (s.winner) statusHtml = `<p class="text-lg font-bold text-emerald-400">🎉 Player ${s.winner} Wins!</p>`;
+      else if (c4IsDraw()) statusHtml = `<p class="text-lg font-bold text-amber-300">🤝 It's a Draw!</p>`;
+      else statusHtml = `<p class="text-sm text-amber-100">Turn: <span class="font-bold ${s.current === 1 ? 'text-brand-gold' : 'text-red-400'}">Player ${s.current}</span></p>`;
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">🔴 Connect Four</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center">${statusHtml}</div>
+          <div class="bg-blue-950/40 border border-brand-gold/20 rounded-xl p-2 grid grid-cols-7 gap-1">${cellsHtml}</div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1: <strong class="text-brand-gold">${s.scores[1]}</strong></span>
+            <span>Draws: <strong class="text-amber-300">${s.scores.draws}</strong></span>
+            <span>P2: <strong class="text-red-400">${s.scores[2]}</strong></span>
+          </div>
+          <button onclick="resetC4()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+        </section>`;
+    }
+
+    // ---------- GAME 3: BATTLESHIP ----------
+
+    const BS_SIZE = 8;
+    const BS_FLEET = [
+      { name: 'Carrier', size: 5 },
+      { name: 'Battleship', size: 4 },
+      { name: 'Cruiser', size: 3 },
+      { name: 'Submarine', size: 3 },
+      { name: 'Destroyer', size: 2 }
+    ];
+    let bsState = null;
+
+    function emptyBSBoard() {
+      return Array.from({ length: BS_SIZE }, () => Array(BS_SIZE).fill(null));
+    }
+
+    function freshBSState(scores) {
+      return {
+        phase: 'setup', setupPlayer: 1,
+        ships: { 1: emptyBSBoard(), 2: emptyBSBoard() },
+        attacks: { 1: emptyBSBoard(), 2: emptyBSBoard() },
+        shipsRemaining: { 1: BS_FLEET.map(s => ({ ...s })), 2: BS_FLEET.map(s => ({ ...s })) },
+        orientation: 'H', currentAttacker: 1, winner: null, pendingReveal: null, lastResult: null,
+        scores
+      };
+    }
+
+    function ensureBSInit() {
+      if (!bsState) bsState = freshBSState({ 1: 0, 2: 0 });
+    }
+
+    function resetBattleship() {
+      const scores = bsState ? bsState.scores : { 1: 0, 2: 0 };
+      bsState = freshBSState(scores);
+      renderGameRoom();
+    }
+
+    function bsCurrentShipToPlace() {
+      const remaining = bsState.shipsRemaining[bsState.setupPlayer];
+      return remaining.length > 0 ? remaining[0] : null;
+    }
+
+    function bsToggleOrientation() {
+      bsState.orientation = bsState.orientation === 'H' ? 'V' : 'H';
+      renderGameRoom();
+    }
+
+    function bsCanPlace(board, row, col, size, orientation) {
+      const cells = [];
+      for (let i = 0; i < size; i++) {
+        const r = orientation === 'H' ? row : row + i;
+        const c = orientation === 'H' ? col + i : col;
+        if (r < 0 || r >= BS_SIZE || c < 0 || c >= BS_SIZE) return null;
+        if (board[r][c]) return null;
+        cells.push([r,c]);
+      }
+      return cells;
+    }
+
+    function bsPlaceShip(row, col) {
+      const player = bsState.setupPlayer;
+      const ship = bsCurrentShipToPlace();
+      if (!ship) return;
+      const board = bsState.ships[player];
+      const cells = bsCanPlace(board, row, col, ship.size, bsState.orientation);
+      if (!cells) return;
+      cells.forEach(([r,c]) => { board[r][c] = { ship: ship.name, hit: false }; });
+      bsState.shipsRemaining[player].shift();
+
+      if (bsState.shipsRemaining[player].length === 0) {
+        bsState.phase = 'handoff';
+        bsState.pendingReveal = player === 1 ? 'setup2' : 'battle1';
+      }
+      renderGameRoom();
+    }
+
+    function bsRandomizeCurrentPlayer() {
+      const player = bsState.setupPlayer;
+      const board = emptyBSBoard();
+      BS_FLEET.forEach(ship => {
+        let placed = false, attempts = 0;
+        while (!placed && attempts < 300) {
+          attempts++;
+          const orientation = Math.random() < 0.5 ? 'H' : 'V';
+          const row = Math.floor(Math.random() * BS_SIZE);
+          const col = Math.floor(Math.random() * BS_SIZE);
+          const cells = bsCanPlace(board, row, col, ship.size, orientation);
+          if (cells) { cells.forEach(([r,c]) => { board[r][c] = { ship: ship.name, hit: false }; }); placed = true; }
+        }
+      });
+      bsState.ships[player] = board;
+      bsState.shipsRemaining[player] = [];
+      bsState.phase = 'handoff';
+      bsState.pendingReveal = player === 1 ? 'setup2' : 'battle1';
+      renderGameRoom();
+    }
+
+    function bsConfirmHandoff() {
+      const reveal = bsState.pendingReveal;
+      if (reveal === 'setup2') { bsState.phase = 'setup'; bsState.setupPlayer = 2; }
+      else if (reveal === 'battle1') { bsState.phase = 'battle'; bsState.currentAttacker = 1; }
+      else if (reveal === 'battle-switch') { bsState.phase = 'battle'; bsState.currentAttacker = bsState.currentAttacker === 1 ? 2 : 1; }
+      bsState.pendingReveal = null;
+      bsState.lastResult = null;
+      renderGameRoom();
+    }
+
+    function bsShipCells(board, shipName) {
+      const cells = [];
+      for (let r = 0; r < BS_SIZE; r++) for (let c = 0; c < BS_SIZE; c++) {
+        if (board[r][c] && board[r][c].ship === shipName) cells.push(board[r][c]);
+      }
+      return cells;
+    }
+
+    function bsAttack(row, col) {
+      const attacker = bsState.currentAttacker;
+      const defender = attacker === 1 ? 2 : 1;
+      const attacksBoard = bsState.attacks[attacker];
+      if (attacksBoard[row][col]) return;
+
+      const defBoard = bsState.ships[defender];
+      const cell = defBoard[row][col];
+
+      if (cell) {
+        cell.hit = true;
+        attacksBoard[row][col] = 'hit';
+        const sunk = bsShipCells(defBoard, cell.ship).every(c => c.hit);
+        bsState.lastResult = { result: sunk ? 'sunk' : 'hit', shipName: cell.ship };
+
+        let allSunk = true;
+        for (let r = 0; r < BS_SIZE; r++) for (let c = 0; c < BS_SIZE; c++) {
+          if (defBoard[r][c] && !defBoard[r][c].hit) allSunk = false;
+        }
+        if (allSunk) {
+          bsState.winner = attacker;
+          bsState.phase = 'gameover';
+          bsState.scores[attacker] = (bsState.scores[attacker] || 0) + 1;
+          renderGameRoom();
+          return;
+        }
+      } else {
+        attacksBoard[row][col] = 'miss';
+        bsState.lastResult = { result: 'miss' };
+      }
+
+      bsState.phase = 'handoff';
+      bsState.pendingReveal = 'battle-switch';
+      renderGameRoom();
+    }
+
+    function renderBattleshipHtml() {
+      ensureBSInit();
+      const s = bsState;
+      if (s.phase === 'setup') return renderBSSetupHtml();
+      if (s.phase === 'handoff') return renderBSHandoffHtml();
+      if (s.phase === 'battle') return renderBSBattleHtml();
+      if (s.phase === 'gameover') return renderBSGameOverHtml();
+      return '';
+    }
+
+    function renderBSSetupHtml() {
+      const s = bsState;
+      const player = s.setupPlayer;
+      const ship = bsCurrentShipToPlace();
+      const board = s.ships[player];
+
+      let cellsHtml = '';
+      for (let r = 0; r < BS_SIZE; r++) {
+        for (let c = 0; c < BS_SIZE; c++) {
+          const filled = !!board[r][c];
+          cellsHtml += `<button onclick="bsPlaceShip(${r},${c})" class="aspect-square border border-brand-gold/20 ${filled ? 'bg-brand-gold' : 'bg-blue-950/40 hover:bg-blue-900/50'} rounded-sm"></button>`;
+        }
+      }
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">🚢 Battleship — Fleet Setup</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center bg-brand-black/60 rounded-lg p-2.5">
+            <p class="text-sm text-amber-100">Player ${player}: place your fleet</p>
+            ${ship ? `<p class="text-xs text-brand-gold font-bold mt-1">Placing: ${ship.name} (${ship.size} cells)</p>` : `<p class="text-xs text-emerald-400 font-bold mt-1">Fleet complete!</p>`}
+          </div>
+          <div class="grid grid-cols-8 gap-1">${cellsHtml}</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="bsToggleOrientation()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2 rounded-lg text-xs transition">Orientation: ${s.orientation === 'H' ? 'Horizontal ↔' : 'Vertical ↕'}</button>
+            <button onclick="bsRandomizeCurrentPlayer()" class="bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2 rounded-lg text-xs transition">🎲 Random Placement</button>
+          </div>
+        </section>`;
+    }
+
+    function renderBSHandoffHtml() {
+      const s = bsState;
+      let message = '', subtext = '';
+      if (s.pendingReveal === 'setup2') { message = 'Pass the device to Player 2'; subtext = 'Player 2 will place their fleet next.'; }
+      else if (s.pendingReveal === 'battle1') { message = 'Fleets are set! Pass to Player 1'; subtext = 'The battle begins — Player 1 attacks first.'; }
+      else if (s.pendingReveal === 'battle-switch') {
+        const resultText = s.lastResult ? (s.lastResult.result === 'sunk' ? `💥 SUNK: ${s.lastResult.shipName}!` : s.lastResult.result === 'hit' ? '🔥 HIT!' : '🌊 MISS') : '';
+        const next = s.currentAttacker === 1 ? 2 : 1;
+        message = `Pass the device to Player ${next}`;
+        subtext = resultText;
+      }
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-8 rounded-2xl shadow-lg max-w-md mx-auto space-y-4 text-center">
+          <div class="text-4xl">🔒</div>
+          <h3 class="text-lg font-bold text-brand-gold">${message}</h3>
+          ${subtext ? `<p class="text-sm text-amber-200/70">${subtext}</p>` : ''}
+          <button onclick="bsConfirmHandoff()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-3 rounded-lg transition text-sm">I'M READY</button>
+          <button onclick="backToGameRoom()" class="text-xs text-amber-200/50 hover:text-brand-gold underline">← Game Room</button>
+        </section>`;
+    }
+
+    function renderBSBattleHtml() {
+      const s = bsState;
+      const attacker = s.currentAttacker;
+      const attacksBoard = s.attacks[attacker];
+
+      let cellsHtml = '';
+      for (let r = 0; r < BS_SIZE; r++) {
+        for (let c = 0; c < BS_SIZE; c++) {
+          const state = attacksBoard[r][c];
+          let inner = '', cls = 'bg-blue-950/40 hover:bg-blue-900/50';
+          if (state === 'hit') { inner = '🔥'; cls = 'bg-red-900/60'; }
+          else if (state === 'miss') { inner = '•'; cls = 'bg-blue-900/60 text-blue-300'; }
+          cellsHtml += `<button onclick="bsAttack(${r},${c})" class="aspect-square border border-brand-gold/20 ${cls} rounded-sm flex items-center justify-center text-sm" ${state ? 'disabled' : ''}>${inner}</button>`;
+        }
+      }
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">🚢 Battleship — Radar</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center bg-brand-black/60 rounded-lg p-2.5">
+            <p class="text-sm text-amber-100">Player <span class="font-bold text-brand-gold">${attacker}</span>'s turn to attack</p>
+          </div>
+          <div class="grid grid-cols-8 gap-1">${cellsHtml}</div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1 Wins: <strong class="text-brand-gold">${s.scores[1] || 0}</strong></span>
+            <span>P2 Wins: <strong class="text-brand-gold">${s.scores[2] || 0}</strong></span>
+          </div>
+        </section>`;
+    }
+
+    function renderBSGameOverHtml() {
+      const s = bsState;
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-8 rounded-2xl shadow-lg max-w-md mx-auto space-y-4 text-center">
+          <div class="text-4xl">🏆</div>
+          <h3 class="text-xl font-bold text-emerald-400">Player ${s.winner} Wins The Battle!</h3>
+          <div class="flex justify-center gap-6 text-xs text-amber-100/80">
+            <span>P1 Wins: <strong class="text-brand-gold">${s.scores[1] || 0}</strong></span>
+            <span>P2 Wins: <strong class="text-brand-gold">${s.scores[2] || 0}</strong></span>
+          </div>
+          <button onclick="resetBattleship()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+          <button onclick="backToGameRoom()" class="text-xs text-amber-200/50 hover:text-brand-gold underline">← Game Room</button>
+        </section>`;
+    }
+
+    // ---------- GAME 4: CHECKERS ----------
+
+    let checkersState = null;
+
+    function freshCheckersBoard() {
+      const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++) if ((r+c) % 2 === 1) board[r][c] = { player: 2, king: false };
+      for (let r = 5; r < 8; r++) for (let c = 0; c < 8; c++) if ((r+c) % 2 === 1) board[r][c] = { player: 1, king: false };
+      return board;
+    }
+
+    function ensureCheckersInit() {
+      if (!checkersState) {
+        checkersState = { board: freshCheckersBoard(), current: 1, selected: null, legalMoves: [], mustContinueFrom: null, winner: null, scores: { 1: 0, 2: 0 } };
+      }
+    }
+
+    function resetCheckers() {
+      const scores = checkersState ? checkersState.scores : { 1: 0, 2: 0 };
+      checkersState = { board: freshCheckersBoard(), current: 1, selected: null, legalMoves: [], mustContinueFrom: null, winner: null, scores };
+      renderGameRoom();
+    }
+
+    function checkersDirections(piece) {
+      if (piece.king) return [[-1,-1],[-1,1],[1,-1],[1,1]];
+      return piece.player === 1 ? [[-1,-1],[-1,1]] : [[1,-1],[1,1]];
+    }
+
+    function checkersGetMovesForPiece(board, r, c) {
+      const piece = board[r][c];
+      if (!piece) return [];
+      const dirs = checkersDirections(piece);
+      const moves = [];
+      let hasCapture = false;
+
+      for (const [dr,dc] of dirs) {
+        const nr = r+dr, nc = c+dc;
+        if (nr<0||nr>7||nc<0||nc>7) continue;
+        if (!board[nr][nc]) {
+          moves.push({ to: [nr,nc], capture: null });
+        } else if (board[nr][nc].player !== piece.player) {
+          const jr = nr+dr, jc = nc+dc;
+          if (jr>=0&&jr<8&&jc>=0&&jc<8&&!board[jr][jc]) {
+            moves.push({ to: [jr,jc], capture: [nr,nc] });
+            hasCapture = true;
+          }
+        }
+      }
+      if (hasCapture) return moves.filter(m => m.capture);
+      return moves;
+    }
+
+    function checkersSelect(r,c) {
+      const s = checkersState;
+      if (s.winner) return;
+      const piece = s.board[r][c];
+
+      if (s.mustContinueFrom) {
+        const [mr,mc] = s.mustContinueFrom;
+        if (r !== mr || c !== mc) return;
+      }
+
+      if (piece && piece.player === s.current) {
+        s.selected = [r,c];
+        s.legalMoves = checkersGetMovesForPiece(s.board, r, c);
+        renderGameRoom();
+        return;
+      }
+
+      if (s.selected) {
+        const move = s.legalMoves.find(m => m.to[0]===r && m.to[1]===c);
+        if (move) checkersMakeMove(move);
+      }
+    }
+
+    function checkersHasAnyMove(board, player) {
+      for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+        if (board[r][c] && board[r][c].player === player && checkersGetMovesForPiece(board, r, c).length > 0) return true;
+      }
+      return false;
+    }
+
+    function checkersCheckGameOver() {
+      const s = checkersState;
+      if (!checkersHasAnyMove(s.board, s.current)) {
+        s.winner = s.current === 1 ? 2 : 1;
+        s.scores[s.winner]++;
+      }
+    }
+
+    function checkersMakeMove(move) {
+      const s = checkersState;
+      const [sr,sc] = s.selected;
+      const [tr,tc] = move.to;
+      const piece = s.board[sr][sc];
+
+      s.board[tr][tc] = piece;
+      s.board[sr][sc] = null;
+      if (move.capture) { const [cr,cc] = move.capture; s.board[cr][cc] = null; }
+
+      if (!piece.king && ((piece.player === 1 && tr === 0) || (piece.player === 2 && tr === 7))) {
+        piece.king = true;
+      }
+
+      if (move.capture) {
+        const furtherMoves = checkersGetMovesForPiece(s.board, tr, tc).filter(m => m.capture);
+        if (furtherMoves.length > 0) {
+          s.selected = [tr,tc];
+          s.legalMoves = furtherMoves;
+          s.mustContinueFrom = [tr,tc];
+          renderGameRoom();
+          return;
+        }
+      }
+
+      s.selected = null;
+      s.legalMoves = [];
+      s.mustContinueFrom = null;
+      s.current = s.current === 1 ? 2 : 1;
+      checkersCheckGameOver();
+      renderGameRoom();
+    }
+
+    function renderCheckersHtml() {
+      ensureCheckersInit();
+      const s = checkersState;
+
+      let cellsHtml = '';
+      for (let r=0;r<8;r++) {
+        for (let c=0;c<8;c++) {
+          const dark = (r+c) % 2 === 1;
+          const piece = s.board[r][c];
+          const isSelected = s.selected && s.selected[0]===r && s.selected[1]===c;
+          const isLegalDest = s.legalMoves.some(m => m.to[0]===r && m.to[1]===c);
+
+          let pieceHtml = '';
+          if (piece) {
+            const color = piece.player === 1 ? 'bg-brand-gold' : 'bg-red-500';
+            pieceHtml = `<div class="w-[75%] h-[75%] rounded-full ${color} flex items-center justify-center shadow-md ${isSelected ? 'ring-4 ring-emerald-400' : ''}">${piece.king ? '<span class="text-brand-black font-black text-lg">♛</span>' : ''}</div>`;
+          }
+
+          let bgCls = dark ? 'bg-brand-brownDark' : 'bg-brand-black/30';
+          if (isLegalDest) bgCls = 'bg-emerald-500/30';
+
+          cellsHtml += `<button onclick="checkersSelect(${r},${c})" class="aspect-square ${bgCls} flex items-center justify-center border border-brand-gold/10">${pieceHtml}</button>`;
+        }
+      }
+
+      const statusHtml = s.winner
+        ? `<p class="text-lg font-bold text-emerald-400">🎉 Player ${s.winner} Wins!</p>`
+        : `<p class="text-sm text-amber-100">Turn: <span class="font-bold ${s.current===1 ? 'text-brand-gold' : 'text-red-400'}">Player ${s.current}</span>${s.mustContinueFrom ? ' — continue capturing!' : ''}</p>`;
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">⚫ Checkers</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center">${statusHtml}</div>
+          <div class="grid grid-cols-8 gap-0.5 bg-brand-black/60 p-1.5 rounded-xl">${cellsHtml}</div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1 Wins: <strong class="text-brand-gold">${s.scores[1]}</strong></span>
+            <span>P2 Wins: <strong class="text-red-400">${s.scores[2]}</strong></span>
+          </div>
+          <button onclick="resetCheckers()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+        </section>`;
+    }
+
+    // ---------- GAME 5: DOTS & BOXES ----------
+
+    const DB_ROWS = 4, DB_COLS = 4;
+    let dbState = null;
+
+    function freshDBState(scores) {
+      return {
+        hLines: Array.from({ length: DB_ROWS+1 }, () => Array(DB_COLS).fill(false)),
+        vLines: Array.from({ length: DB_ROWS }, () => Array(DB_COLS+1).fill(false)),
+        boxOwner: Array.from({ length: DB_ROWS }, () => Array(DB_COLS).fill(null)),
+        current: 1, scores
+      };
+    }
+
+    function ensureDBInit() {
+      if (!dbState) dbState = freshDBState({ 1: 0, 2: 0 });
+    }
+
+    function resetDotsBoxes() {
+      const scores = dbState ? dbState.scores : { 1: 0, 2: 0 };
+      dbState = freshDBState(scores);
+      renderGameRoom();
+    }
+
+    function dbCheckBoxesForLine(type, r, c) {
+      const boxes = [];
+      if (type === 'h') {
+        if (r > 0) boxes.push([r-1, c]);
+        if (r < DB_ROWS) boxes.push([r, c]);
+      } else {
+        if (c > 0) boxes.push([r, c-1]);
+        if (c < DB_COLS) boxes.push([r, c]);
+      }
+      return boxes;
+    }
+
+    function dbIsBoxComplete(br, bc) {
+      const s = dbState;
+      return s.hLines[br][bc] && s.hLines[br+1][bc] && s.vLines[br][bc] && s.vLines[br][bc+1];
+    }
+
+    function dbClickLine(type, r, c) {
+      const s = dbState;
+      const arr = type === 'h' ? s.hLines : s.vLines;
+      if (arr[r][c]) return;
+      arr[r][c] = true;
+
+      let completedAny = false;
+      dbCheckBoxesForLine(type, r, c).forEach(([br,bc]) => {
+        if (s.boxOwner[br][bc] === null && dbIsBoxComplete(br,bc)) {
+          s.boxOwner[br][bc] = s.current;
+          s.scores[s.current]++;
+          completedAny = true;
+        }
+      });
+
+      if (!completedAny) s.current = s.current === 1 ? 2 : 1;
+      renderGameRoom();
+    }
+
+    function dbIsGameOver() {
+      const s = dbState;
+      for (let r=0;r<DB_ROWS;r++) for (let c=0;c<DB_COLS;c++) if (s.boxOwner[r][c] === null) return false;
+      return true;
+    }
+
+    function renderDotsBoxesHtml() {
+      ensureDBInit();
+      const s = dbState;
+      const rows = DB_ROWS, cols = DB_COLS;
+
+      const colTemplate = Array.from({ length: 2*cols+1 }, (_,i) => i%2===0 ? '14px' : '1fr').join(' ');
+      const rowTemplate = Array.from({ length: 2*rows+1 }, (_,i) => i%2===0 ? '14px' : '1fr').join(' ');
+
+      let itemsHtml = '';
+
+      for (let r=0;r<=rows;r++) for (let c=0;c<=cols;c++) {
+        itemsHtml += `<div style="grid-row:${2*r+1};grid-column:${2*c+1};" class="w-3.5 h-3.5 rounded-full bg-brand-gold justify-self-center self-center"></div>`;
+      }
+
+      for (let r=0;r<=rows;r++) for (let c=0;c<cols;c++) {
+        const active = s.hLines[r][c];
+        itemsHtml += `<button onclick="dbClickLine('h',${r},${c})" style="grid-row:${2*r+1};grid-column:${2*c+2};" class="w-full h-full flex items-center justify-center" ${active ? 'disabled' : ''}>
+          <span class="w-full h-2 sm:h-2.5 rounded-full ${active ? 'bg-brand-gold' : 'bg-brand-black/40 hover:bg-brand-gold/40'} transition"></span>
+        </button>`;
+      }
+
+      for (let r=0;r<rows;r++) for (let c=0;c<=cols;c++) {
+        const active = s.vLines[r][c];
+        itemsHtml += `<button onclick="dbClickLine('v',${r},${c})" style="grid-row:${2*r+2};grid-column:${2*c+1};" class="w-full h-full flex items-center justify-center" ${active ? 'disabled' : ''}>
+          <span class="h-full w-2 sm:w-2.5 rounded-full ${active ? 'bg-brand-gold' : 'bg-brand-black/40 hover:bg-brand-gold/40'} transition"></span>
+        </button>`;
+      }
+
+      for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
+        const owner = s.boxOwner[r][c];
+        let inner = '';
+        if (owner === 1) inner = `<span class="text-brand-gold font-black text-lg">1</span>`;
+        else if (owner === 2) inner = `<span class="text-red-400 font-black text-lg">2</span>`;
+        itemsHtml += `<div style="grid-row:${2*r+2};grid-column:${2*c+2};" class="flex items-center justify-center ${owner ? (owner===1?'bg-brand-gold/20':'bg-red-500/20') : ''} rounded">${inner}</div>`;
+      }
+
+      const gameOver = dbIsGameOver();
+      let statusHtml;
+      if (gameOver) {
+        const winner = s.scores[1] > s.scores[2] ? 1 : s.scores[2] > s.scores[1] ? 2 : null;
+        statusHtml = winner ? `<p class="text-lg font-bold text-emerald-400">🎉 Player ${winner} Wins!</p>` : `<p class="text-lg font-bold text-amber-300">🤝 It's a Tie!</p>`;
+      } else {
+        statusHtml = `<p class="text-sm text-amber-100">Turn: <span class="font-bold ${s.current===1?'text-brand-gold':'text-red-400'}">Player ${s.current}</span></p>`;
+      }
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">🔲 Dots & Boxes</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center">${statusHtml}</div>
+          <div class="bg-brand-black/40 p-4 rounded-xl overflow-x-auto">
+            <div style="display:grid; grid-template-columns:${colTemplate}; grid-template-rows:${rowTemplate}; gap:2px; min-width:260px; aspect-ratio:1;" class="mx-auto max-w-xs">${itemsHtml}</div>
+          </div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1 Boxes: <strong class="text-brand-gold">${s.scores[1]}</strong></span>
+            <span>P2 Boxes: <strong class="text-red-400">${s.scores[2]}</strong></span>
+          </div>
+          <button onclick="resetDotsBoxes()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+        </section>`;
+    }
+
+    // ---------- GAME 6: MEMORY MATCH ----------
+
+    const MEMORY_ICONS = ['🧭','⛺','🔥','🎒','🗺','📻','💧','🩹','🔭','🪢','🔪','🐾'];
+    let memoryState = null;
+
+    function buildFreshMemoryState(scores) {
+      const pairs = shuffleArray([...MEMORY_ICONS, ...MEMORY_ICONS]);
+      return { cards: pairs.map(icon => ({ icon, matched: false })), flipped: [], current: 1, scores, busy: false, winner: null };
+    }
+
+    function ensureMemoryInit() {
+      if (!memoryState) memoryState = buildFreshMemoryState({ 1: 0, 2: 0 });
+    }
+
+    function resetMemory() {
+      const scores = memoryState ? memoryState.scores : { 1: 0, 2: 0 };
+      memoryState = buildFreshMemoryState(scores);
+      renderGameRoom();
+    }
+
+    function memoryFlip(i) {
+      const s = memoryState;
+      if (s.busy || s.winner) return;
+      if (s.cards[i].matched || s.flipped.includes(i) || s.flipped.length >= 2) return;
+
+      s.flipped.push(i);
+      renderGameRoom();
+
+      if (s.flipped.length === 2) {
+        const [a,b] = s.flipped;
+        if (s.cards[a].icon === s.cards[b].icon) {
+          s.cards[a].matched = true;
+          s.cards[b].matched = true;
+          s.scores[s.current]++;
+          s.flipped = [];
+          if (s.cards.every(c => c.matched)) {
+            s.winner = s.scores[1] > s.scores[2] ? 1 : s.scores[2] > s.scores[1] ? 2 : 'tie';
+          }
+          renderGameRoom();
+        } else {
+          s.busy = true;
+          setTimeout(() => {
+            s.flipped = [];
+            s.busy = false;
+            s.current = s.current === 1 ? 2 : 1;
+            renderGameRoom();
+          }, 900);
+        }
+      }
+    }
+
+    function renderMemoryHtml() {
+      ensureMemoryInit();
+      const s = memoryState;
+
+      const cardsHtml = s.cards.map((card, i) => {
+        const faceUp = card.matched || s.flipped.includes(i);
+        return `<button onclick="memoryFlip(${i})" class="aspect-square rounded-lg border ${card.matched ? 'border-emerald-500 bg-emerald-500/10' : 'border-brand-gold/30 bg-brand-black/60'} flex items-center justify-center text-2xl sm:text-3xl transition ${!faceUp && !s.busy && !s.winner ? 'hover:bg-brand-black' : ''}" ${faceUp || s.busy || s.winner ? 'disabled' : ''}>
+          ${faceUp ? card.icon : '❓'}
+        </button>`;
+      }).join('');
+
+      let statusHtml;
+      if (s.winner) statusHtml = s.winner === 'tie' ? `<p class="text-lg font-bold text-amber-300">🤝 It's a Tie!</p>` : `<p class="text-lg font-bold text-emerald-400">🎉 Player ${s.winner} Wins!</p>`;
+      else statusHtml = `<p class="text-sm text-amber-100">Turn: <span class="font-bold ${s.current===1?'text-brand-gold':'text-red-400'}">Player ${s.current}</span></p>`;
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">🧠 Memory Match</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center">${statusHtml}</div>
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">${cardsHtml}</div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1 Pairs: <strong class="text-brand-gold">${s.scores[1]}</strong></span>
+            <span>P2 Pairs: <strong class="text-red-400">${s.scores[2]}</strong></span>
+          </div>
+          <button onclick="resetMemory()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+        </section>`;
     }
 
     function toggleLocation() {

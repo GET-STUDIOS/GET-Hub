@@ -2651,7 +2651,7 @@
       userDisplay.textContent = `Logged in as: ${currentUserEmail}`;
       userDisplayName.textContent = `${name}'s Portal`;
       userAvatar.textContent = name.charAt(0).toUpperCase();
-      updateHeaderTeamDate(name);
+      updateHeaderTeamDate();
 
       loadTeamStatuses();
       subscribeToTeamStatus();
@@ -5080,12 +5080,16 @@
     // HEADER TEAM/DATE + BACK TO TOP
     // ============================================================
 
-    function updateHeaderTeamDate(name) {
+    function updateHeaderTeamDate() {
       const el = document.getElementById('header-team-date');
       if (!el) return;
-      const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-      el.textContent = name ? `${name} · ${dateStr}` : dateStr;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      el.textContent = `${dateStr} · ${timeStr}`;
     }
+
+    setInterval(updateHeaderTeamDate, 30000);
 
     function scrollToTop() {
       window.scrollTo({ top: 0, behavior: 'smooth' });

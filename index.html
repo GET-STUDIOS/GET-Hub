@@ -121,7 +121,10 @@
     <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <img src="./Logo.png.png" alt="GET Logo" class="h-10 w-10 object-contain rounded-md" onError="this.onerror=null; this.src='https://placehold.co/64x64/3A2415/D4AF37?text=GET';" />
-        <h1 class="text-xl font-bold tracking-tight text-brand-gold">Ready Together</h1>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-brand-gold">Ready Together</h1>
+          <p id="header-team-date" class="text-[10px] text-amber-200/50"></p>
+        </div>
       </div>
       <div class="flex items-center gap-2">
         <div class="relative">
@@ -2648,6 +2651,7 @@
       userDisplay.textContent = `Logged in as: ${currentUserEmail}`;
       userDisplayName.textContent = `${name}'s Portal`;
       userAvatar.textContent = name.charAt(0).toUpperCase();
+      updateHeaderTeamDate(name);
 
       loadTeamStatuses();
       subscribeToTeamStatus();
@@ -2990,6 +2994,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', updateLowPowerButton);
+    document.addEventListener('DOMContentLoaded', () => updateHeaderTeamDate());
 
     function setReadinessLevel(lvl) {
       const label = document.getElementById('readiness-label');
@@ -5071,6 +5076,28 @@
         </section>`;
     }
 
+    // ============================================================
+    // HEADER TEAM/DATE + BACK TO TOP
+    // ============================================================
+
+    function updateHeaderTeamDate(name) {
+      const el = document.getElementById('header-team-date');
+      if (!el) return;
+      const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      el.textContent = name ? `${name} · ${dateStr}` : dateStr;
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('back-to-top-btn');
+      if (!btn) return;
+      if (window.scrollY > 300) btn.classList.remove('hidden');
+      else btn.classList.add('hidden');
+    });
+
     function toggleLocation() {
       if (!navigator.geolocation) return;
       isLiveLocation = !isLiveLocation;
@@ -5308,5 +5335,9 @@
       }
     }
   </script>
+
+  <button id="back-to-top-btn" onclick="scrollToTop()" class="hidden fixed bottom-5 right-5 z-40 bg-brand-gold hover:bg-brand-goldLight text-brand-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl font-bold transition" title="Back to top" aria-label="Scroll back to top">
+    ⬆
+  </button>
 </body>
 </html>

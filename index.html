@@ -302,7 +302,7 @@
         <div class="flex items-center justify-between gap-2 py-4 px-1">
           <p id="dashboard-time" class="text-3xl sm:text-6xl md:text-7xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none">--:--</p>
           <img src="./Logo.png.png" alt="GET Logo" class="h-32 sm:h-40 object-contain drop-shadow-lg flex-shrink-0" onError="this.onerror=null; this.src='https://placehold.co/256x256/3A2415/D4AF37?text=GET';" />
-          <p id="dashboard-date" class="text-3xl sm:text-6xl md:text-7xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none text-right">--</p>
+          <p id="dashboard-date" class="text-lg sm:text-3xl md:text-4xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none text-right">--</p>
         </div>
 
         <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg space-y-3">
@@ -5152,8 +5152,17 @@
       const dateEl = document.getElementById('dashboard-date');
       if (!timeEl && !dateEl) return;
       const now = new Date();
-      if (timeEl) timeEl.textContent = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-      if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+      if (timeEl) {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        timeEl.textContent = `${hh}:${mm}`;
+      }
+      if (dateEl) {
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mo = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        dateEl.textContent = `${dd}/${mo}/${yyyy}`;
+      }
     }
 
     setInterval(updateDashboardClock, 1000);

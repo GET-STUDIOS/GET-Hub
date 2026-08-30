@@ -299,8 +299,10 @@
 
       <div id="view-dashboard" class="space-y-6">
 
-        <div class="flex flex-col items-center justify-center py-4">
-          <img src="./Logo.png.png" alt="GET Logo" class="h-32 sm:h-40 object-contain drop-shadow-lg" onError="this.onerror=null; this.src='https://placehold.co/256x256/3A2415/D4AF37?text=GET';" />
+        <div class="flex items-center justify-between gap-2 py-4 px-1">
+          <p id="dashboard-time" class="text-3xl sm:text-6xl md:text-7xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none">--:--</p>
+          <img src="./Logo.png.png" alt="GET Logo" class="h-32 sm:h-40 object-contain drop-shadow-lg flex-shrink-0" onError="this.onerror=null; this.src='https://placehold.co/256x256/3A2415/D4AF37?text=GET';" />
+          <p id="dashboard-date" class="text-3xl sm:text-6xl md:text-7xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none text-right">--</p>
         </div>
 
         <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg space-y-3">
@@ -5144,6 +5146,18 @@
     }
 
     setInterval(updateHeaderTeamDate, 30000);
+
+    function updateDashboardClock() {
+      const timeEl = document.getElementById('dashboard-time');
+      const dateEl = document.getElementById('dashboard-date');
+      if (!timeEl && !dateEl) return;
+      const now = new Date();
+      if (timeEl) timeEl.textContent = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    }
+
+    setInterval(updateDashboardClock, 1000);
+    document.addEventListener('DOMContentLoaded', updateDashboardClock);
 
     function scrollToTop() {
       window.scrollTo({ top: 0, behavior: 'smooth' });

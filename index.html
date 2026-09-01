@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GET - Ready Together</title>
   <link rel="icon" href="data:,">
-  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -152,6 +155,8 @@
   </script>
 </head>
 <body class="bg-brand-black text-amber-100 min-h-screen font-sans flex flex-col">
+
+  <div class="fixed inset-0" style="z-index:-1; background-image: linear-gradient(rgba(0,0,0,0.78), rgba(0,0,0,0.78)), url('./GET%20BACK%20HUB.png'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
 
   <header class="border-b border-brand-gold/20 bg-brand-brownDark/90 backdrop-blur sticky top-0 z-50">
     <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -300,9 +305,9 @@
       <div id="view-dashboard" class="space-y-6">
 
         <div class="flex items-center justify-between gap-2 py-4 px-1">
-          <p id="dashboard-time" class="text-3xl sm:text-6xl md:text-7xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none">--:--</p>
+          <p id="dashboard-time" class="text-3xl sm:text-6xl md:text-7xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--:--</p>
           <img src="./Logo.png.png" alt="GET Logo" class="h-32 sm:h-40 object-contain drop-shadow-lg flex-shrink-0" onError="this.onerror=null; this.src='https://placehold.co/256x256/3A2415/D4AF37?text=GET';" />
-          <p id="dashboard-date" class="text-lg sm:text-3xl md:text-4xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none text-right">--</p>
+          <p id="dashboard-date" class="text-lg sm:text-3xl md:text-4xl font-black text-brand-gold tabular-nums flex-shrink-0 leading-none text-right" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--</p>
         </div>
 
         <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg space-y-3">
@@ -2154,6 +2159,7 @@
     let currentUserEmail = '';
 
     function switchTab(tabName) {
+      if (tabName !== 'gameroom' && typeof stopAllGameLoops === 'function') stopAllGameLoops();
       const dashboardView = document.getElementById('view-dashboard');
       const inventoryView = document.getElementById('view-inventory');
       const knowledgeView = document.getElementById('view-knowledge');
@@ -4252,7 +4258,10 @@
       { id: 'battleship', icon: '🚢', name: 'Battleship', description: 'Hunt down the enemy fleet before they sink yours.' },
       { id: 'checkers', icon: '⚫', name: 'Checkers', description: 'Classic diagonal strategy with jumps and kings.' },
       { id: 'dotsboxes', icon: '🔲', name: 'Dots & Boxes', description: 'Claim lines, complete boxes, outscore your rival.' },
-      { id: 'memory', icon: '🧠', name: 'Memory', description: 'Match GET survival gear pairs from memory.' }
+      { id: 'memory', icon: '🧠', name: 'Memory', description: 'Match GET survival gear pairs from memory.' },
+      { id: 'snake', icon: '🐍', name: 'Snake', description: 'Two snakes, one grid — eat, grow, and outlast each other.' },
+      { id: 'chess', icon: '♞', name: 'Chess', description: 'The classic game of strategy — checkmate your opponent.' },
+      { id: 'pong', icon: '🏓', name: 'Pong', description: 'Real-time paddle battle. First to 7 wins the match.' }
     ];
 
     let gameRoomState = { screen: 'landing' };
@@ -4272,6 +4281,14 @@
       else if (screen === 'checkers') root.innerHTML = renderCheckersHtml();
       else if (screen === 'dotsboxes') root.innerHTML = renderDotsBoxesHtml();
       else if (screen === 'memory') root.innerHTML = renderMemoryHtml();
+      else if (screen === 'snake') root.innerHTML = renderSnakeHtml();
+      else if (screen === 'chess') root.innerHTML = renderChessHtml();
+      else if (screen === 'pong') root.innerHTML = renderPongHtml();
+    }
+
+    function stopAllGameLoops() {
+      if (typeof stopPongLoopIfRunning === 'function') stopPongLoopIfRunning();
+      if (typeof stopSnakeLoopIfRunning === 'function') stopSnakeLoopIfRunning();
     }
 
     function openGame(id) {
@@ -4280,6 +4297,7 @@
     }
 
     function backToGameRoom() {
+      stopAllGameLoops();
       gameRoomState.screen = 'landing';
       renderGameRoom();
     }
@@ -5177,6 +5195,628 @@
       if (!btn) return;
       if (window.scrollY > 300) btn.classList.remove('hidden');
       else btn.classList.add('hidden');
+    });
+
+    // ---------- GAME 7: SNAKE (2-player, same grid) ----------
+
+    const SNAKE_COLS = 20, SNAKE_ROWS = 20, SNAKE_CELL = 16;
+    let snakeState = null;
+    let snakeIntervalId = null;
+
+    function snakeRandomFood(state) {
+      const occupied = new Set([...state.snake1.body, ...state.snake2.body].map(([x,y]) => x + ',' + y));
+      let pos;
+      do {
+        pos = [Math.floor(Math.random() * SNAKE_COLS), Math.floor(Math.random() * SNAKE_ROWS)];
+      } while (occupied.has(pos[0] + ',' + pos[1]));
+      return pos;
+    }
+
+    function freshSnakeState(matchWins) {
+      const s = {
+        snake1: { body: [[3,10],[2,10],[1,10]], dir: [1,0], nextDir: [1,0], alive: true, score: 0 },
+        snake2: { body: [[16,9],[17,9],[18,9]], dir: [-1,0], nextDir: [-1,0], alive: true, score: 0 },
+        food: [10,10], winner: null,
+        matchWins: matchWins || { 1: 0, 2: 0 }
+      };
+      s.food = snakeRandomFood(s);
+      return s;
+    }
+
+    function ensureSnakeInit() {
+      if (!snakeState) snakeState = freshSnakeState({ 1: 0, 2: 0 });
+    }
+
+    function resetSnakeMatch() {
+      const matchWins = snakeState ? snakeState.matchWins : { 1: 0, 2: 0 };
+      snakeState = freshSnakeState(matchWins);
+      renderGameRoom();
+    }
+
+    function stopSnakeLoopIfRunning() {
+      if (snakeIntervalId) { clearInterval(snakeIntervalId); snakeIntervalId = null; }
+    }
+
+    function startSnakeGame() {
+      stopSnakeLoopIfRunning();
+      ensureSnakeInit();
+      snakeIntervalId = setInterval(snakeTick, 130);
+      snakeDraw();
+    }
+
+    function snakeSetDir(player, dx, dy) {
+      const s = snakeState;
+      if (!s) return;
+      const sn = player === 1 ? s.snake1 : s.snake2;
+      if (!sn.alive) return;
+      if (sn.dir[0] === -dx && sn.dir[1] === -dy && sn.body.length > 1) return;
+      sn.nextDir = [dx, dy];
+    }
+
+    function snakeTick() {
+      const s = snakeState;
+      if (!s || gameRoomState.screen !== 'snake' || s.winner) { stopSnakeLoopIfRunning(); return; }
+
+      [s.snake1, s.snake2].forEach(sn => {
+        if (!sn.alive) return;
+        sn.dir = sn.nextDir;
+        sn.pendingHead = [sn.body[0][0] + sn.dir[0], sn.body[0][1] + sn.dir[1]];
+      });
+
+      const checkDeath = (sn, other) => {
+        if (!sn.alive) return false;
+        const [x,y] = sn.pendingHead;
+        if (x < 0 || x >= SNAKE_COLS || y < 0 || y >= SNAKE_ROWS) return true;
+        const willEat = (x === s.food[0] && y === s.food[1]);
+        const bodyToCheck = willEat ? sn.body : sn.body.slice(0, -1);
+        if (bodyToCheck.some(([bx,by]) => bx === x && by === y)) return true;
+        if (other.alive && other.body.some(([bx,by]) => bx === x && by === y)) return true;
+        return false;
+      };
+
+      const die1 = checkDeath(s.snake1, s.snake2);
+      const die2 = checkDeath(s.snake2, s.snake1);
+      const headOn = s.snake1.alive && s.snake2.alive &&
+        s.snake1.pendingHead[0] === s.snake2.pendingHead[0] && s.snake1.pendingHead[1] === s.snake2.pendingHead[1];
+
+      if (die1 || headOn) s.snake1.alive = false;
+      if (die2 || headOn) s.snake2.alive = false;
+
+      [s.snake1, s.snake2].forEach(sn => {
+        if (!sn.alive) return;
+        const [x,y] = sn.pendingHead;
+        sn.body.unshift([x,y]);
+        if (x === s.food[0] && y === s.food[1]) {
+          sn.score++;
+          s.food = snakeRandomFood(s);
+        } else {
+          sn.body.pop();
+        }
+      });
+
+      if (!s.snake1.alive || !s.snake2.alive) {
+        if (!s.snake1.alive && !s.snake2.alive) s.winner = 'draw';
+        else if (!s.snake1.alive) { s.winner = 2; s.matchWins[2]++; }
+        else { s.winner = 1; s.matchWins[1]++; }
+      }
+
+      snakeDraw();
+    }
+
+    function snakeDraw() {
+      const canvas = document.getElementById('snake-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const s = snakeState;
+      const W = SNAKE_COLS * SNAKE_CELL, H = SNAKE_ROWS * SNAKE_CELL;
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(212,175,55,0.08)';
+      for (let i = 0; i <= SNAKE_COLS; i++) { ctx.beginPath(); ctx.moveTo(i*SNAKE_CELL,0); ctx.lineTo(i*SNAKE_CELL,H); ctx.stroke(); }
+      for (let j = 0; j <= SNAKE_ROWS; j++) { ctx.beginPath(); ctx.moveTo(0,j*SNAKE_CELL); ctx.lineTo(W,j*SNAKE_CELL); ctx.stroke(); }
+
+      ctx.fillStyle = '#34D399';
+      ctx.fillRect(s.food[0]*SNAKE_CELL+2, s.food[1]*SNAKE_CELL+2, SNAKE_CELL-4, SNAKE_CELL-4);
+
+      ctx.fillStyle = s.snake1.alive ? '#D4AF37' : 'rgba(212,175,55,0.3)';
+      s.snake1.body.forEach(([x,y]) => ctx.fillRect(x*SNAKE_CELL+1, y*SNAKE_CELL+1, SNAKE_CELL-2, SNAKE_CELL-2));
+
+      ctx.fillStyle = s.snake2.alive ? '#EF4444' : 'rgba(239,68,68,0.3)';
+      s.snake2.body.forEach(([x,y]) => ctx.fillRect(x*SNAKE_CELL+1, y*SNAKE_CELL+1, SNAKE_CELL-2, SNAKE_CELL-2));
+
+      ctx.font = 'bold 14px monospace';
+      ctx.fillStyle = '#D4AF37';
+      ctx.textAlign = 'left';
+      ctx.fillText('P1: ' + s.snake1.score, 6, 16);
+      ctx.fillStyle = '#EF4444';
+      ctx.textAlign = 'right';
+      ctx.fillText('P2: ' + s.snake2.score, W - 6, 16);
+
+      if (s.winner) {
+        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#34D399';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'center';
+        const msg = s.winner === 'draw' ? 'Draw!' : `Player ${s.winner} Wins!`;
+        ctx.fillText(msg, W/2, H/2);
+      }
+    }
+
+    function renderSnakeHtml() {
+      ensureSnakeInit();
+      setTimeout(startSnakeGame, 30);
+      const s = snakeState;
+      const dpad = (player, colorCls) => `
+        <div class="grid grid-cols-3 gap-1 w-28 mx-auto">
+          <div></div><button onclick="snakeSetDir(${player},0,-1)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">▲</button><div></div>
+          <button onclick="snakeSetDir(${player},-1,0)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">◀</button><div></div><button onclick="snakeSetDir(${player},1,0)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">▶</button>
+          <div></div><button onclick="snakeSetDir(${player},0,1)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">▼</button><div></div>
+        </div>`;
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-2xl mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">🐍 Snake</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <p class="text-center text-xs text-amber-200/60">P1 (Gold): WASD or D-pad · P2 (Red): Arrow Keys or D-pad · Eat food, avoid walls, yourself, and each other</p>
+          <div class="flex justify-center">
+            <canvas id="snake-canvas" width="${SNAKE_COLS*SNAKE_CELL}" height="${SNAKE_ROWS*SNAKE_CELL}" class="bg-black rounded-xl border border-brand-gold/30 w-full max-w-sm"></canvas>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            ${dpad(1, 'border-brand-gold/40 text-brand-gold')}
+            ${dpad(2, 'border-red-400/40 text-red-400')}
+          </div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1 Match Wins: <strong class="text-brand-gold">${s.matchWins[1]}</strong></span>
+            <span>P2 Match Wins: <strong class="text-red-400">${s.matchWins[2]}</strong></span>
+          </div>
+          <button onclick="resetSnakeMatch()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+        </section>`;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (gameRoomState.screen !== 'snake') return;
+      const k = e.key;
+      if (k === 'w' || k === 'W') snakeSetDir(1, 0, -1);
+      else if (k === 's' || k === 'S') snakeSetDir(1, 0, 1);
+      else if (k === 'a' || k === 'A') snakeSetDir(1, -1, 0);
+      else if (k === 'd' || k === 'D') snakeSetDir(1, 1, 0);
+      else if (k === 'ArrowUp') { snakeSetDir(2, 0, -1); e.preventDefault(); }
+      else if (k === 'ArrowDown') { snakeSetDir(2, 0, 1); e.preventDefault(); }
+      else if (k === 'ArrowLeft') { snakeSetDir(2, -1, 0); e.preventDefault(); }
+      else if (k === 'ArrowRight') { snakeSetDir(2, 1, 0); e.preventDefault(); }
+    });
+
+    // ---------- GAME 8: CHESS ----------
+
+    let chessState = null;
+    const CHESS_SYMBOLS = {
+      w: { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' },
+      b: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+    };
+
+    function freshChessBoard() {
+      const back = ['r','n','b','q','k','b','n','r'];
+      const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+      for (let c = 0; c < 8; c++) {
+        board[0][c] = { type: back[c], color: 'b' };
+        board[1][c] = { type: 'p', color: 'b' };
+        board[6][c] = { type: 'p', color: 'w' };
+        board[7][c] = { type: back[c], color: 'w' };
+      }
+      return board;
+    }
+
+    function ensureChessInit() {
+      if (!chessState) {
+        chessState = {
+          board: freshChessBoard(), current: 'w', selected: null, legalMoves: [],
+          winner: null, status: null,
+          moved: { wK: false, wRA: false, wRH: false, bK: false, bRA: false, bRH: false },
+          lastMove: null, scores: { w: 0, b: 0 }
+        };
+      }
+    }
+
+    function resetChess() {
+      const scores = chessState ? chessState.scores : { w: 0, b: 0 };
+      chessState = {
+        board: freshChessBoard(), current: 'w', selected: null, legalMoves: [],
+        winner: null, status: null,
+        moved: { wK: false, wRA: false, wRH: false, bK: false, bRA: false, bRH: false },
+        lastMove: null, scores
+      };
+      renderGameRoom();
+    }
+
+    function chessCloneBoard(board) {
+      return board.map(row => row.map(cell => cell ? { ...cell } : null));
+    }
+
+    function chessInBounds(r,c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
+
+    function chessRawMoves(board, r, c) {
+      const piece = board[r][c];
+      if (!piece) return [];
+      const moves = [];
+      const dir = piece.color === 'w' ? -1 : 1;
+      const enemy = piece.color === 'w' ? 'b' : 'w';
+
+      if (piece.type === 'p') {
+        if (chessInBounds(r+dir,c) && !board[r+dir][c]) {
+          moves.push({ to: [r+dir,c] });
+          const startRow = piece.color === 'w' ? 6 : 1;
+          if (r === startRow && !board[r+2*dir][c]) moves.push({ to: [r+2*dir,c] });
+        }
+        for (const dc of [-1,1]) {
+          const nr = r+dir, nc = c+dc;
+          if (chessInBounds(nr,nc) && board[nr][nc] && board[nr][nc].color === enemy) moves.push({ to: [nr,nc], capture: true });
+        }
+      } else if (piece.type === 'n') {
+        [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc]) => {
+          const nr = r+dr, nc = c+dc;
+          if (chessInBounds(nr,nc) && (!board[nr][nc] || board[nr][nc].color === enemy)) moves.push({ to: [nr,nc] });
+        });
+      } else if (piece.type === 'k') {
+        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r+dr, nc = c+dc;
+          if (chessInBounds(nr,nc) && (!board[nr][nc] || board[nr][nc].color === enemy)) moves.push({ to: [nr,nc] });
+        }
+      } else {
+        const dirsMap = {
+          b: [[-1,-1],[-1,1],[1,-1],[1,1]],
+          r: [[-1,0],[1,0],[0,-1],[0,1]],
+          q: [[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]]
+        };
+        dirsMap[piece.type].forEach(([dr,dc]) => {
+          let nr = r+dr, nc = c+dc;
+          while (chessInBounds(nr,nc)) {
+            if (!board[nr][nc]) { moves.push({ to: [nr,nc] }); }
+            else { if (board[nr][nc].color === enemy) moves.push({ to: [nr,nc] }); break; }
+            nr += dr; nc += dc;
+          }
+        });
+      }
+      return moves;
+    }
+
+    function chessAttackSquares(board, r, c) {
+      const piece = board[r][c];
+      if (!piece) return [];
+      if (piece.type === 'p') {
+        const dir = piece.color === 'w' ? -1 : 1;
+        return [-1,1].map(dc => [r+dir, c+dc]).filter(([nr,nc]) => chessInBounds(nr,nc));
+      }
+      return chessRawMoves(board, r, c).map(m => m.to);
+    }
+
+    function chessFindKing(board, color) {
+      for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) if (board[r][c] && board[r][c].type === 'k' && board[r][c].color === color) return [r,c];
+      return null;
+    }
+
+    function chessIsSquareAttacked(board, r, c, byColor) {
+      for (let rr = 0; rr < 8; rr++) for (let cc = 0; cc < 8; cc++) {
+        const p = board[rr][cc];
+        if (p && p.color === byColor && chessAttackSquares(board, rr, cc).some(([sr,sc]) => sr === r && sc === c)) return true;
+      }
+      return false;
+    }
+
+    function chessLegalMoves(state, r, c) {
+      const board = state.board;
+      const piece = board[r][c];
+      if (!piece) return [];
+      const raw = chessRawMoves(board, r, c);
+      const legal = [];
+      for (const m of raw) {
+        const cloned = chessCloneBoard(board);
+        cloned[m.to[0]][m.to[1]] = cloned[r][c];
+        cloned[r][c] = null;
+        const kingPos = piece.type === 'k' ? m.to : chessFindKing(cloned, piece.color);
+        if (kingPos && !chessIsSquareAttacked(cloned, kingPos[0], kingPos[1], piece.color === 'w' ? 'b' : 'w')) legal.push(m);
+      }
+      if (piece.type === 'k') {
+        const row = piece.color === 'w' ? 7 : 0;
+        const kMovedKey = piece.color === 'w' ? 'wK' : 'bK';
+        if (!state.moved[kMovedKey] && r === row && c === 4) {
+          const enemy = piece.color === 'w' ? 'b' : 'w';
+          if (!chessIsSquareAttacked(board, row, 4, enemy)) {
+            const rHKey = piece.color === 'w' ? 'wRH' : 'bRH';
+            if (!state.moved[rHKey] && !board[row][5] && !board[row][6] && board[row][7] && board[row][7].type === 'r') {
+              if (!chessIsSquareAttacked(board,row,5,enemy) && !chessIsSquareAttacked(board,row,6,enemy)) legal.push({ to: [row,6], castle: 'K' });
+            }
+            const rAKey = piece.color === 'w' ? 'wRA' : 'bRA';
+            if (!state.moved[rAKey] && !board[row][1] && !board[row][2] && !board[row][3] && board[row][0] && board[row][0].type === 'r') {
+              if (!chessIsSquareAttacked(board,row,3,enemy) && !chessIsSquareAttacked(board,row,2,enemy)) legal.push({ to: [row,2], castle: 'Q' });
+            }
+          }
+        }
+      }
+      return legal;
+    }
+
+    function chessSelect(r,c) {
+      const s = chessState;
+      if (s.winner) return;
+      const piece = s.board[r][c];
+
+      if (piece && piece.color === s.current) {
+        s.selected = [r,c];
+        s.legalMoves = chessLegalMoves(s, r, c);
+        renderGameRoom();
+        return;
+      }
+
+      if (s.selected) {
+        const move = s.legalMoves.find(m => m.to[0] === r && m.to[1] === c);
+        if (move) chessMakeMove(move);
+      }
+    }
+
+    function chessHasAnyLegalMove(state, color) {
+      for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        if (state.board[r][c] && state.board[r][c].color === color && chessLegalMoves(state, r, c).length > 0) return true;
+      }
+      return false;
+    }
+
+    function chessCheckGameOver() {
+      const s = chessState;
+      const kingPos = chessFindKing(s.board, s.current);
+      const inCheck = kingPos ? chessIsSquareAttacked(s.board, kingPos[0], kingPos[1], s.current === 'w' ? 'b' : 'w') : false;
+      const hasMove = chessHasAnyLegalMove(s, s.current);
+
+      if (!hasMove) {
+        if (inCheck) { s.winner = s.current === 'w' ? 'b' : 'w'; s.scores[s.winner]++; }
+        else { s.winner = 'draw'; }
+      }
+      s.status = inCheck ? 'check' : null;
+    }
+
+    function chessMakeMove(move) {
+      const s = chessState;
+      const [sr,sc] = s.selected;
+      const [tr,tc] = move.to;
+      const piece = s.board[sr][sc];
+
+      s.board[tr][tc] = piece;
+      s.board[sr][sc] = null;
+
+      if (move.castle === 'K') {
+        const row = piece.color === 'w' ? 7 : 0;
+        s.board[row][5] = s.board[row][7];
+        s.board[row][7] = null;
+      } else if (move.castle === 'Q') {
+        const row = piece.color === 'w' ? 7 : 0;
+        s.board[row][3] = s.board[row][0];
+        s.board[row][0] = null;
+      }
+
+      if (piece.type === 'p' && (tr === 0 || tr === 7)) piece.type = 'q';
+
+      if (piece.type === 'k') s.moved[piece.color === 'w' ? 'wK' : 'bK'] = true;
+      if (piece.type === 'r') {
+        const homeRow = piece.color === 'w' ? 7 : 0;
+        if (sr === homeRow && sc === 0) s.moved[piece.color === 'w' ? 'wRA' : 'bRA'] = true;
+        if (sr === homeRow && sc === 7) s.moved[piece.color === 'w' ? 'wRH' : 'bRH'] = true;
+      }
+
+      s.lastMove = { from: [sr,sc], to: [tr,tc] };
+      s.selected = null;
+      s.legalMoves = [];
+      s.current = s.current === 'w' ? 'b' : 'w';
+      chessCheckGameOver();
+      renderGameRoom();
+    }
+
+    function renderChessHtml() {
+      ensureChessInit();
+      const s = chessState;
+
+      let cellsHtml = '';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const dark = (r+c) % 2 === 1;
+          const piece = s.board[r][c];
+          const isSelected = s.selected && s.selected[0]===r && s.selected[1]===c;
+          const isLegalDest = s.legalMoves.some(m => m.to[0]===r && m.to[1]===c);
+          const isLastMove = s.lastMove && ((s.lastMove.from[0]===r&&s.lastMove.from[1]===c) || (s.lastMove.to[0]===r&&s.lastMove.to[1]===c));
+
+          let bgCls = dark ? 'bg-brand-brownDark' : 'bg-brand-black/20';
+          if (isLastMove) bgCls = dark ? 'bg-brand-gold/20' : 'bg-brand-gold/10';
+          if (isSelected) bgCls = 'bg-emerald-500/40';
+          else if (isLegalDest) bgCls = 'bg-emerald-500/20';
+
+          const symbol = piece ? CHESS_SYMBOLS[piece.color][piece.type] : (isLegalDest ? '•' : '');
+          const textCls = piece ? (piece.color === 'w' ? 'text-amber-50' : 'text-red-500') : 'text-emerald-400';
+
+          cellsHtml += `<button onclick="chessSelect(${r},${c})" class="aspect-square ${bgCls} flex items-center justify-center text-2xl sm:text-3xl ${textCls}">${symbol}</button>`;
+        }
+      }
+
+      let statusHtml;
+      if (s.winner === 'draw') statusHtml = `<p class="text-lg font-bold text-amber-300">🤝 Stalemate — Draw!</p>`;
+      else if (s.winner) statusHtml = `<p class="text-lg font-bold text-emerald-400">🎉 ${s.winner === 'w' ? 'White' : 'Black'} Wins by Checkmate!</p>`;
+      else statusHtml = `<p class="text-sm text-amber-100">Turn: <span class="font-bold ${s.current === 'w' ? 'text-brand-gold' : 'text-red-400'}">${s.current === 'w' ? 'White' : 'Black'}</span>${s.status === 'check' ? ' — CHECK!' : ''}</p>`;
+
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">♞ Chess</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <div class="text-center">${statusHtml}</div>
+          <div class="grid grid-cols-8 gap-0.5 bg-brand-black/60 p-1.5 rounded-xl">${cellsHtml}</div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>White Wins: <strong class="text-brand-gold">${s.scores.w}</strong></span>
+            <span>Black Wins: <strong class="text-red-400">${s.scores.b}</strong></span>
+          </div>
+          <button onclick="resetChess()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+          <p class="text-[9px] text-amber-200/30 text-center">Pawns auto-promote to Queen. En passant, threefold repetition, and the 50-move rule are not implemented.</p>
+        </section>`;
+    }
+
+    // ---------- GAME 9: PONG ----------
+
+    const PONG_W = 600, PONG_H = 360, PONG_PADDLE_W = 10, PONG_PADDLE_H = 70, PONG_PADDLE_SPEED = 6, PONG_BALL_SIZE = 8, PONG_WIN_SCORE = 7;
+    let pongState = null;
+    let pongAnimFrame = null;
+    let pongKeys = { w: false, s: false, up: false, down: false };
+
+    function freshPongState(matchWins) {
+      return {
+        p1Y: PONG_H/2 - PONG_PADDLE_H/2, p2Y: PONG_H/2 - PONG_PADDLE_H/2,
+        ballX: PONG_W/2, ballY: PONG_H/2, ballVX: 4, ballVY: 3,
+        score1: 0, score2: 0, matchWins: matchWins || { 1: 0, 2: 0 }, winner: null
+      };
+    }
+
+    function ensurePongInit() {
+      if (!pongState) pongState = freshPongState({ 1: 0, 2: 0 });
+    }
+
+    function resetPongMatch() {
+      const matchWins = pongState ? pongState.matchWins : { 1: 0, 2: 0 };
+      pongState = freshPongState(matchWins);
+      renderGameRoom();
+    }
+
+    function stopPongLoopIfRunning() {
+      if (pongAnimFrame) { cancelAnimationFrame(pongAnimFrame); pongAnimFrame = null; }
+    }
+
+    function startPongGame() {
+      stopPongLoopIfRunning();
+      ensurePongInit();
+      pongAnimFrame = requestAnimationFrame(pongLoop);
+    }
+
+    function pongResetBall(s, dir) {
+      s.ballX = PONG_W/2; s.ballY = PONG_H/2;
+      s.ballVX = 4 * dir;
+      s.ballVY = (Math.random() * 4 - 2);
+    }
+
+    function pongLoop() {
+      const s = pongState;
+      if (!s || gameRoomState.screen !== 'pong' || s.winner) { pongAnimFrame = null; return; }
+
+      if (pongKeys.w) s.p1Y -= PONG_PADDLE_SPEED;
+      if (pongKeys.s) s.p1Y += PONG_PADDLE_SPEED;
+      if (pongKeys.up) s.p2Y -= PONG_PADDLE_SPEED;
+      if (pongKeys.down) s.p2Y += PONG_PADDLE_SPEED;
+      s.p1Y = Math.max(0, Math.min(PONG_H - PONG_PADDLE_H, s.p1Y));
+      s.p2Y = Math.max(0, Math.min(PONG_H - PONG_PADDLE_H, s.p2Y));
+
+      s.ballX += s.ballVX;
+      s.ballY += s.ballVY;
+      if (s.ballY <= 0 || s.ballY >= PONG_H - PONG_BALL_SIZE) s.ballVY *= -1;
+
+      const p1X = 20, p2X = PONG_W - 20 - PONG_PADDLE_W;
+      if (s.ballVX < 0 && s.ballX <= p1X + PONG_PADDLE_W && s.ballX >= p1X && s.ballY + PONG_BALL_SIZE >= s.p1Y && s.ballY <= s.p1Y + PONG_PADDLE_H) {
+        s.ballVX *= -1.05;
+        s.ballVY += ((s.ballY - s.p1Y) / PONG_PADDLE_H - 0.5) * 3;
+      }
+      if (s.ballVX > 0 && s.ballX + PONG_BALL_SIZE >= p2X && s.ballX <= p2X + PONG_PADDLE_W && s.ballY + PONG_BALL_SIZE >= s.p2Y && s.ballY <= s.p2Y + PONG_PADDLE_H) {
+        s.ballVX *= -1.05;
+        s.ballVY += ((s.ballY - s.p2Y) / PONG_PADDLE_H - 0.5) * 3;
+      }
+
+      if (s.ballX < 0) { s.score2++; pongResetBall(s, 1); }
+      else if (s.ballX > PONG_W) { s.score1++; pongResetBall(s, -1); }
+
+      if (s.score1 >= PONG_WIN_SCORE || s.score2 >= PONG_WIN_SCORE) {
+        s.winner = s.score1 > s.score2 ? 1 : 2;
+        s.matchWins[s.winner]++;
+      }
+
+      pongDraw(s);
+      pongAnimFrame = requestAnimationFrame(pongLoop);
+    }
+
+    function pongDraw(s) {
+      const canvas = document.getElementById('pong-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, PONG_W, PONG_H);
+      ctx.strokeStyle = 'rgba(212,175,55,0.3)';
+      ctx.setLineDash([6,6]);
+      ctx.beginPath(); ctx.moveTo(PONG_W/2,0); ctx.lineTo(PONG_W/2,PONG_H); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillRect(20, s.p1Y, PONG_PADDLE_W, PONG_PADDLE_H);
+      ctx.fillStyle = '#EF4444';
+      ctx.fillRect(PONG_W-20-PONG_PADDLE_W, s.p2Y, PONG_PADDLE_W, PONG_PADDLE_H);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(s.ballX, s.ballY, PONG_BALL_SIZE, PONG_BALL_SIZE);
+
+      ctx.font = 'bold 32px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillText(String(s.score1), PONG_W/2 - 60, 40);
+      ctx.fillStyle = '#EF4444';
+      ctx.fillText(String(s.score2), PONG_W/2 + 60, 40);
+
+      if (s.winner) {
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, PONG_W, PONG_H);
+        ctx.fillStyle = '#34D399';
+        ctx.font = 'bold 26px sans-serif';
+        ctx.fillText(`Player ${s.winner} Wins the Match!`, PONG_W/2, PONG_H/2);
+      }
+    }
+
+    function renderPongHtml() {
+      ensurePongInit();
+      setTimeout(startPongGame, 30);
+      const s = pongState;
+      return `
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-2xl mx-auto space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold text-brand-gold">🏓 Pong</h3>
+            <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
+          </div>
+          <p class="text-center text-xs text-amber-200/60">P1: W / S keys or touch buttons · P2: Arrow Up / Down or touch buttons · First to ${PONG_WIN_SCORE} wins the match</p>
+          <div class="flex justify-center">
+            <canvas id="pong-canvas" width="${PONG_W}" height="${PONG_H}" class="bg-black rounded-xl border border-brand-gold/30 w-full max-w-xl"></canvas>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex justify-center gap-2">
+              <button ontouchstart="pongKeys.w=true" ontouchend="pongKeys.w=false" onmousedown="pongKeys.w=true" onmouseup="pongKeys.w=false" onmouseleave="pongKeys.w=false" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-3 px-6 rounded-lg select-none">▲ P1</button>
+              <button ontouchstart="pongKeys.s=true" ontouchend="pongKeys.s=false" onmousedown="pongKeys.s=true" onmouseup="pongKeys.s=false" onmouseleave="pongKeys.s=false" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-3 px-6 rounded-lg select-none">▼ P1</button>
+            </div>
+            <div class="flex justify-center gap-2">
+              <button ontouchstart="pongKeys.up=true" ontouchend="pongKeys.up=false" onmousedown="pongKeys.up=true" onmouseup="pongKeys.up=false" onmouseleave="pongKeys.up=false" class="bg-brand-black/60 border border-red-400/40 text-red-400 font-bold py-3 px-6 rounded-lg select-none">▲ P2</button>
+              <button ontouchstart="pongKeys.down=true" ontouchend="pongKeys.down=false" onmousedown="pongKeys.down=true" onmouseup="pongKeys.down=false" onmouseleave="pongKeys.down=false" class="bg-brand-black/60 border border-red-400/40 text-red-400 font-bold py-3 px-6 rounded-lg select-none">▼ P2</button>
+            </div>
+          </div>
+          <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
+            <span>P1 Match Wins: <strong class="text-brand-gold">${s.matchWins[1]}</strong></span>
+            <span>P2 Match Wins: <strong class="text-red-400">${s.matchWins[2]}</strong></span>
+          </div>
+          <button onclick="resetPongMatch()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
+        </section>`;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (gameRoomState.screen !== 'pong') return;
+      if (e.key === 'w' || e.key === 'W') pongKeys.w = true;
+      if (e.key === 's' || e.key === 'S') pongKeys.s = true;
+      if (e.key === 'ArrowUp') { pongKeys.up = true; e.preventDefault(); }
+      if (e.key === 'ArrowDown') { pongKeys.down = true; e.preventDefault(); }
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'w' || e.key === 'W') pongKeys.w = false;
+      if (e.key === 's' || e.key === 'S') pongKeys.s = false;
+      if (e.key === 'ArrowUp') pongKeys.up = false;
+      if (e.key === 'ArrowDown') pongKeys.down = false;
     });
 
     function toggleLocation() {

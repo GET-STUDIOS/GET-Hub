@@ -4253,15 +4253,15 @@
     // ============================================================
 
     const GAMES_LIST = [
-      { id: 'ttt', icon: '⭕', name: '3 In A Row', description: 'Classic 3-in-a-row strategy game.' },
-      { id: 'connect4', icon: '🔴', name: 'Connect Four', description: 'Drop pieces and connect four in a row.' },
-      { id: 'battleship', icon: '🚢', name: 'Battleship', description: 'Hunt down the enemy fleet before they sink yours.' },
-      { id: 'checkers', icon: '⚫', name: 'Checkers', description: 'Classic diagonal strategy with jumps and kings.' },
-      { id: 'dotsboxes', icon: '🔲', name: 'Dots & Boxes', description: 'Claim lines, complete boxes, outscore your rival.' },
-      { id: 'memory', icon: '🧠', name: 'Memory', description: 'Match GET survival gear pairs from memory.' },
-      { id: 'snake', icon: '🐍', name: 'Snake', description: 'Two snakes, one grid — eat, grow, and outlast each other.' },
-      { id: 'chess', icon: '♞', name: 'Chess', description: 'The classic game of strategy — checkmate your opponent.' },
-      { id: 'pong', icon: '🏓', name: 'Pong', description: 'Real-time paddle battle. First to 7 wins the match.' }
+      { id: 'ttt', icon: '⭕', name: '3 In A Row', players: '2 Players', description: 'Classic 3-in-a-row strategy game.' },
+      { id: 'connect4', icon: '🔴', name: 'Connect Four', players: '2 Players', description: 'Drop pieces and connect four in a row.' },
+      { id: 'battleship', icon: '🚢', name: 'Battleship', players: '2 Players', description: 'Hunt down the enemy fleet before they sink yours.' },
+      { id: 'checkers', icon: '⚫', name: 'Checkers', players: '2 Players', description: 'Classic diagonal strategy with jumps and kings.' },
+      { id: 'dotsboxes', icon: '🔲', name: 'Dots & Boxes', players: '2 Players', description: 'Claim lines, complete boxes, outscore your rival.' },
+      { id: 'memory', icon: '🧠', name: 'Memory', players: '2 Players', description: 'Match GET survival gear pairs from memory.' },
+      { id: 'snake', icon: '🐍', name: 'Snake', players: '1 Player', description: 'Eat, grow, and try to beat your own high score.' },
+      { id: 'chess', icon: '♞', name: 'Chess', players: '2 Players', description: 'The classic game of strategy — checkmate your opponent.' },
+      { id: 'pong', icon: '🏓', name: 'Pong', players: '1 Player vs CPU', description: 'Real-time paddle battle. First to 7 wins the match.' }
     ];
 
     let gameRoomState = { screen: 'landing' };
@@ -4307,7 +4307,7 @@
         <div class="bg-brand-black/60 border border-brand-gold/20 hover:border-brand-gold/50 rounded-2xl p-5 transition flex flex-col">
           <div class="text-4xl mb-2">${g.icon}</div>
           <h3 class="font-bold text-brand-gold text-base">${escapeHtml(g.name)}</h3>
-          <p class="text-[11px] text-amber-200/50 mb-2">2 Players</p>
+          <p class="text-[11px] text-amber-200/50 mb-2">${escapeHtml(g.players || '2 Players')}</p>
           <p class="text-xs text-amber-100/80 flex-grow mb-3">${escapeHtml(g.description)}</p>
           <button onclick="openGame('${g.id}')" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 rounded-lg text-xs transition">PLAY</button>
         </div>`).join('');
@@ -5197,14 +5197,14 @@
       else btn.classList.add('hidden');
     });
 
-    // ---------- GAME 7: SNAKE (2-player, same grid) ----------
+    // ---------- GAME 7: SNAKE (single player) ----------
 
     const SNAKE_COLS = 20, SNAKE_ROWS = 20, SNAKE_CELL = 16;
     let snakeState = null;
     let snakeIntervalId = null;
 
     function snakeRandomFood(state) {
-      const occupied = new Set([...state.snake1.body, ...state.snake2.body].map(([x,y]) => x + ',' + y));
+      const occupied = new Set(state.snake.body.map(([x,y]) => x + ',' + y));
       let pos;
       do {
         pos = [Math.floor(Math.random() * SNAKE_COLS), Math.floor(Math.random() * SNAKE_ROWS)];
@@ -5212,24 +5212,23 @@
       return pos;
     }
 
-    function freshSnakeState(matchWins) {
+    function freshSnakeState(highScore) {
       const s = {
-        snake1: { body: [[3,10],[2,10],[1,10]], dir: [1,0], nextDir: [1,0], alive: true, score: 0 },
-        snake2: { body: [[16,9],[17,9],[18,9]], dir: [-1,0], nextDir: [-1,0], alive: true, score: 0 },
-        food: [10,10], winner: null,
-        matchWins: matchWins || { 1: 0, 2: 0 }
+        snake: { body: [[9,10],[8,10],[7,10]], dir: [1,0], nextDir: [1,0], alive: true, score: 0 },
+        food: [14,10], gameOver: false,
+        highScore: highScore || 0
       };
       s.food = snakeRandomFood(s);
       return s;
     }
 
     function ensureSnakeInit() {
-      if (!snakeState) snakeState = freshSnakeState({ 1: 0, 2: 0 });
+      if (!snakeState) snakeState = freshSnakeState(0);
     }
 
     function resetSnakeMatch() {
-      const matchWins = snakeState ? snakeState.matchWins : { 1: 0, 2: 0 };
-      snakeState = freshSnakeState(matchWins);
+      const highScore = snakeState ? snakeState.highScore : 0;
+      snakeState = freshSnakeState(highScore);
       renderGameRoom();
     }
 
@@ -5244,60 +5243,43 @@
       snakeDraw();
     }
 
-    function snakeSetDir(player, dx, dy) {
+    function snakeSetDir(dx, dy) {
       const s = snakeState;
-      if (!s) return;
-      const sn = player === 1 ? s.snake1 : s.snake2;
-      if (!sn.alive) return;
+      if (!s || !s.snake.alive) return;
+      const sn = s.snake;
       if (sn.dir[0] === -dx && sn.dir[1] === -dy && sn.body.length > 1) return;
       sn.nextDir = [dx, dy];
     }
 
     function snakeTick() {
       const s = snakeState;
-      if (!s || gameRoomState.screen !== 'snake' || s.winner) { stopSnakeLoopIfRunning(); return; }
+      if (!s || gameRoomState.screen !== 'snake' || s.gameOver) { stopSnakeLoopIfRunning(); return; }
 
-      [s.snake1, s.snake2].forEach(sn => {
-        if (!sn.alive) return;
-        sn.dir = sn.nextDir;
-        sn.pendingHead = [sn.body[0][0] + sn.dir[0], sn.body[0][1] + sn.dir[1]];
-      });
+      const sn = s.snake;
+      sn.dir = sn.nextDir;
+      const [hx,hy] = sn.body[0];
+      const newHead = [hx + sn.dir[0], hy + sn.dir[1]];
 
-      const checkDeath = (sn, other) => {
-        if (!sn.alive) return false;
-        const [x,y] = sn.pendingHead;
-        if (x < 0 || x >= SNAKE_COLS || y < 0 || y >= SNAKE_ROWS) return true;
-        const willEat = (x === s.food[0] && y === s.food[1]);
-        const bodyToCheck = willEat ? sn.body : sn.body.slice(0, -1);
-        if (bodyToCheck.some(([bx,by]) => bx === x && by === y)) return true;
-        if (other.alive && other.body.some(([bx,by]) => bx === x && by === y)) return true;
-        return false;
-      };
+      const outOfBounds = newHead[0] < 0 || newHead[0] >= SNAKE_COLS || newHead[1] < 0 || newHead[1] >= SNAKE_ROWS;
+      const willEat = !outOfBounds && newHead[0] === s.food[0] && newHead[1] === s.food[1];
+      const bodyToCheck = willEat ? sn.body : sn.body.slice(0, -1);
+      const hitsSelf = bodyToCheck.some(([bx,by]) => bx === newHead[0] && by === newHead[1]);
 
-      const die1 = checkDeath(s.snake1, s.snake2);
-      const die2 = checkDeath(s.snake2, s.snake1);
-      const headOn = s.snake1.alive && s.snake2.alive &&
-        s.snake1.pendingHead[0] === s.snake2.pendingHead[0] && s.snake1.pendingHead[1] === s.snake2.pendingHead[1];
+      if (outOfBounds || hitsSelf) {
+        sn.alive = false;
+        s.gameOver = true;
+        if (sn.score > s.highScore) s.highScore = sn.score;
+        snakeDraw();
+        stopSnakeLoopIfRunning();
+        return;
+      }
 
-      if (die1 || headOn) s.snake1.alive = false;
-      if (die2 || headOn) s.snake2.alive = false;
-
-      [s.snake1, s.snake2].forEach(sn => {
-        if (!sn.alive) return;
-        const [x,y] = sn.pendingHead;
-        sn.body.unshift([x,y]);
-        if (x === s.food[0] && y === s.food[1]) {
-          sn.score++;
-          s.food = snakeRandomFood(s);
-        } else {
-          sn.body.pop();
-        }
-      });
-
-      if (!s.snake1.alive || !s.snake2.alive) {
-        if (!s.snake1.alive && !s.snake2.alive) s.winner = 'draw';
-        else if (!s.snake1.alive) { s.winner = 2; s.matchWins[2]++; }
-        else { s.winner = 1; s.matchWins[1]++; }
+      sn.body.unshift(newHead);
+      if (willEat) {
+        sn.score++;
+        s.food = snakeRandomFood(s);
+      } else {
+        sn.body.pop();
       }
 
       snakeDraw();
@@ -5319,28 +5301,26 @@
       ctx.fillStyle = '#34D399';
       ctx.fillRect(s.food[0]*SNAKE_CELL+2, s.food[1]*SNAKE_CELL+2, SNAKE_CELL-4, SNAKE_CELL-4);
 
-      ctx.fillStyle = s.snake1.alive ? '#D4AF37' : 'rgba(212,175,55,0.3)';
-      s.snake1.body.forEach(([x,y]) => ctx.fillRect(x*SNAKE_CELL+1, y*SNAKE_CELL+1, SNAKE_CELL-2, SNAKE_CELL-2));
-
-      ctx.fillStyle = s.snake2.alive ? '#EF4444' : 'rgba(239,68,68,0.3)';
-      s.snake2.body.forEach(([x,y]) => ctx.fillRect(x*SNAKE_CELL+1, y*SNAKE_CELL+1, SNAKE_CELL-2, SNAKE_CELL-2));
+      ctx.fillStyle = s.snake.alive ? '#D4AF37' : 'rgba(212,175,55,0.3)';
+      s.snake.body.forEach(([x,y]) => ctx.fillRect(x*SNAKE_CELL+1, y*SNAKE_CELL+1, SNAKE_CELL-2, SNAKE_CELL-2));
 
       ctx.font = 'bold 14px monospace';
       ctx.fillStyle = '#D4AF37';
       ctx.textAlign = 'left';
-      ctx.fillText('P1: ' + s.snake1.score, 6, 16);
-      ctx.fillStyle = '#EF4444';
+      ctx.fillText('Score: ' + s.snake.score, 6, 16);
       ctx.textAlign = 'right';
-      ctx.fillText('P2: ' + s.snake2.score, W - 6, 16);
+      ctx.fillText('Best: ' + s.highScore, W - 6, 16);
 
-      if (s.winner) {
+      if (s.gameOver) {
         ctx.fillStyle = 'rgba(0,0,0,0.75)';
         ctx.fillRect(0, 0, W, H);
-        ctx.fillStyle = '#34D399';
-        ctx.font = 'bold 18px sans-serif';
+        ctx.fillStyle = '#EF4444';
+        ctx.font = 'bold 20px sans-serif';
         ctx.textAlign = 'center';
-        const msg = s.winner === 'draw' ? 'Draw!' : `Player ${s.winner} Wins!`;
-        ctx.fillText(msg, W/2, H/2);
+        ctx.fillText('Game Over', W/2, H/2 - 12);
+        ctx.fillStyle = '#D4AF37';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText(`Score: ${s.snake.score}`, W/2, H/2 + 14);
       }
     }
 
@@ -5348,30 +5328,25 @@
       ensureSnakeInit();
       setTimeout(startSnakeGame, 30);
       const s = snakeState;
-      const dpad = (player, colorCls) => `
-        <div class="grid grid-cols-3 gap-1 w-28 mx-auto">
-          <div></div><button onclick="snakeSetDir(${player},0,-1)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">▲</button><div></div>
-          <button onclick="snakeSetDir(${player},-1,0)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">◀</button><div></div><button onclick="snakeSetDir(${player},1,0)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">▶</button>
-          <div></div><button onclick="snakeSetDir(${player},0,1)" class="bg-brand-black/60 border ${colorCls} font-bold py-2 rounded-lg">▼</button><div></div>
-        </div>`;
 
       return `
-        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-2xl mx-auto space-y-4">
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-4 sm:p-6 rounded-2xl shadow-lg max-w-lg mx-auto space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-lg font-bold text-brand-gold">🐍 Snake</h3>
             <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
           </div>
-          <p class="text-center text-xs text-amber-200/60">P1 (Gold): WASD or D-pad · P2 (Red): Arrow Keys or D-pad · Eat food, avoid walls, yourself, and each other</p>
+          <p class="text-center text-xs text-amber-200/60">WASD, Arrow Keys, or the D-pad below · Eat food, avoid the walls and yourself</p>
           <div class="flex justify-center">
             <canvas id="snake-canvas" width="${SNAKE_COLS*SNAKE_CELL}" height="${SNAKE_ROWS*SNAKE_CELL}" class="bg-black rounded-xl border border-brand-gold/30 w-full max-w-sm"></canvas>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            ${dpad(1, 'border-brand-gold/40 text-brand-gold')}
-            ${dpad(2, 'border-red-400/40 text-red-400')}
+          <div class="grid grid-cols-3 gap-1 w-32 mx-auto">
+            <div></div><button onclick="snakeSetDir(0,-1)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">▲</button><div></div>
+            <button onclick="snakeSetDir(-1,0)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">◀</button><div></div><button onclick="snakeSetDir(1,0)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">▶</button>
+            <div></div><button onclick="snakeSetDir(0,1)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">▼</button><div></div>
           </div>
           <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
-            <span>P1 Match Wins: <strong class="text-brand-gold">${s.matchWins[1]}</strong></span>
-            <span>P2 Match Wins: <strong class="text-red-400">${s.matchWins[2]}</strong></span>
+            <span>Score: <strong class="text-brand-gold">${s.snake.score}</strong></span>
+            <span>Best Score: <strong class="text-emerald-400">${s.highScore}</strong></span>
           </div>
           <button onclick="resetSnakeMatch()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
         </section>`;
@@ -5380,15 +5355,12 @@
     document.addEventListener('keydown', (e) => {
       if (gameRoomState.screen !== 'snake') return;
       const k = e.key;
-      if (k === 'w' || k === 'W') snakeSetDir(1, 0, -1);
-      else if (k === 's' || k === 'S') snakeSetDir(1, 0, 1);
-      else if (k === 'a' || k === 'A') snakeSetDir(1, -1, 0);
-      else if (k === 'd' || k === 'D') snakeSetDir(1, 1, 0);
-      else if (k === 'ArrowUp') { snakeSetDir(2, 0, -1); e.preventDefault(); }
-      else if (k === 'ArrowDown') { snakeSetDir(2, 0, 1); e.preventDefault(); }
-      else if (k === 'ArrowLeft') { snakeSetDir(2, -1, 0); e.preventDefault(); }
-      else if (k === 'ArrowRight') { snakeSetDir(2, 1, 0); e.preventDefault(); }
+      if (k === 'w' || k === 'W' || k === 'ArrowUp') { snakeSetDir(0, -1); if (k === 'ArrowUp') e.preventDefault(); }
+      else if (k === 's' || k === 'S' || k === 'ArrowDown') { snakeSetDir(0, 1); if (k === 'ArrowDown') e.preventDefault(); }
+      else if (k === 'a' || k === 'A' || k === 'ArrowLeft') { snakeSetDir(-1, 0); if (k === 'ArrowLeft') e.preventDefault(); }
+      else if (k === 'd' || k === 'D' || k === 'ArrowRight') { snakeSetDir(1, 0); if (k === 'ArrowRight') e.preventDefault(); }
     });
+
 
     // ---------- GAME 8: CHESS ----------
 
@@ -5661,27 +5633,27 @@
         </section>`;
     }
 
-    // ---------- GAME 9: PONG ----------
+    // ---------- GAME 9: PONG (single player vs CPU) ----------
 
-    const PONG_W = 600, PONG_H = 360, PONG_PADDLE_W = 10, PONG_PADDLE_H = 70, PONG_PADDLE_SPEED = 6, PONG_BALL_SIZE = 8, PONG_WIN_SCORE = 7;
+    const PONG_W = 600, PONG_H = 360, PONG_PADDLE_W = 10, PONG_PADDLE_H = 70, PONG_PADDLE_SPEED = 6, PONG_CPU_SPEED = 4.5, PONG_BALL_SIZE = 8, PONG_WIN_SCORE = 7;
     let pongState = null;
     let pongAnimFrame = null;
-    let pongKeys = { w: false, s: false, up: false, down: false };
+    let pongKeys = { w: false, s: false };
 
     function freshPongState(matchWins) {
       return {
-        p1Y: PONG_H/2 - PONG_PADDLE_H/2, p2Y: PONG_H/2 - PONG_PADDLE_H/2,
+        p1Y: PONG_H/2 - PONG_PADDLE_H/2, cpuY: PONG_H/2 - PONG_PADDLE_H/2,
         ballX: PONG_W/2, ballY: PONG_H/2, ballVX: 4, ballVY: 3,
-        score1: 0, score2: 0, matchWins: matchWins || { 1: 0, 2: 0 }, winner: null
+        score1: 0, scoreCpu: 0, matchWins: matchWins || { player: 0, cpu: 0 }, winner: null
       };
     }
 
     function ensurePongInit() {
-      if (!pongState) pongState = freshPongState({ 1: 0, 2: 0 });
+      if (!pongState) pongState = freshPongState({ player: 0, cpu: 0 });
     }
 
     function resetPongMatch() {
-      const matchWins = pongState ? pongState.matchWins : { 1: 0, 2: 0 };
+      const matchWins = pongState ? pongState.matchWins : { player: 0, cpu: 0 };
       pongState = freshPongState(matchWins);
       renderGameRoom();
     }
@@ -5708,30 +5680,35 @@
 
       if (pongKeys.w) s.p1Y -= PONG_PADDLE_SPEED;
       if (pongKeys.s) s.p1Y += PONG_PADDLE_SPEED;
-      if (pongKeys.up) s.p2Y -= PONG_PADDLE_SPEED;
-      if (pongKeys.down) s.p2Y += PONG_PADDLE_SPEED;
       s.p1Y = Math.max(0, Math.min(PONG_H - PONG_PADDLE_H, s.p1Y));
-      s.p2Y = Math.max(0, Math.min(PONG_H - PONG_PADDLE_H, s.p2Y));
+
+      // Simple CPU: tracks the ball's y position with a capped speed, imperfect on purpose so it's beatable
+      const cpuCenter = s.cpuY + PONG_PADDLE_H/2;
+      const targetY = s.ballY + PONG_BALL_SIZE/2;
+      if (Math.abs(cpuCenter - targetY) > 6) {
+        s.cpuY += cpuCenter < targetY ? PONG_CPU_SPEED : -PONG_CPU_SPEED;
+      }
+      s.cpuY = Math.max(0, Math.min(PONG_H - PONG_PADDLE_H, s.cpuY));
 
       s.ballX += s.ballVX;
       s.ballY += s.ballVY;
       if (s.ballY <= 0 || s.ballY >= PONG_H - PONG_BALL_SIZE) s.ballVY *= -1;
 
-      const p1X = 20, p2X = PONG_W - 20 - PONG_PADDLE_W;
+      const p1X = 20, cpuX = PONG_W - 20 - PONG_PADDLE_W;
       if (s.ballVX < 0 && s.ballX <= p1X + PONG_PADDLE_W && s.ballX >= p1X && s.ballY + PONG_BALL_SIZE >= s.p1Y && s.ballY <= s.p1Y + PONG_PADDLE_H) {
         s.ballVX *= -1.05;
         s.ballVY += ((s.ballY - s.p1Y) / PONG_PADDLE_H - 0.5) * 3;
       }
-      if (s.ballVX > 0 && s.ballX + PONG_BALL_SIZE >= p2X && s.ballX <= p2X + PONG_PADDLE_W && s.ballY + PONG_BALL_SIZE >= s.p2Y && s.ballY <= s.p2Y + PONG_PADDLE_H) {
+      if (s.ballVX > 0 && s.ballX + PONG_BALL_SIZE >= cpuX && s.ballX <= cpuX + PONG_PADDLE_W && s.ballY + PONG_BALL_SIZE >= s.cpuY && s.ballY <= s.cpuY + PONG_PADDLE_H) {
         s.ballVX *= -1.05;
-        s.ballVY += ((s.ballY - s.p2Y) / PONG_PADDLE_H - 0.5) * 3;
+        s.ballVY += ((s.ballY - s.cpuY) / PONG_PADDLE_H - 0.5) * 3;
       }
 
-      if (s.ballX < 0) { s.score2++; pongResetBall(s, 1); }
+      if (s.ballX < 0) { s.scoreCpu++; pongResetBall(s, 1); }
       else if (s.ballX > PONG_W) { s.score1++; pongResetBall(s, -1); }
 
-      if (s.score1 >= PONG_WIN_SCORE || s.score2 >= PONG_WIN_SCORE) {
-        s.winner = s.score1 > s.score2 ? 1 : 2;
+      if (s.score1 >= PONG_WIN_SCORE || s.scoreCpu >= PONG_WIN_SCORE) {
+        s.winner = s.score1 > s.scoreCpu ? 'player' : 'cpu';
         s.matchWins[s.winner]++;
       }
 
@@ -5753,7 +5730,7 @@
       ctx.fillStyle = '#D4AF37';
       ctx.fillRect(20, s.p1Y, PONG_PADDLE_W, PONG_PADDLE_H);
       ctx.fillStyle = '#EF4444';
-      ctx.fillRect(PONG_W-20-PONG_PADDLE_W, s.p2Y, PONG_PADDLE_W, PONG_PADDLE_H);
+      ctx.fillRect(PONG_W-20-PONG_PADDLE_W, s.cpuY, PONG_PADDLE_W, PONG_PADDLE_H);
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(s.ballX, s.ballY, PONG_BALL_SIZE, PONG_BALL_SIZE);
 
@@ -5762,14 +5739,14 @@
       ctx.fillStyle = '#D4AF37';
       ctx.fillText(String(s.score1), PONG_W/2 - 60, 40);
       ctx.fillStyle = '#EF4444';
-      ctx.fillText(String(s.score2), PONG_W/2 + 60, 40);
+      ctx.fillText(String(s.scoreCpu), PONG_W/2 + 60, 40);
 
       if (s.winner) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
         ctx.fillRect(0, 0, PONG_W, PONG_H);
         ctx.fillStyle = '#34D399';
         ctx.font = 'bold 26px sans-serif';
-        ctx.fillText(`Player ${s.winner} Wins the Match!`, PONG_W/2, PONG_H/2);
+        ctx.fillText(s.winner === 'player' ? 'You Win the Match!' : 'CPU Wins the Match!', PONG_W/2, PONG_H/2);
       }
     }
 
@@ -5783,23 +5760,17 @@
             <h3 class="text-lg font-bold text-brand-gold">🏓 Pong</h3>
             <button onclick="backToGameRoom()" class="text-xs text-amber-200/60 hover:text-brand-gold underline">← Game Room</button>
           </div>
-          <p class="text-center text-xs text-amber-200/60">P1: W / S keys or touch buttons · P2: Arrow Up / Down or touch buttons · First to ${PONG_WIN_SCORE} wins the match</p>
+          <p class="text-center text-xs text-amber-200/60">W / S, Arrow Up / Down, or the touch buttons below · First to ${PONG_WIN_SCORE} wins the match</p>
           <div class="flex justify-center">
             <canvas id="pong-canvas" width="${PONG_W}" height="${PONG_H}" class="bg-black rounded-xl border border-brand-gold/30 w-full max-w-xl"></canvas>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex justify-center gap-2">
-              <button ontouchstart="pongKeys.w=true" ontouchend="pongKeys.w=false" onmousedown="pongKeys.w=true" onmouseup="pongKeys.w=false" onmouseleave="pongKeys.w=false" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-3 px-6 rounded-lg select-none">▲ P1</button>
-              <button ontouchstart="pongKeys.s=true" ontouchend="pongKeys.s=false" onmousedown="pongKeys.s=true" onmouseup="pongKeys.s=false" onmouseleave="pongKeys.s=false" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-3 px-6 rounded-lg select-none">▼ P1</button>
-            </div>
-            <div class="flex justify-center gap-2">
-              <button ontouchstart="pongKeys.up=true" ontouchend="pongKeys.up=false" onmousedown="pongKeys.up=true" onmouseup="pongKeys.up=false" onmouseleave="pongKeys.up=false" class="bg-brand-black/60 border border-red-400/40 text-red-400 font-bold py-3 px-6 rounded-lg select-none">▲ P2</button>
-              <button ontouchstart="pongKeys.down=true" ontouchend="pongKeys.down=false" onmousedown="pongKeys.down=true" onmouseup="pongKeys.down=false" onmouseleave="pongKeys.down=false" class="bg-brand-black/60 border border-red-400/40 text-red-400 font-bold py-3 px-6 rounded-lg select-none">▼ P2</button>
-            </div>
+          <div class="flex justify-center gap-3">
+            <button ontouchstart="pongKeys.w=true" ontouchend="pongKeys.w=false" onmousedown="pongKeys.w=true" onmouseup="pongKeys.w=false" onmouseleave="pongKeys.w=false" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-3 px-8 rounded-lg select-none">▲</button>
+            <button ontouchstart="pongKeys.s=true" ontouchend="pongKeys.s=false" onmousedown="pongKeys.s=true" onmouseup="pongKeys.s=false" onmouseleave="pongKeys.s=false" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-3 px-8 rounded-lg select-none">▼</button>
           </div>
           <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
-            <span>P1 Match Wins: <strong class="text-brand-gold">${s.matchWins[1]}</strong></span>
-            <span>P2 Match Wins: <strong class="text-red-400">${s.matchWins[2]}</strong></span>
+            <span>Your Wins: <strong class="text-brand-gold">${s.matchWins.player}</strong></span>
+            <span>CPU Wins: <strong class="text-red-400">${s.matchWins.cpu}</strong></span>
           </div>
           <button onclick="resetPongMatch()" class="w-full bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2.5 rounded-lg transition text-sm">NEW GAME</button>
         </section>`;
@@ -5807,16 +5778,12 @@
 
     document.addEventListener('keydown', (e) => {
       if (gameRoomState.screen !== 'pong') return;
-      if (e.key === 'w' || e.key === 'W') pongKeys.w = true;
-      if (e.key === 's' || e.key === 'S') pongKeys.s = true;
-      if (e.key === 'ArrowUp') { pongKeys.up = true; e.preventDefault(); }
-      if (e.key === 'ArrowDown') { pongKeys.down = true; e.preventDefault(); }
+      if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') { pongKeys.w = true; if (e.key === 'ArrowUp') e.preventDefault(); }
+      if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') { pongKeys.s = true; if (e.key === 'ArrowDown') e.preventDefault(); }
     });
     document.addEventListener('keyup', (e) => {
-      if (e.key === 'w' || e.key === 'W') pongKeys.w = false;
-      if (e.key === 's' || e.key === 'S') pongKeys.s = false;
-      if (e.key === 'ArrowUp') pongKeys.up = false;
-      if (e.key === 'ArrowDown') pongKeys.down = false;
+      if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') pongKeys.w = false;
+      if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') pongKeys.s = false;
     });
 
     function toggleLocation() {

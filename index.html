@@ -212,6 +212,10 @@
             </button>
           </div>
         </div>
+        <button id="screensaver-btn" onclick="showScreensaver()" class="text-sm bg-brand-brownCard hover:bg-brand-brownDark text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5" title="Show privacy screen">
+          <span>🔒</span>
+          <span class="hidden sm:inline">Privacy</span>
+        </button>
         <button id="low-power-toggle-btn" onclick="toggleLowPowerMode()" class="text-sm bg-brand-brownCard hover:bg-brand-brownDark text-brand-gold border border-brand-gold/30 font-medium py-1.5 px-3 rounded-lg transition flex items-center gap-1.5" title="Toggle Low Power Mode">
           <span id="low-power-icon">🔋</span>
           <span id="low-power-label" class="hidden sm:inline">Low Power</span>
@@ -5165,6 +5169,46 @@
 
     setInterval(updateHeaderTeamDate, 30000);
 
+    let screensaverInterval = null;
+
+    function showScreensaver() {
+      const overlay = document.getElementById('screensaver-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('hidden');
+      updateScreensaverClock();
+      if (screensaverInterval) clearInterval(screensaverInterval);
+      screensaverInterval = setInterval(updateScreensaverClock, 1000);
+    }
+
+    function hideScreensaver() {
+      const overlay = document.getElementById('screensaver-overlay');
+      if (overlay) overlay.classList.add('hidden');
+      if (screensaverInterval) { clearInterval(screensaverInterval); screensaverInterval = null; }
+    }
+
+    function updateScreensaverClock() {
+      const timeEl = document.getElementById('screensaver-time');
+      const dateEl = document.getElementById('screensaver-date');
+      if (!timeEl && !dateEl) return;
+      const now = new Date();
+      if (timeEl) {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        timeEl.textContent = `${hh}:${mm}:${ss}`;
+      }
+      if (dateEl) {
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mo = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        dateEl.textContent = `${dd}/${mo}/${yyyy}`;
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hideScreensaver();
+    });
+
     function updateDashboardClock() {
       const timeEl = document.getElementById('dashboard-time');
       const dateEl = document.getElementById('dashboard-date');
@@ -5339,10 +5383,10 @@
           <div class="flex justify-center">
             <canvas id="snake-canvas" width="${SNAKE_COLS*SNAKE_CELL}" height="${SNAKE_ROWS*SNAKE_CELL}" class="bg-black rounded-xl border border-brand-gold/30 w-full max-w-sm"></canvas>
           </div>
-          <div class="grid grid-cols-3 gap-1 w-32 mx-auto">
-            <div></div><button onclick="snakeSetDir(0,-1)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">▲</button><div></div>
-            <button onclick="snakeSetDir(-1,0)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">◀</button><div></div><button onclick="snakeSetDir(1,0)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">▶</button>
-            <div></div><button onclick="snakeSetDir(0,1)" class="bg-brand-black/60 border border-brand-gold/40 text-brand-gold font-bold py-2.5 rounded-lg">▼</button><div></div>
+          <div class="grid grid-cols-3 gap-3 w-fit mx-auto">
+            <div></div><button onclick="snakeSetDir(0,-1)" class="w-16 h-16 sm:w-20 sm:h-20 bg-brand-black/60 border-2 border-brand-gold/40 text-brand-gold font-bold text-2xl sm:text-3xl rounded-xl active:bg-brand-gold active:text-brand-black transition select-none">▲</button><div></div>
+            <button onclick="snakeSetDir(-1,0)" class="w-16 h-16 sm:w-20 sm:h-20 bg-brand-black/60 border-2 border-brand-gold/40 text-brand-gold font-bold text-2xl sm:text-3xl rounded-xl active:bg-brand-gold active:text-brand-black transition select-none">◀</button><div></div><button onclick="snakeSetDir(1,0)" class="w-16 h-16 sm:w-20 sm:h-20 bg-brand-black/60 border-2 border-brand-gold/40 text-brand-gold font-bold text-2xl sm:text-3xl rounded-xl active:bg-brand-gold active:text-brand-black transition select-none">▶</button>
+            <div></div><button onclick="snakeSetDir(0,1)" class="w-16 h-16 sm:w-20 sm:h-20 bg-brand-black/60 border-2 border-brand-gold/40 text-brand-gold font-bold text-2xl sm:text-3xl rounded-xl active:bg-brand-gold active:text-brand-black transition select-none">▼</button><div></div>
           </div>
           <div class="flex justify-between text-xs text-amber-100/80 bg-brand-black/60 rounded-lg p-2.5">
             <span>Score: <strong class="text-brand-gold">${s.snake.score}</strong></span>
@@ -6027,5 +6071,12 @@
   <button id="back-to-top-btn" onclick="scrollToTop()" class="hidden fixed bottom-5 right-5 z-40 bg-brand-gold hover:bg-brand-goldLight text-brand-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl font-bold transition" title="Back to top" aria-label="Scroll back to top">
     ⬆
   </button>
+
+  <div id="screensaver-overlay" onclick="hideScreensaver()" class="hidden fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-6 cursor-pointer select-none">
+    <img src="./Logo.png.png" alt="GET Logo" class="h-28 sm:h-40 object-contain drop-shadow-lg opacity-90" onError="this.onerror=null; this.src='https://placehold.co/256x256/000000/D4AF37?text=GET';" />
+    <p id="screensaver-time" class="text-6xl sm:text-8xl md:text-9xl font-black text-brand-gold tabular-nums leading-none" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--:--:--</p>
+    <p id="screensaver-date" class="text-lg sm:text-2xl md:text-3xl font-bold text-amber-200/60 tabular-nums" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.05em;">--</p>
+    <p class="text-[10px] sm:text-xs text-amber-200/30 mt-4 uppercase tracking-widest">Tap anywhere to return</p>
+  </div>
 </body>
 </html>

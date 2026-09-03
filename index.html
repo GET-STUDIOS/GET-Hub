@@ -5176,8 +5176,68 @@
       if (!overlay) return;
       overlay.classList.remove('hidden');
       updateScreensaverClock();
+      loadScreensaverWeather();
       if (screensaverInterval) clearInterval(screensaverInterval);
       screensaverInterval = setInterval(updateScreensaverClock, 1000);
+    }
+
+    async function loadScreensaverWeather() {
+      const container = document.getElementById('screensaver-weather');
+      if (!container) return;
+
+      try {
+        const [weatherRes, airRes] = await Promise.all([
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${CHICLANA_LAT}&longitude=${CHICLANA_LON}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code&timezone=auto`),
+          fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${CHICLANA_LAT}&longitude=${CHICLANA_LON}&current=european_aqi,grass_pollen,birch_pollen,ragweed_pollen&timezone=auto`)
+        ]);
+
+        if (!weatherRes.ok) throw new Error('Weather fetch failed');
+        const weatherData = await weatherRes.json();
+        const airData = airRes.ok ? await airRes.json() : null;
+        const cur = weatherData.current || {};
+
+        const code = cur.weather_code;
+        let condText = 'Clear';
+        if (code >= 1 && code <= 3) condText = 'Partly Cloudy';
+        else if (code >= 45 && code <= 48) condText = 'Foggy';
+        else if (code >= 51 && code <= 67) condText = 'Rainy';
+        else if (code >= 71) condText = 'Snow / Storm';
+
+        const windDir = cur.wind_direction_10m != null ? bearingToCompass(cur.wind_direction_10m) : '';
+
+        let pollenLevel = 'Unknown';
+        if (airData && airData.current) {
+          const grass = airData.current.grass_pollen || 0;
+          const birch = airData.current.birch_pollen || 0;
+          const ragweed = airData.current.ragweed_pollen || 0;
+          const pollenValue = Math.max(grass, birch, ragweed);
+          if (pollenValue === 0) pollenLevel = 'None';
+          else if (pollenValue < 10) pollenLevel = 'Low';
+          else if (pollenValue < 50) pollenLevel = 'Moderate';
+          else if (pollenValue < 150) pollenLevel = 'High';
+          else pollenLevel = 'Very High';
+        }
+
+        const aqiText = (airData && airData.current && airData.current.european_aqi != null) ? `AQI ${airData.current.european_aqi}` : '--';
+
+        const items = [
+          { label: 'Condition', value: condText },
+          { label: 'Temperature', value: cur.temperature_2m != null ? `${Math.round(cur.temperature_2m)}°C (feels ${Math.round(cur.apparent_temperature)}°C)` : '--' },
+          { label: 'Wind', value: cur.wind_speed_10m != null ? `${Math.round(cur.wind_speed_10m)} km/h ${windDir}` : '--' },
+          { label: 'Humidity', value: cur.relative_humidity_2m != null ? `${cur.relative_humidity_2m}%` : '--' },
+          { label: 'Pollen', value: pollenLevel },
+          { label: 'Air Quality', value: aqiText }
+        ];
+
+        container.innerHTML = items.map(item => `
+          <div class="bg-white/5 border border-brand-gold/10 rounded-lg p-2">
+            <p class="text-[9px] text-amber-200/40 uppercase tracking-wide">${item.label}</p>
+            <p class="text-xs sm:text-sm font-bold text-amber-100">${item.value}</p>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<p class="col-span-2 sm:col-span-3 text-[10px] text-amber-200/40 text-center">Weather unavailable</p>`;
+      }
     }
 
     function hideScreensaver() {
@@ -6072,11 +6132,16 @@
     ⬆
   </button>
 
-  <div id="screensaver-overlay" onclick="hideScreensaver()" class="hidden fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-6 cursor-pointer select-none">
-    <img src="./Logo.png.png" alt="GET Logo" class="h-28 sm:h-40 object-contain drop-shadow-lg opacity-90" onError="this.onerror=null; this.src='https://placehold.co/256x256/000000/D4AF37?text=GET';" />
+  <div id="screensaver-overlay" onclick="hideScreensaver()" class="hidden fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-4 cursor-pointer select-none px-4">
+    <img src="./Logo.png.png" alt="GET Logo" class="h-24 sm:h-36 object-contain drop-shadow-lg opacity-90" onError="this.onerror=null; this.src='https://placehold.co/256x256/000000/D4AF37?text=GET';" />
     <p id="screensaver-time" class="text-6xl sm:text-8xl md:text-9xl font-black text-brand-gold tabular-nums leading-none" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--:--:--</p>
     <p id="screensaver-date" class="text-lg sm:text-2xl md:text-3xl font-bold text-amber-200/60 tabular-nums" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.05em;">--</p>
-    <p class="text-[10px] sm:text-xs text-amber-200/30 mt-4 uppercase tracking-widest">Tap anywhere to return</p>
+
+    <div id="screensaver-weather" class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-center w-full max-w-md sm:max-w-xl">
+      <p class="col-span-2 sm:col-span-3 text-[10px] text-amber-200/40 text-center">Loading weather...</p>
+    </div>
+
+    <p class="text-[10px] sm:text-xs text-amber-200/30 mt-3 uppercase tracking-widest">Tap anywhere to return</p>
   </div>
 </body>
 </html>

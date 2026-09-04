@@ -3221,16 +3221,28 @@
     let lastKnownDeviceHeading = null; // shared by the Dashboard compass widget and the Maps bearing needle
 
     function handleOrientation(event) {
-      let alpha = event.alpha;
-      if (alpha !== null) {
-        const heading = Math.round(360 - alpha);
-        lastKnownDeviceHeading = heading;
-        const dial = document.getElementById('compass-dial');
-        const text = document.getElementById('compass-heading');
-        if (dial) dial.style.transform = `rotate(${-heading}deg)`;
-        if (text) text.textContent = `Heading: ${heading}°`;
-        updateWaypointCompassNeedle();
+      let heading;
+      if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
+        // iOS Safari provides an absolute, magnetic-north-referenced heading directly on the
+        // event object — use it as-is. The plain `alpha` field on iOS is NOT reliably
+        // referenced to true north (it's relative to wherever tracking happened to start),
+        // which is what was causing North to point in the wrong direction.
+        heading = event.webkitCompassHeading;
+      } else if (event.alpha !== null) {
+        // Standard DeviceOrientationEvent (Android/other browsers): alpha increases
+        // counter-clockwise from north, so convert to a clockwise-from-north heading.
+        heading = 360 - event.alpha;
+      } else {
+        return;
       }
+
+      heading = Math.round(((heading % 360) + 360) % 360);
+      lastKnownDeviceHeading = heading;
+      const dial = document.getElementById('compass-dial');
+      const text = document.getElementById('compass-heading');
+      if (dial) dial.style.transform = `rotate(${-heading}deg)`;
+      if (text) text.textContent = `Heading: ${heading}°`;
+      updateWaypointCompassNeedle();
     }
 
     // ============================================================

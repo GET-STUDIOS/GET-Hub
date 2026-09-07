@@ -3213,11 +3213,6 @@
               compassListenerActive = true;
             }
           }).catch(() => { /* permission dialog dismissed or unsupported — numeric bearing still works */ });
-        } else if ('ondeviceorientationabsolute' in window) {
-          // Chrome/Android: this event explicitly guarantees a compass-referenced
-          // (absolute) alpha value, instead of hoping the plain event sets it.
-          window.addEventListener('deviceorientationabsolute', handleOrientation);
-          compassListenerActive = true;
         } else {
           window.addEventListener('deviceorientation', handleOrientation);
           compassListenerActive = true;
@@ -3234,17 +3229,7 @@
         // event object — use it as-is.
         heading = event.webkitCompassHeading;
       } else if (event.alpha !== null) {
-        if (event.absolute === true) {
-          // Android/Chrome: when the value is flagged absolute (compass-referenced), alpha
-          // is reported directly as the compass heading — 0 = North, increasing clockwise.
-          // No inversion needed here; applying "360 - alpha" on these devices is what was
-          // causing North to point roughly opposite of correct.
-          heading = event.alpha;
-        } else {
-          // Non-absolute/relative alpha: best-effort conversion, since there's no true
-          // north reference to calibrate against on these devices/browsers.
-          heading = 360 - event.alpha;
-        }
+        heading = 360 - event.alpha;
       } else {
         return;
       }

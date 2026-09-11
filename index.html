@@ -347,34 +347,8 @@
           </div>
         </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
-          <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg flex flex-col items-center justify-between text-center">
-            <div class="border-b border-brand-gold/20 pb-2 mb-2 w-full">
-              <h3 class="text-base font-bold text-brand-gold flex items-center justify-center gap-1.5">
-                <span>🧭</span> Digital Compass
-              </h3>
-            </div>
-
-            <div class="relative w-32 h-32 my-2 flex items-center justify-center border-2 border-brand-gold/40 rounded-full bg-brand-black/60 shadow-inner">
-              <div class="absolute -top-2 z-10 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-red-500"></div>
-
-              <div id="compass-dial" class="relative w-full h-full rounded-full transition-transform duration-100 ease-out flex items-center justify-center text-xs font-bold font-mono">
-                <span class="absolute top-1 text-brand-gold font-black text-sm">N</span>
-                <span class="absolute right-2 text-amber-200/70">E</span>
-                <span class="absolute bottom-1 text-amber-200/70">S</span>
-                <span class="absolute left-2 text-amber-200/70">W</span>
-                
-                <div class="w-1 h-12 bg-gradient-to-t from-brand-gold to-red-500 rounded-full opacity-80"></div>
-              </div>
-            </div>
-
-            <p id="compass-heading" class="text-xs font-mono font-bold text-brand-gold my-1">Heading: --°</p>
-            <button id="enable-compass-btn" onclick="startCompass()" class="text-[11px] bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-1 px-3 rounded-lg transition shadow">
-              Enable Compass
-            </button>
-          </section>
-
           <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg flex flex-col justify-between">
             <div class="flex justify-between items-start border-b border-brand-gold/20 pb-2 mb-2">
               <div>
@@ -1790,6 +1764,54 @@
           </div>
         </section>
 
+        <!-- Tactical Compass -->
+        <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg">
+          <div class="flex justify-between items-center mb-1">
+            <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2">
+              <span>🧭</span> Tactical Compass
+            </h3>
+            <p id="maps-compass-status" class="text-[10px] text-amber-200/50 text-right">Not enabled</p>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div class="relative w-52 h-52 sm:w-60 sm:h-60 my-3">
+              <div class="absolute inset-0 rounded-full border-2 border-brand-gold/50" style="box-shadow: 0 0 24px rgba(212,175,55,0.25), inset 0 0 24px rgba(212,175,55,0.12);"></div>
+              <div class="absolute inset-1 rounded-full" style="background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, rgba(0,0,0,0.65) 72%);"></div>
+
+              <div id="maps-compass-ticks" class="absolute inset-3 rounded-full"></div>
+
+              <div class="absolute left-1/2 -translate-x-1/2 -top-1 z-20 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[14px] border-b-red-500" style="filter: drop-shadow(0 0 4px rgba(239,68,68,0.7));"></div>
+
+              <div id="maps-compass-dial" class="absolute inset-3 rounded-full transition-transform duration-150 ease-out">
+                <span class="absolute top-1 left-1/2 -translate-x-1/2 text-brand-gold font-black text-base" style="font-family: 'Orbitron', sans-serif;">N</span>
+                <span class="absolute right-1 top-1/2 -translate-y-1/2 text-amber-200/70 font-bold text-sm">E</span>
+                <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-amber-200/70 font-bold text-sm">S</span>
+                <span class="absolute left-1 top-1/2 -translate-y-1/2 text-amber-200/70 font-bold text-sm">W</span>
+
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center" style="height: 82%;">
+                  <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[11px] border-b-red-500" style="filter: drop-shadow(0 0 3px rgba(239,68,68,0.6));"></div>
+                  <div class="w-1.5 flex-grow bg-gradient-to-b from-red-500 via-brand-gold to-brand-gold rounded-full" style="filter: drop-shadow(0 0 3px rgba(212,175,55,0.5));"></div>
+                </div>
+              </div>
+
+              <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-brand-gold shadow-lg z-10"></div>
+            </div>
+
+            <p id="maps-compass-readout" class="text-4xl sm:text-5xl font-black text-brand-gold tabular-nums leading-none" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--°</p>
+            <p id="maps-compass-direction" class="text-xs text-amber-200/60 uppercase tracking-widest mb-3 mt-1">Compass inactive</p>
+
+            <div class="flex gap-2">
+              <button id="maps-compass-enable-btn" onclick="startMapsCompass()" class="text-xs bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 px-4 rounded-lg transition shadow">
+                Enable Compass
+              </button>
+              <button id="maps-compass-calibrate-btn" onclick="calibrateMapsCompassToNorth()" class="hidden text-xs bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2 px-4 rounded-lg transition">
+                🧭 Calibrate to North
+              </button>
+            </div>
+            <p class="text-[10px] text-amber-200/40 text-center mt-2 max-w-xs">Face a known North (real compass, sun, or map app) before calibrating for an accurate reading.</p>
+          </div>
+        </section>
+
         <!-- Emergency Navigation Quick Access -->
         <section class="bg-brand-brownCard border border-brand-gold/30 p-4 rounded-2xl shadow-lg">
           <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2 mb-3">
@@ -3199,49 +3221,8 @@
       if (output) output.textContent = "-- --- --";
     }
 
-    let compassListenerActive = false;
-
-    function startCompass() {
-      if (compassListenerActive) return;
-      if (window.DeviceOrientationEvent) {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-          // iOS Safari: needs an explicit permission prompt, then the plain event
-          // (webkitCompassHeading on it is what handleOrientation actually reads).
-          DeviceOrientationEvent.requestPermission().then(permissionState => {
-            if (permissionState === 'granted') {
-              window.addEventListener('deviceorientation', handleOrientation);
-              compassListenerActive = true;
-            }
-          }).catch(() => { /* permission dialog dismissed or unsupported — numeric bearing still works */ });
-        } else {
-          window.addEventListener('deviceorientation', handleOrientation);
-          compassListenerActive = true;
-        }
-      }
-    }
-
-    let lastKnownDeviceHeading = null; // shared by the Dashboard compass widget and the Maps bearing needle
-
-    function handleOrientation(event) {
-      let heading;
-      if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
-        // iOS Safari provides an absolute, magnetic-north-referenced heading directly on the
-        // event object — use it as-is.
-        heading = event.webkitCompassHeading;
-      } else if (event.alpha !== null) {
-        heading = 360 - event.alpha;
-      } else {
-        return;
-      }
-
-      heading = Math.round(((heading % 360) + 360) % 360);
-      lastKnownDeviceHeading = heading;
-      const dial = document.getElementById('compass-dial');
-      const text = document.getElementById('compass-heading');
-      if (dial) dial.style.transform = `rotate(${-heading}deg)`;
-      if (text) text.textContent = `Heading: ${heading}°`;
-      updateWaypointCompassNeedle();
-    }
+    let lastKnownDeviceHeading = null; // no compass source currently wired up — the Maps bearing needle
+                                        // already falls back to a numeric-only bearing when this is null.
 
     // ============================================================
     // GET MAPS & WAYPOINTS MODULE
@@ -3353,8 +3334,113 @@
     }
 
     // --- Map init (lazy — only after the tab/container is actually visible) ---
+    // --- Tactical Compass (Maps page) ---
+
+    let mapsCompassActive = false;
+    let mapsCompassOffset = 0;
+    let mapsCompassRawHeading = null;
+    let mapsCompassTicksRendered = false;
+
+    function renderMapsCompassTicks() {
+      if (mapsCompassTicksRendered) return;
+      const container = document.getElementById('maps-compass-ticks');
+      if (!container) return;
+      mapsCompassTicksRendered = true;
+
+      let ticksHtml = '';
+      for (let deg = 0; deg < 360; deg += 15) {
+        const major = deg % 90 === 0;
+        const minor = !major && deg % 30 === 0;
+        const height = major ? '10px' : minor ? '7px' : '4px';
+        const width = major ? '2px' : '1px';
+        const color = major ? 'rgba(212,175,55,0.9)' : 'rgba(212,175,55,0.4)';
+        ticksHtml += `<div style="position:absolute; left:50%; top:0; height:50%; width:0; transform: translateX(-50%) rotate(${deg}deg); transform-origin: bottom center;">
+          <div style="width:${width}; height:${height}; background:${color}; margin:0 auto;"></div>
+        </div>`;
+      }
+      container.innerHTML = ticksHtml;
+    }
+
+    function updateMapsCompassButtons() {
+      const enableBtn = document.getElementById('maps-compass-enable-btn');
+      const calibrateBtn = document.getElementById('maps-compass-calibrate-btn');
+      if (enableBtn) enableBtn.classList.toggle('hidden', mapsCompassActive);
+      if (calibrateBtn) calibrateBtn.classList.toggle('hidden', !mapsCompassActive);
+    }
+
+    function startMapsCompass() {
+      if (mapsCompassActive) return;
+      const status = document.getElementById('maps-compass-status');
+
+      if (!window.DeviceOrientationEvent) {
+        if (status) status.textContent = 'Compass not supported on this browser/device.';
+        return;
+      }
+
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().then(permissionState => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleMapsCompassOrientation);
+            mapsCompassActive = true;
+            updateMapsCompassButtons();
+            if (status) status.textContent = 'Active — not calibrated';
+          } else if (status) {
+            status.textContent = 'Compass permission denied.';
+          }
+        }).catch(() => {
+          if (status) status.textContent = 'Could not request compass permission.';
+        });
+      } else {
+        window.addEventListener('deviceorientation', handleMapsCompassOrientation);
+        mapsCompassActive = true;
+        updateMapsCompassButtons();
+        if (status) status.textContent = 'Active — not calibrated';
+      }
+    }
+
+    function handleMapsCompassOrientation(event) {
+      let heading;
+      if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
+        heading = event.webkitCompassHeading;
+      } else if (event.alpha !== null) {
+        heading = 360 - event.alpha;
+      } else {
+        return;
+      }
+
+      heading = ((heading % 360) + 360) % 360;
+      mapsCompassRawHeading = heading;
+
+      const calibrated = Math.round(((heading - mapsCompassOffset) % 360 + 360) % 360);
+      lastKnownDeviceHeading = calibrated;
+
+      const dial = document.getElementById('maps-compass-dial');
+      const readout = document.getElementById('maps-compass-readout');
+      const dirText = document.getElementById('maps-compass-direction');
+      if (dial) dial.style.transform = `rotate(${-calibrated}deg)`;
+      if (readout) readout.textContent = `${calibrated}°`;
+      if (dirText) dirText.textContent = bearingToCompass(calibrated);
+
+      if (typeof updateWaypointCompassNeedle === 'function') updateWaypointCompassNeedle();
+    }
+
+    function calibrateMapsCompassToNorth() {
+      const status = document.getElementById('maps-compass-status');
+      if (mapsCompassRawHeading === null) {
+        if (status) status.textContent = 'Move your phone slightly first, then calibrate.';
+        return;
+      }
+      mapsCompassOffset = mapsCompassRawHeading;
+      if (status) {
+        status.textContent = '✓ Calibrated to North';
+        status.classList.remove('text-amber-200/50');
+        status.classList.add('text-emerald-400');
+      }
+    }
+
     function initMapsModule() {
       renderCategoryOptions();
+      renderMapsCompassTicks();
       if (!waypointMap) {
         setTimeout(() => {
           waypointMap = L.map('leaflet-map', { zoomControl: true }).setView([CHICLANA_LAT, CHICLANA_LON], 12);
@@ -3599,7 +3685,6 @@
     }
 
     function navigateToSelected() {
-      startCompass(); // explicit user action — safe point to request device orientation permission
       if (!currentPosition) {
         locateMe().then(() => { if (selectedWaypointId) renderWaypointDetails(selectedWaypointId); });
         return;

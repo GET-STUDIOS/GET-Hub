@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GET - Ready Together</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" type="image/png" href="./Favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -1770,11 +1770,11 @@
             <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2">
               <span>🧭</span> Tactical Compass
             </h3>
-            <p id="maps-compass-status" class="text-[10px] text-amber-200/50 text-right">Not enabled</p>
+            <p id="maps-compass-status" class="text-[10px] text-amber-200/50 text-right"></p>
           </div>
 
           <div class="flex flex-col items-center">
-            <div class="relative w-52 h-52 sm:w-60 sm:h-60 my-3">
+            <div id="maps-compass-tapzone" onclick="startMapsCompass()" class="relative w-52 h-52 sm:w-60 sm:h-60 my-3 cursor-pointer">
               <div class="absolute inset-0 rounded-full border-2 border-brand-gold/50" style="box-shadow: 0 0 24px rgba(212,175,55,0.25), inset 0 0 24px rgba(212,175,55,0.12);"></div>
               <div class="absolute inset-1 rounded-full" style="background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, rgba(0,0,0,0.65) 72%);"></div>
 
@@ -1798,17 +1798,7 @@
             </div>
 
             <p id="maps-compass-readout" class="text-4xl sm:text-5xl font-black text-brand-gold tabular-nums leading-none" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--°</p>
-            <p id="maps-compass-direction" class="text-xs text-amber-200/60 uppercase tracking-widest mb-3 mt-1">Compass inactive</p>
-
-            <div class="flex gap-2">
-              <button id="maps-compass-enable-btn" onclick="startMapsCompass()" class="text-xs bg-brand-gold hover:bg-brand-goldLight text-brand-black font-bold py-2 px-4 rounded-lg transition shadow">
-                Enable Compass
-              </button>
-              <button id="maps-compass-calibrate-btn" onclick="calibrateMapsCompassToNorth()" class="hidden text-xs bg-brand-black/60 hover:bg-brand-black border border-brand-gold/40 text-brand-gold font-bold py-2 px-4 rounded-lg transition">
-                🧭 Calibrate to North
-              </button>
-            </div>
-            <p class="text-[10px] text-amber-200/40 text-center mt-2 max-w-xs">Face a known North (real compass, sun, or map app) before calibrating for an accurate reading.</p>
+            <p id="maps-compass-direction" class="text-xs text-amber-200/60 uppercase tracking-widest mt-1">Starting...</p>
           </div>
         </section>
 
@@ -3337,8 +3327,6 @@
     // --- Tactical Compass (Maps page) ---
 
     let mapsCompassActive = false;
-    let mapsCompassOffset = 0;
-    let mapsCompassRawHeading = null;
     let mapsCompassTicksRendered = false;
 
     function renderMapsCompassTicks() {
@@ -3361,40 +3349,35 @@
       container.innerHTML = ticksHtml;
     }
 
-    function updateMapsCompassButtons() {
-      const enableBtn = document.getElementById('maps-compass-enable-btn');
-      const calibrateBtn = document.getElementById('maps-compass-calibrate-btn');
-      if (enableBtn) enableBtn.classList.toggle('hidden', mapsCompassActive);
-      if (calibrateBtn) calibrateBtn.classList.toggle('hidden', !mapsCompassActive);
-    }
-
     function startMapsCompass() {
       if (mapsCompassActive) return;
       const status = document.getElementById('maps-compass-status');
+      const dirText = document.getElementById('maps-compass-direction');
 
       if (!window.DeviceOrientationEvent) {
-        if (status) status.textContent = 'Compass not supported on this browser/device.';
+        if (dirText) dirText.textContent = 'Compass not supported on this device';
         return;
       }
 
       if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        // iOS only grants this when called directly inside a user tap — that's an Apple
+        // platform restriction, not something this app can bypass. On page load this will
+        // silently do nothing until the compass dial itself is tapped once.
         DeviceOrientationEvent.requestPermission().then(permissionState => {
           if (permissionState === 'granted') {
             window.addEventListener('deviceorientation', handleMapsCompassOrientation);
             mapsCompassActive = true;
-            updateMapsCompassButtons();
-            if (status) status.textContent = 'Active — not calibrated';
-          } else if (status) {
-            status.textContent = 'Compass permission denied.';
+            if (status) status.textContent = '';
+          } else if (dirText) {
+            dirText.textContent = 'Tap the dial to activate';
           }
         }).catch(() => {
-          if (status) status.textContent = 'Could not request compass permission.';
+          if (dirText) dirText.textContent = 'Tap the dial to activate';
         });
       } else {
         window.addEventListener('deviceorientation', handleMapsCompassOrientation);
         mapsCompassActive = true;
-        updateMapsCompassButtons();
-        if (status) status.textContent = 'Active — not calibrated';
+        if (status) status.textContent = '';
       }
     }
 
@@ -3408,39 +3391,23 @@
         return;
       }
 
-      heading = ((heading % 360) + 360) % 360;
-      mapsCompassRawHeading = heading;
-
-      const calibrated = Math.round(((heading - mapsCompassOffset) % 360 + 360) % 360);
-      lastKnownDeviceHeading = calibrated;
+      heading = Math.round(((heading % 360) + 360) % 360);
+      lastKnownDeviceHeading = heading;
 
       const dial = document.getElementById('maps-compass-dial');
       const readout = document.getElementById('maps-compass-readout');
       const dirText = document.getElementById('maps-compass-direction');
-      if (dial) dial.style.transform = `rotate(${-calibrated}deg)`;
-      if (readout) readout.textContent = `${calibrated}°`;
-      if (dirText) dirText.textContent = bearingToCompass(calibrated);
+      if (dial) dial.style.transform = `rotate(${-heading}deg)`;
+      if (readout) readout.textContent = `${heading}°`;
+      if (dirText) dirText.textContent = bearingToCompass(heading);
 
       if (typeof updateWaypointCompassNeedle === 'function') updateWaypointCompassNeedle();
-    }
-
-    function calibrateMapsCompassToNorth() {
-      const status = document.getElementById('maps-compass-status');
-      if (mapsCompassRawHeading === null) {
-        if (status) status.textContent = 'Move your phone slightly first, then calibrate.';
-        return;
-      }
-      mapsCompassOffset = mapsCompassRawHeading;
-      if (status) {
-        status.textContent = '✓ Calibrated to North';
-        status.classList.remove('text-amber-200/50');
-        status.classList.add('text-emerald-400');
-      }
     }
 
     function initMapsModule() {
       renderCategoryOptions();
       renderMapsCompassTicks();
+      startMapsCompass();
       if (!waypointMap) {
         setTimeout(() => {
           waypointMap = L.map('leaflet-map', { zoomControl: true }).setView([CHICLANA_LAT, CHICLANA_LON], 12);

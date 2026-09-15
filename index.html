@@ -3374,6 +3374,14 @@
         }).catch(() => {
           if (dirText) dirText.textContent = 'Tap the dial to activate';
         });
+      } else if ('ondeviceorientationabsolute' in window) {
+        // Chrome/Android: the plain 'deviceorientation' event can silently hand back
+        // relative-only angles (arbitrary zero-point set wherever tracking started, which
+        // is exactly the "north = wherever I opened the page" symptom). This event
+        // explicitly guarantees true compass-referenced (magnetic north) values instead.
+        window.addEventListener('deviceorientationabsolute', handleMapsCompassOrientation);
+        mapsCompassActive = true;
+        if (status) status.textContent = '';
       } else {
         window.addEventListener('deviceorientation', handleMapsCompassOrientation);
         mapsCompassActive = true;
@@ -3381,12 +3389,37 @@
       }
     }
 
+    // Standard tilt-compensated compass heading formula. Using alpha alone (as the previous
+    // versions did) ignores how the phone is actually being tilted while held — beta (front-
+    // back tilt) and gamma (left-right tilt) — which is very likely why the reading kept
+    // drifting depending on how the phone was held. This combines all three angles the way
+    // real compass apps do.
+    function computeTiltCompensatedHeading(alpha, beta, gamma) {
+      const alphaRad = alpha * (Math.PI / 180);
+      const betaRad = beta * (Math.PI / 180);
+      const gammaRad = gamma * (Math.PI / 180);
+
+      const cA = Math.cos(alphaRad), sA = Math.sin(alphaRad);
+      const cB = Math.cos(betaRad), sB = Math.sin(betaRad);
+      const cG = Math.cos(gammaRad), sG = Math.sin(gammaRad);
+
+      const rA = -cA * sG - sA * sB * cG;
+      const rB = -sA * sG + cA * sB * cG;
+
+      let compassHeading = Math.atan(rA / rB);
+      if (rB < 0) compassHeading += Math.PI;
+      else if (rA < 0) compassHeading += 2 * Math.PI;
+
+      return compassHeading * (180 / Math.PI);
+    }
+
     function handleMapsCompassOrientation(event) {
       let heading;
       if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
+        // iOS Safari already returns a tilt-compensated, magnetic-north-referenced heading.
         heading = event.webkitCompassHeading;
-      } else if (event.alpha !== null) {
-        heading = 360 - event.alpha;
+      } else if (event.alpha !== null && event.beta !== null && event.gamma !== null) {
+        heading = computeTiltCompensatedHeading(event.alpha, event.beta, event.gamma);
       } else {
         return;
       }

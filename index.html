@@ -3349,92 +3349,64 @@
       container.innerHTML = ticksHtml;
     }
 
+    // DIGITAL COMPASS ENGINE (ORIENTATION API)
+    // -------------------------------------------------------------
     function startMapsCompass() {
       if (mapsCompassActive) return;
       const status = document.getElementById('maps-compass-status');
       const dirText = document.getElementById('maps-compass-direction');
 
-      if (!window.DeviceOrientationEvent) {
-        if (dirText) dirText.textContent = 'Compass not supported on this device';
-        return;
-      }
-
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         // iOS only grants this when called directly inside a user tap — that's an Apple
         // platform restriction, not something this app can bypass. On page load this will
         // silently do nothing until the compass dial itself is tapped once.
-        DeviceOrientationEvent.requestPermission().then(permissionState => {
-          if (permissionState === 'granted') {
-            window.addEventListener('deviceorientation', handleMapsCompassOrientation);
-            mapsCompassActive = true;
-            if (status) status.textContent = '';
-          } else if (dirText) {
-            dirText.textContent = 'Tap the dial to activate';
-          }
-        }).catch(() => {
-          if (dirText) dirText.textContent = 'Tap the dial to activate';
-        });
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('deviceorientation', handleMapsCompassOrientation, true);
+              mapsCompassActive = true;
+              if (status) status.textContent = '';
+            } else if (dirText) {
+              dirText.textContent = 'Tap the dial to activate';
+            }
+          })
+          .catch(() => {
+            if (dirText) dirText.textContent = 'Tap the dial to activate';
+          });
       } else if ('ondeviceorientationabsolute' in window) {
-        // Chrome/Android: the plain 'deviceorientation' event can silently hand back
-        // relative-only angles (arbitrary zero-point set wherever tracking started, which
-        // is exactly the "north = wherever I opened the page" symptom). This event
-        // explicitly guarantees true compass-referenced (magnetic north) values instead.
-        window.addEventListener('deviceorientationabsolute', handleMapsCompassOrientation);
+        window.addEventListener('deviceorientationabsolute', handleMapsCompassOrientation, true);
         mapsCompassActive = true;
         if (status) status.textContent = '';
-      } else {
-        window.addEventListener('deviceorientation', handleMapsCompassOrientation);
+      } else if ('ondeviceorientation' in window) {
+        window.addEventListener('deviceorientation', handleMapsCompassOrientation, true);
         mapsCompassActive = true;
         if (status) status.textContent = '';
+      } else if (dirText) {
+        dirText.textContent = 'Compass not supported on this device';
       }
-    }
-
-    // Standard tilt-compensated compass heading formula. Using alpha alone (as the previous
-    // versions did) ignores how the phone is actually being tilted while held — beta (front-
-    // back tilt) and gamma (left-right tilt) — which is very likely why the reading kept
-    // drifting depending on how the phone was held. This combines all three angles the way
-    // real compass apps do.
-    function computeTiltCompensatedHeading(alpha, beta, gamma) {
-      const alphaRad = alpha * (Math.PI / 180);
-      const betaRad = beta * (Math.PI / 180);
-      const gammaRad = gamma * (Math.PI / 180);
-
-      const cA = Math.cos(alphaRad), sA = Math.sin(alphaRad);
-      const cB = Math.cos(betaRad), sB = Math.sin(betaRad);
-      const cG = Math.cos(gammaRad), sG = Math.sin(gammaRad);
-
-      const rA = -cA * sG - sA * sB * cG;
-      const rB = -sA * sG + cA * sB * cG;
-
-      let compassHeading = Math.atan(rA / rB);
-      if (rB < 0) compassHeading += Math.PI;
-      else if (rA < 0) compassHeading += 2 * Math.PI;
-
-      return compassHeading * (180 / Math.PI);
     }
 
     function handleMapsCompassOrientation(event) {
-      let heading;
-      if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
-        // iOS Safari already returns a tilt-compensated, magnetic-north-referenced heading.
+      let heading = null;
+
+      if (event.webkitCompassHeading) {
         heading = event.webkitCompassHeading;
-      } else if (event.alpha !== null && event.beta !== null && event.gamma !== null) {
-        heading = computeTiltCompensatedHeading(event.alpha, event.beta, event.gamma);
-      } else {
-        return;
+      } else if (event.alpha !== null) {
+        heading = 360 - event.alpha;
       }
 
-      heading = Math.round(((heading % 360) + 360) % 360);
-      lastKnownDeviceHeading = heading;
+      if (heading !== null) {
+        lastKnownDeviceHeading = Math.round(heading);
+        const dial = document.getElementById('maps-compass-dial');
+        const readout = document.getElementById('maps-compass-readout');
+        const dirText = document.getElementById('maps-compass-direction');
 
-      const dial = document.getElementById('maps-compass-dial');
-      const readout = document.getElementById('maps-compass-readout');
-      const dirText = document.getElementById('maps-compass-direction');
-      if (dial) dial.style.transform = `rotate(${-heading}deg)`;
-      if (readout) readout.textContent = `${heading}°`;
-      if (dirText) dirText.textContent = bearingToCompass(heading);
+        if (dial) dial.style.transform = `rotate(${-heading}deg)`;
+        if (readout) readout.textContent = `${Math.round(heading)}°`;
+        if (dirText) dirText.textContent = bearingToCompass(Math.round(heading));
 
-      if (typeof updateWaypointCompassNeedle === 'function') updateWaypointCompassNeedle();
+        if (typeof updateWaypointCompassNeedle === 'function') updateWaypointCompassNeedle();
+      }
     }
 
     function initMapsModule() {

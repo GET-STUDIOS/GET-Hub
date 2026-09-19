@@ -139,6 +139,122 @@
       to { transform: translateY(0); opacity: 1; }
     }
     .c4-piece-drop { animation: c4-drop-in 0.22s ease-in; }
+
+    /* Explorer Compass — scoped under .explorer-compass-wrapper so nothing here leaks
+       into the rest of the app. Dimensions scaled down from the original 340px design
+       to fit safely inside the existing card padding on narrow phones. */
+    .explorer-compass-wrapper {
+      --ec-gold: #d4af37;
+      --ec-gold-glow: rgba(212, 175, 55, 0.4);
+      --ec-beige: #f5f5dc;
+      --ec-glass-bg: rgba(20, 20, 20, 0.65);
+      --ec-glass-border: rgba(212, 175, 55, 0.3);
+      position: relative;
+      width: clamp(210px, 62vw, 260px);
+      height: clamp(210px, 62vw, 260px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+      cursor: pointer;
+    }
+    .explorer-compass-body {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--ec-glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid var(--ec-glass-border);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(212, 175, 55, 0.15);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .explorer-ambient-glow {
+      position: absolute;
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--ec-gold-glow) 0%, transparent 70%);
+      filter: blur(25px);
+      z-index: 1;
+    }
+    .explorer-dial-ring {
+      position: absolute;
+      width: 88%;
+      height: 88%;
+      border-radius: 50%;
+      border: 2px dashed rgba(212, 175, 55, 0.3);
+    }
+    .explorer-direction {
+      position: absolute;
+      font-weight: bold;
+      font-size: 1rem;
+      font-family: Georgia, serif;
+      color: var(--ec-beige);
+      z-index: 2;
+    }
+    .explorer-direction.N { top: 14px; left: 50%; transform: translateX(-50%); color: var(--ec-gold); text-shadow: 0 0 10px var(--ec-gold-glow); }
+    .explorer-direction.E { right: 16px; top: 50%; transform: translateY(-50%); }
+    .explorer-direction.S { bottom: 14px; left: 50%; transform: translateX(-50%); }
+    .explorer-direction.W { left: 16px; top: 50%; transform: translateY(-50%); }
+    .explorer-center-brand {
+      position: absolute;
+      z-index: 2;
+      bottom: 25%;
+      font-size: 0.55rem;
+      letter-spacing: 1.5px;
+      font-weight: bold;
+      font-family: Georgia, serif;
+      color: var(--ec-beige);
+      text-transform: uppercase;
+      text-align: center;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    }
+    .explorer-needle {
+      position: absolute;
+      width: 11px;
+      height: 152px;
+      z-index: 3;
+      transition: transform 0.2s cubic-bezier(0.1, 0.8, 0.3, 1);
+      transform-origin: center center;
+    }
+    .explorer-needle-north {
+      position: absolute;
+      top: 0;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 76px solid var(--ec-gold);
+      filter: drop-shadow(0 0 8px var(--ec-gold-glow));
+    }
+    .explorer-needle-south {
+      position: absolute;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 76px solid var(--ec-beige);
+      opacity: 0.8;
+    }
+    .explorer-pivot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 13px;
+      height: 13px;
+      background: var(--ec-gold);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--ec-gold-glow);
+      z-index: 4;
+      border: 2px solid #000;
+    }
   </style>
 
   <script>
@@ -1764,41 +1880,40 @@
           </div>
         </section>
 
-        <!-- Tactical Compass -->
+        <!-- Explorer Compass -->
         <section class="bg-brand-brownCard border border-brand-gold/30 p-5 rounded-2xl shadow-lg">
           <div class="flex justify-between items-center mb-1">
             <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2">
-              <span>🧭</span> Tactical Compass
+              <span>🧭</span> Explorer Compass
             </h3>
-            <p id="maps-compass-status" class="text-[10px] text-amber-200/50 text-right"></p>
+            <p id="explorer-compass-status" class="text-[10px] text-amber-200/50 text-right"></p>
           </div>
 
-          <div class="flex flex-col items-center">
-            <div id="maps-compass-tapzone" onclick="startMapsCompass()" class="relative w-52 h-52 sm:w-60 sm:h-60 my-3 cursor-pointer">
-              <div class="absolute inset-0 rounded-full border-2 border-brand-gold/50" style="box-shadow: 0 0 24px rgba(212,175,55,0.25), inset 0 0 24px rgba(212,175,55,0.12);"></div>
-              <div class="absolute inset-1 rounded-full" style="background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, rgba(0,0,0,0.65) 72%);"></div>
+          <div class="flex flex-col items-center py-2">
+            <div class="explorer-compass-wrapper" id="explorerCompassContainer">
+              <div class="explorer-compass-body">
+                <div class="explorer-ambient-glow"></div>
+                <div class="explorer-dial-ring"></div>
 
-              <div id="maps-compass-ticks" class="absolute inset-3 rounded-full"></div>
+                <div class="explorer-direction N"><span>N</span></div>
+                <div class="explorer-direction E"><span>E</span></div>
+                <div class="explorer-direction S"><span>S</span></div>
+                <div class="explorer-direction W"><span>W</span></div>
 
-              <div class="absolute left-1/2 -translate-x-1/2 -top-1 z-20 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[14px] border-b-red-500" style="filter: drop-shadow(0 0 4px rgba(239,68,68,0.7));"></div>
+                <div class="explorer-needle" id="explorerCompassNeedle">
+                  <div class="explorer-needle-north"></div>
+                  <div class="explorer-needle-south"></div>
+                  <div class="explorer-pivot"></div>
+                </div>
 
-              <div id="maps-compass-dial" class="absolute inset-3 rounded-full transition-transform duration-150 ease-out">
-                <span class="absolute top-1 left-1/2 -translate-x-1/2 text-brand-gold font-black text-base" style="font-family: 'Orbitron', sans-serif;">N</span>
-                <span class="absolute right-1 top-1/2 -translate-y-1/2 text-amber-200/70 font-bold text-sm">E</span>
-                <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-amber-200/70 font-bold text-sm">S</span>
-                <span class="absolute left-1 top-1/2 -translate-y-1/2 text-amber-200/70 font-bold text-sm">W</span>
-
-                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center" style="height: 82%;">
-                  <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[11px] border-b-red-500" style="filter: drop-shadow(0 0 3px rgba(239,68,68,0.6));"></div>
-                  <div class="w-1.5 flex-grow bg-gradient-to-b from-red-500 via-brand-gold to-brand-gold rounded-full" style="filter: drop-shadow(0 0 3px rgba(212,175,55,0.5));"></div>
+                <div class="explorer-center-brand">
+                  <span>Goutier Explorer<br>Team</span>
                 </div>
               </div>
-
-              <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-brand-gold shadow-lg z-10"></div>
             </div>
 
-            <p id="maps-compass-readout" class="text-4xl sm:text-5xl font-black text-brand-gold tabular-nums leading-none" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--°</p>
-            <p id="maps-compass-direction" class="text-xs text-amber-200/60 uppercase tracking-widest mt-1">Starting...</p>
+            <p id="explorer-compass-readout" class="text-2xl font-black text-brand-gold tabular-nums leading-none mt-3" style="font-family: 'Orbitron', sans-serif; letter-spacing: 0.03em;">--°</p>
+            <p id="explorer-compass-direction" class="text-xs text-amber-200/60 uppercase tracking-widest mt-1">Tap the dial to activate</p>
           </div>
         </section>
 
@@ -3324,95 +3439,94 @@
     }
 
     // --- Map init (lazy — only after the tab/container is actually visible) ---
-    // --- Tactical Compass (Maps page) ---
+    // --- Explorer Compass (Maps page) ---
 
-    let mapsCompassActive = false;
-    let mapsCompassTicksRendered = false;
+    let explorerCompassActive = false;
+    let explorerCompassWired = false;
 
-    function renderMapsCompassTicks() {
-      if (mapsCompassTicksRendered) return;
-      const container = document.getElementById('maps-compass-ticks');
-      if (!container) return;
-      mapsCompassTicksRendered = true;
+    function initExplorerCompass() {
+      const compass = document.getElementById('explorerCompassContainer');
+      const needle = document.getElementById('explorerCompassNeedle');
+      if (!compass || !needle) return;
 
-      let ticksHtml = '';
-      for (let deg = 0; deg < 360; deg += 15) {
-        const major = deg % 90 === 0;
-        const minor = !major && deg % 30 === 0;
-        const height = major ? '10px' : minor ? '7px' : '4px';
-        const width = major ? '2px' : '1px';
-        const color = major ? 'rgba(212,175,55,0.9)' : 'rgba(212,175,55,0.4)';
-        ticksHtml += `<div style="position:absolute; left:50%; top:0; height:50%; width:0; transform: translateX(-50%) rotate(${deg}deg); transform-origin: bottom center;">
-          <div style="width:${width}; height:${height}; background:${color}; margin:0 auto;"></div>
-        </div>`;
+      if (!explorerCompassWired) {
+        explorerCompassWired = true;
+
+        // Desktop: 3D tilt + needle follows the cursor
+        document.addEventListener('mousemove', (e) => {
+          const mapsView = document.getElementById('view-maps');
+          if (!mapsView || mapsView.classList.contains('hidden')) return;
+          const { innerWidth, innerHeight } = window;
+          const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
+          const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
+          const maxTilt = 15;
+          compass.style.transform = `rotateX(${-y * maxTilt}deg) rotateY(${x * maxTilt}deg)`;
+
+          const compassRect = compass.getBoundingClientRect();
+          const compassCenterX = compassRect.left + compassRect.width / 2;
+          const compassCenterY = compassRect.top + compassRect.height / 2;
+          const angleRad = Math.atan2(e.clientY - compassCenterY, e.clientX - compassCenterX);
+          let angleDeg = angleRad * (180 / Math.PI) + 90;
+          needle.style.transform = `rotate(${angleDeg}deg)`;
+        });
+
+        // Tap to activate the real device compass (required on iOS — Apple only grants
+        // motion-sensor permission from inside a direct tap, not automatically on load)
+        compass.addEventListener('click', startExplorerCompass);
       }
-      container.innerHTML = ticksHtml;
+
+      startExplorerCompass();
     }
 
-    // DIGITAL COMPASS ENGINE (ORIENTATION API)
-    // -------------------------------------------------------------
-    function startMapsCompass() {
-      if (mapsCompassActive) return;
-      const status = document.getElementById('maps-compass-status');
-      const dirText = document.getElementById('maps-compass-direction');
+    function startExplorerCompass() {
+      if (explorerCompassActive) return;
+      const status = document.getElementById('explorer-compass-status');
+      const dirText = document.getElementById('explorer-compass-direction');
 
       if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS only grants this when called directly inside a user tap — that's an Apple
-        // platform restriction, not something this app can bypass. On page load this will
-        // silently do nothing until the compass dial itself is tapped once.
         DeviceOrientationEvent.requestPermission()
           .then(permissionState => {
             if (permissionState === 'granted') {
-              window.addEventListener('deviceorientation', handleMapsCompassOrientation, true);
-              mapsCompassActive = true;
+              window.addEventListener('deviceorientation', handleExplorerCompassOrientation);
+              explorerCompassActive = true;
               if (status) status.textContent = '';
+              if (dirText) dirText.textContent = '';
             } else if (dirText) {
-              dirText.textContent = 'Tap the dial to activate';
+              dirText.textContent = 'Permission denied';
             }
           })
           .catch(() => {
             if (dirText) dirText.textContent = 'Tap the dial to activate';
           });
-      } else if ('ondeviceorientationabsolute' in window) {
-        window.addEventListener('deviceorientationabsolute', handleMapsCompassOrientation, true);
-        mapsCompassActive = true;
+      } else if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleExplorerCompassOrientation);
+        explorerCompassActive = true;
         if (status) status.textContent = '';
-      } else if ('ondeviceorientation' in window) {
-        window.addEventListener('deviceorientation', handleMapsCompassOrientation, true);
-        mapsCompassActive = true;
-        if (status) status.textContent = '';
+        if (dirText) dirText.textContent = '';
       } else if (dirText) {
         dirText.textContent = 'Compass not supported on this device';
       }
     }
 
-    function handleMapsCompassOrientation(event) {
-      let heading = null;
+    function handleExplorerCompassOrientation(e) {
+      if (e.alpha === null) return;
+      const compassHeading = 360 - e.alpha;
+      const needle = document.getElementById('explorerCompassNeedle');
+      if (needle) needle.style.transform = `rotate(${compassHeading}deg)`;
 
-      if (event.webkitCompassHeading) {
-        heading = event.webkitCompassHeading;
-      } else if (event.alpha !== null) {
-        heading = 360 - event.alpha;
-      }
+      const rounded = Math.round(((compassHeading % 360) + 360) % 360);
+      lastKnownDeviceHeading = rounded;
+      const readout = document.getElementById('explorer-compass-readout');
+      const dirText = document.getElementById('explorer-compass-direction');
+      if (readout) readout.textContent = `${rounded}°`;
+      if (dirText) dirText.textContent = bearingToCompass(rounded);
 
-      if (heading !== null) {
-        lastKnownDeviceHeading = Math.round(heading);
-        const dial = document.getElementById('maps-compass-dial');
-        const readout = document.getElementById('maps-compass-readout');
-        const dirText = document.getElementById('maps-compass-direction');
-
-        if (dial) dial.style.transform = `rotate(${-heading}deg)`;
-        if (readout) readout.textContent = `${Math.round(heading)}°`;
-        if (dirText) dirText.textContent = bearingToCompass(Math.round(heading));
-
-        if (typeof updateWaypointCompassNeedle === 'function') updateWaypointCompassNeedle();
-      }
+      if (typeof updateWaypointCompassNeedle === 'function') updateWaypointCompassNeedle();
     }
 
     function initMapsModule() {
       renderCategoryOptions();
-      renderMapsCompassTicks();
-      startMapsCompass();
+      initExplorerCompass();
       if (!waypointMap) {
         setTimeout(() => {
           waypointMap = L.map('leaflet-map', { zoomControl: true }).setView([CHICLANA_LAT, CHICLANA_LON], 12);

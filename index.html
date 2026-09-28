@@ -3478,7 +3478,47 @@
       startExplorerCompass();
     }
 
-    function startExplorerCompass() {
+    async function startExplorerCompass() {
+      if (explorerCompassActive) return;
+      const status = document.getElementById('explorer-compass-status');
+      const dirText = document.getElementById('explorer-compass-direction');
+
+      // Try the modern Generic Sensor API first. Unlike DeviceOrientationEvent (which just
+      // hands back whatever number the browser has, real or not), this API explicitly opens
+      // a permission channel to the device's actual accelerometer/magnetometer/gyroscope —
+      // so on devices where DeviceOrientationEvent silently gives fake/relative data, this
+      // sometimes succeeds where that approach can't.
+      if ('AbsoluteOrientationSensor' in window && navigator.permissions) {
+        try {
+          const results = await Promise.all([
+            navigator.permissions.query({ name: 'accelerometer' }),
+            navigator.permissions.query({ name: 'magnetometer' }),
+            navigator.permissions.query({ name: 'gyroscope' })
+          ]);
+          if (results.every(r => r.state !== 'denied')) {
+            const sensor = new AbsoluteOrientationSensor({ frequency: 10, referenceFrame: 'device' });
+            sensor.addEventListener('reading', () => {
+              handleExplorerCompassSensorReading(sensor.quaternion);
+            });
+            sensor.addEventListener('error', (event) => {
+              console.warn('AbsoluteOrientationSensor failed, falling back to DeviceOrientationEvent:', event.error && event.error.name);
+              startExplorerCompassFallback();
+            });
+            sensor.start();
+            explorerCompassActive = true;
+            if (status) status.textContent = '';
+            if (dirText) dirText.textContent = '';
+            return;
+          }
+        } catch (err) {
+          console.warn('Generic Sensor API unavailable, falling back to DeviceOrientationEvent:', err);
+        }
+      }
+
+      startExplorerCompassFallback();
+    }
+
+    function startExplorerCompassFallback() {
       if (explorerCompassActive) return;
       const status = document.getElementById('explorer-compass-status');
       const dirText = document.getElementById('explorer-compass-direction');
@@ -3508,13 +3548,25 @@
       }
     }
 
+    function handleExplorerCompassSensorReading(q) {
+      // Extract yaw (heading around the vertical axis) from the quaternion, then convert
+      // to a standard compass bearing (0° = North, increasing clockwise).
+      const [x, y, z, w] = q;
+      const yaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
+      let heading = 360 - (yaw * 180 / Math.PI);
+      applyExplorerCompassHeading(heading);
+    }
+
     function handleExplorerCompassOrientation(e) {
       if (e.alpha === null) return;
-      const compassHeading = 360 - e.alpha;
-      const needle = document.getElementById('explorerCompassNeedle');
-      if (needle) needle.style.transform = `rotate(${compassHeading}deg)`;
+      applyExplorerCompassHeading(360 - e.alpha);
+    }
 
-      const rounded = Math.round(((compassHeading % 360) + 360) % 360);
+    function applyExplorerCompassHeading(heading) {
+      const rounded = Math.round(((heading % 360) + 360) % 360);
+      const needle = document.getElementById('explorerCompassNeedle');
+      if (needle) needle.style.transform = `rotate(${rounded}deg)`;
+
       lastKnownDeviceHeading = rounded;
       const readout = document.getElementById('explorer-compass-readout');
       const dirText = document.getElementById('explorer-compass-direction');

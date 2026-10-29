@@ -557,6 +557,8 @@
             </div>
 
             <p id="bday-subtext" class="text-[10px] text-amber-200/60 text-center mt-1">Next celebration</p>
+
+            <div id="bday-all-list" class="mt-3 pt-3 border-t border-brand-gold/20 space-y-1.5"></div>
           </section>
 
         </div>
@@ -6237,6 +6239,51 @@
       if (subtextElem) {
         const formattedDate = nextBday.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
         subtextElem.textContent = `${nextBday.name}'s birthday on ${formattedDate}`;
+      }
+
+      renderAllBirthdaysList(now);
+    }
+
+    let lastBirthdayListHtml = '';
+
+    function renderAllBirthdaysList(now) {
+      const listElem = document.getElementById('bday-all-list');
+      if (!listElem) return;
+
+      // Date-only comparison (not time-of-day), so a birthday happening today shows as
+      // "Today" instead of being treated as already passed.
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      const entries = TEAM_BIRTHDAYS.map(b => {
+        let next = new Date(now.getFullYear(), b.month - 1, b.day);
+        if (next < startOfToday) next = new Date(now.getFullYear() + 1, b.month - 1, b.day);
+        const daysUntil = Math.round((next - startOfToday) / 86400000);
+        return { name: b.name, date: next, daysUntil };
+      }).sort((a, b) => a.daysUntil - b.daysUntil);
+
+      const html = entries.map((e, i) => {
+        const dateStr = e.date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+        let whenText;
+        if (e.daysUntil === 0) whenText = 'Today! 🎉';
+        else if (e.daysUntil === 1) whenText = 'Tomorrow';
+        else whenText = `in ${e.daysUntil} days`;
+
+        const isNext = i === 0;
+        return `
+          <div class="flex justify-between items-center rounded-lg px-2.5 py-1.5 ${isNext ? 'bg-brand-gold/15 border border-brand-gold/40' : 'bg-brand-black/40 border border-brand-gold/10'}">
+            <div class="min-w-0">
+              <p class="text-xs font-bold ${isNext ? 'text-brand-gold' : 'text-amber-100'} truncate">${escapeHtml(e.name)}</p>
+              <p class="text-[10px] text-amber-200/50">${dateStr}</p>
+            </div>
+            <span class="text-[11px] font-mono font-bold ${e.daysUntil === 0 ? 'text-emerald-400' : isNext ? 'text-brand-gold' : 'text-amber-200/70'} flex-shrink-0 ml-2">${whenText}</span>
+          </div>`;
+      }).join('');
+
+      // The countdown ticks every second, but this list only changes once a day —
+      // skip the DOM write unless the content actually changed.
+      if (html !== lastBirthdayListHtml) {
+        listElem.innerHTML = html;
+        lastBirthdayListHtml = html;
       }
     }
 

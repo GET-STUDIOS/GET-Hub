@@ -2583,56 +2583,117 @@
       });
     }
 
+    // Each entry is one section of the News Feed. To add another source, add a line here:
+    //   type 'rss'   -> any RSS feed URL (fetched through the rss2json proxy)
+    //   type 'snapi' -> Spaceflight News API keyword search (free, no key)
+    const NEWS_SOURCES = [
+      { id: 'bbc', title: '📡 World News Headlines (BBC)', type: 'rss', url: 'http://feeds.bbci.co.uk/news/world/rss.xml', max: 6 },
+      { id: 'un', title: '🌐 United Nations News', type: 'rss', url: 'https://news.un.org/feed/subscribe/en/news/all/rss.xml', max: 6 },
+      { id: 'spacex', title: '🚀 SpaceX News', type: 'snapi', query: 'spacex', max: 6 }
+    ];
+
+    function safeUrl(u) {
+      // Only allow http(s) links — blocks javascript:/data: URLs from third-party feeds.
+      try {
+        const parsed = new URL(u, window.location.href);
+        return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.href : '#';
+      } catch (e) { return '#'; }
+    }
+
+    function parseNewsDate(value) {
+      if (!value) return null;
+      let s = String(value).trim();
+      // rss2json returns "YYYY-MM-DD HH:MM:SS" (UTC). Safari can't parse the space form.
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) s = s.replace(' ', 'T') + 'Z';
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function stripHtmlToText(html) {
+      // DOMParser documents are inert: no scripts run and no images/resources load.
+      if (!html) return '';
+      return (new DOMParser().parseFromString(String(html), 'text/html').body.textContent || '').trim();
+    }
+
+    async function fetchNewsSource(src) {
+      if (src.type === 'rss') {
+        const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(src.url));
+        if (!res.ok) return [];
+        const data = await res.json();
+        if (!data || data.status === 'error' || !Array.isArray(data.items)) return [];
+        return data.items.slice(0, src.max).map(i => ({
+          title: i.title, link: i.link, date: parseNewsDate(i.pubDate), description: stripHtmlToText(i.description), source: ''
+        }));
+      }
+      if (src.type === 'snapi') {
+        const res = await fetch(`https://api.spaceflightnewsapi.net/v4/articles/?search=${encodeURIComponent(src.query)}&limit=${src.max}`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        if (!data || !Array.isArray(data.results)) return [];
+        return data.results.map(a => ({
+          title: a.title, link: a.url, date: parseNewsDate(a.published_at), description: stripHtmlToText(a.summary), source: a.news_site || ''
+        }));
+      }
+      return [];
+    }
+
+    function renderNewsSection(title, items) {
+      if (!items || items.length === 0) {
+        return `<div class="mb-4"><h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">${escapeHtml(title)}</h4>
+          <p class="text-[11px] text-amber-200/40 bg-brand-black/40 border border-brand-gold/10 rounded-xl p-3">Currently unavailable — try Refresh in a moment.</p></div>`;
+      }
+      const rows = items.map(item => {
+        const when = item.date ? item.date.toLocaleString() : '';
+        const meta = [item.source, when].filter(Boolean).join(' · ');
+        return `
+          <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl space-y-1 text-xs">
+            <div class="flex justify-between items-start gap-2">
+              <a href="${escapeHtml(safeUrl(item.link))}" target="_blank" rel="noopener noreferrer" class="font-bold text-amber-100 hover:text-brand-gold transition leading-snug">${escapeHtml(item.title)}</a>
+              <span class="text-[10px] text-amber-200/50 text-right flex-shrink-0 max-w-[45%]">${escapeHtml(meta)}</span>
+            </div>
+            ${item.description ? `<p class="text-[11px] text-amber-200/70 line-clamp-2">${escapeHtml(item.description)}</p>` : ''}
+          </div>`;
+      }).join('');
+      return `<div class="mb-4"><h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">${escapeHtml(title)}</h4><div class="space-y-2">${rows}</div></div>`;
+    }
+
     async function loadNewsFeed() {
       const container = document.getElementById('news-container');
       if (!container) return;
       container.innerHTML = `<p class="text-amber-200/60 text-center py-6 text-xs">Fetching latest feeds...</p>`;
 
       try {
-        const [quakeRes, rssRes] = await Promise.all([
-          fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson').catch(() => null),
-          fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/world/rss.xml').catch(() => null)
-        ]);
+        // Every source is fetched in parallel and fails independently, so one slow or
+        // unavailable feed never blanks the rest of the page.
+        const quakePromise = fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson')
+          .then(r => (r.ok ? r.json() : null)).catch(() => null);
+        const sourcePromises = NEWS_SOURCES.map(src => fetchNewsSource(src).catch(() => []));
+
+        const [quakeData, ...sourceResults] = await Promise.all([quakePromise, ...sourcePromises]);
 
         let htmlContent = '';
-        if (quakeRes && quakeRes.ok) {
-          const quakeData = await quakeRes.json();
-          const quakes = quakeData.features.slice(0, 5);
-          if (quakes.length > 0) {
-            htmlContent += `<div class="mb-4"><h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">🌍 Recent Significant Earthquakes (USGS)</h4><div class="space-y-2">`;
-            quakes.forEach(q => {
-              htmlContent += `
-                <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl flex justify-between items-center text-xs">
-                  <div>
-                    <p class="font-bold text-amber-100">Magnitude ${q.properties.mag} - ${escapeHtml(q.properties.place)}</p>
-                    <p class="text-[10px] text-amber-200/60">${new Date(q.properties.time).toLocaleString()}</p>
-                  </div>
-                  <a href="${q.properties.url}" target="_blank" class="bg-brand-gold/20 hover:bg-brand-gold text-brand-gold hover:text-brand-black border border-brand-gold/40 px-2.5 py-1 rounded-lg font-bold transition text-[10px] whitespace-nowrap">Details ↗</a>
-                </div>`;
-            });
-            htmlContent += `</div></div>`;
-          }
+
+        const quakes = (quakeData && Array.isArray(quakeData.features)) ? quakeData.features.slice(0, 5) : [];
+        if (quakes.length > 0) {
+          htmlContent += `<div class="mb-4"><h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">🌍 Recent Significant Earthquakes (USGS)</h4><div class="space-y-2">`;
+          quakes.forEach(q => {
+            htmlContent += `
+              <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl flex justify-between items-center text-xs">
+                <div>
+                  <p class="font-bold text-amber-100">Magnitude ${escapeHtml(String(q.properties.mag))} - ${escapeHtml(q.properties.place)}</p>
+                  <p class="text-[10px] text-amber-200/60">${new Date(q.properties.time).toLocaleString()}</p>
+                </div>
+                <a href="${escapeHtml(safeUrl(q.properties.url))}" target="_blank" rel="noopener noreferrer" class="bg-brand-gold/20 hover:bg-brand-gold text-brand-gold hover:text-brand-black border border-brand-gold/40 px-2.5 py-1 rounded-lg font-bold transition text-[10px] whitespace-nowrap">Details ↗</a>
+              </div>`;
+          });
+          htmlContent += `</div></div>`;
         }
 
-        if (rssRes && rssRes.ok) {
-          const rssData = await rssRes.json();
-          if (rssData && rssData.items && rssData.items.length > 0) {
-            htmlContent += `<div><h4 class="text-xs font-bold text-brand-gold uppercase tracking-wider mb-2">📡 World News Headlines (BBC)</h4><div class="space-y-2">`;
-            rssData.items.slice(0, 6).forEach(item => {
-              htmlContent += `
-                <div class="bg-brand-black/60 border border-brand-gold/20 p-3 rounded-xl space-y-1 text-xs">
-                  <div class="flex justify-between items-start gap-2">
-                    <a href="${item.link}" target="_blank" class="font-bold text-amber-100 hover:text-brand-gold transition leading-snug">${escapeHtml(item.title)}</a>
-                    <span class="text-[10px] text-amber-200/50 whitespace-nowrap">${new Date(item.pubDate).toLocaleString()}</span>
-                  </div>
-                  <p class="text-[11px] text-amber-200/70 line-clamp-2">${escapeHtml(item.description || '')}</p>
-                </div>`;
-            });
-            htmlContent += `</div></div>`;
-          }
-        }
+        NEWS_SOURCES.forEach((src, i) => {
+          htmlContent += renderNewsSection(src.title, sourceResults[i]);
+        });
 
-        container.innerHTML = htmlContent || `<p class="text-amber-200/50 text-center py-6 text-xs">Unable to load live feeds at the moment.</p>`;
+        container.innerHTML = htmlContent;
       } catch (err) {
         container.innerHTML = `<p class="text-red-400 text-center py-6 text-xs">Error loading news feeds.</p>`;
       }
